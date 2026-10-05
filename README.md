@@ -11,7 +11,7 @@ Aquí se documentan todos los materiales de clase, trabajos prácticos, consigna
 - DIAZ, Iván – 87473
 - SORUCO, Jonatan – 79456
 - GIAIMO, Gino – 78426
-- PÁEZ DE LA TORRE, Matías – 83289
+- PÁEZ DE LA TORRE, Matías – 83289 - Usuario github: MatiNvty
 - RAMALLO, Mateo – 94441
 - CORREA, Jeremías – 88714
 - VARGAS FERNANDEZ, Rodrigo – 96417
