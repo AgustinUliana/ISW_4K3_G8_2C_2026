@@ -1,5 +1,6 @@
 import re
 from dataclasses import dataclass, field
+from enum import Enum
 
 from ecoharmony.horario import EstadoDeInscripcion
 from ecoharmony.motivos import MotivoRechazo
@@ -13,6 +14,11 @@ _MOTIVO_SEGUN_ESTADO = {
 }
 
 
+class EstadoDeLaInscripcion(Enum):
+    PENDIENTE = "pendiente"
+    CONFIRMADA = "confirmada"
+
+
 @dataclass
 class Inscripcion:
     actividad: object
@@ -20,6 +26,9 @@ class Inscripcion:
     visitantes: list = field(default_factory=list)
     email_de_contacto: str = ""
     terminos_aceptados: object = None
+    codigo: str = None
+    estado: EstadoDeLaInscripcion = EstadoDeLaInscripcion.PENDIENTE
+    confirmada_el: object = None
 
     def motivos_de_rechazo(self, parque, ahora):
         return [
@@ -28,6 +37,11 @@ class Inscripcion:
             *self._motivos_de_visitantes(),
             *self._motivos_de_contacto(),
         ]
+
+    def confirmar(self, codigo, ahora):
+        self.codigo = codigo
+        self.estado = EstadoDeLaInscripcion.CONFIRMADA
+        self.confirmada_el = ahora
 
     def errores_por_visitante(self):
         """Posicion (desde 1) de cada visitante invalido -> sus errores."""
