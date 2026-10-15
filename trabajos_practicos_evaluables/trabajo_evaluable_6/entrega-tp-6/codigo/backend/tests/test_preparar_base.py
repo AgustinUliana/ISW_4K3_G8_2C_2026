@@ -1,4 +1,4 @@
-"""PREP: dejar lista la base (esquema + las cuatro actividades), p. ej. la que se abre en DBeaver."""
+"""PREP: dejar lista la base (esquema + las cuatro actividades), p. ej. la de DBeaver."""
 
 import pytest
 
