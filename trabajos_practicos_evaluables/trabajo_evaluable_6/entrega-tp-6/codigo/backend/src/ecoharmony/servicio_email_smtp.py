@@ -64,6 +64,14 @@ def a_mime(mensaje, remitente):
     mime["Date"] = formatdate(localtime=True)
     mime["Message-ID"] = make_msgid(domain=remitente.rpartition("@")[2] or None)
     mime.set_content(mensaje.cuerpo)
+    if mensaje.cuerpo_html:
+        mime.add_alternative(mensaje.cuerpo_html, subtype="html")
+        html = mime.get_body(preferencelist=("html",))
+        for imagen in mensaje.imagenes_en_linea:
+            tipo_principal, subtipo = imagen.tipo.split("/")
+            html.add_related(
+                imagen.contenido, maintype=tipo_principal, subtype=subtipo, cid=f"<{imagen.cid}>"
+            )
     for adjunto in mensaje.adjuntos:
         tipo_principal, subtipo = adjunto.tipo.split("/")
         mime.add_attachment(

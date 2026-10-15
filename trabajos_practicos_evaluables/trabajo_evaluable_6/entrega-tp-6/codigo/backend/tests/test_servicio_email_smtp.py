@@ -89,8 +89,7 @@ def test_el_mime_con_html_ofrece_texto_plano_y_html_como_alternativas():
 def test_el_mime_con_html_incluye_las_imagenes_en_linea_con_su_content_id():
     mime = a_mime(MENSAJE_HTML, remitente="inscripciones@ecoharmony.example")
 
-    html = mime.get_body(preferencelist=("html",))
-    (logo,) = list(html.iter_attachments())
+    (logo,) = [parte for parte in mime.walk() if parte["Content-ID"]]
     assert logo["Content-ID"] == "<logo>"
     assert logo.get_content() == b"png-logo"
 
