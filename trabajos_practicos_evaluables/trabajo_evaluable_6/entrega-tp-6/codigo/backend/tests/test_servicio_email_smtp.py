@@ -6,7 +6,7 @@ prueba externa (categoria X) que se ejecuta aparte.
 
 import pytest
 
-from ecoharmony.mensaje_email import Adjunto, MensajeEmail
+from ecoharmony.mensaje_email import Adjunto, ImagenEnLinea, MensajeEmail
 from ecoharmony.servicio_email_smtp import (
     ConfiguracionIncompletaError,
     ConfiguracionSmtp,
@@ -67,6 +67,38 @@ def test_cada_mensaje_tiene_su_propio_identificador():
     otro = a_mime(MENSAJE, remitente="inscripciones@ecoharmony.example")
 
     assert uno["Message-ID"] != otro["Message-ID"]
+
+
+MENSAJE_HTML = MensajeEmail(
+    destinatario="ana.perez@example.com",
+    asunto="Inscripción confirmada: Tirolesa",
+    cuerpo="Texto plano",
+    cuerpo_html='<!doctype html><html><body><img src="cid:logo"><p>Hola</p></body></html>',
+    imagenes_en_linea=(ImagenEnLinea("logo", "image/png", b"png-logo"),),
+    adjuntos=(Adjunto("qr-visitante-1.png", "image/png", b"png-1"),),
+)
+
+
+def test_el_mime_con_html_ofrece_texto_plano_y_html_como_alternativas():
+    mime = a_mime(MENSAJE_HTML, remitente="inscripciones@ecoharmony.example")
+
+    assert mime.get_body(preferencelist=("plain",)).get_content().strip() == "Texto plano"
+    assert "<p>Hola</p>" in mime.get_body(preferencelist=("html",)).get_content()
+
+
+def test_el_mime_con_html_incluye_las_imagenes_en_linea_con_su_content_id():
+    mime = a_mime(MENSAJE_HTML, remitente="inscripciones@ecoharmony.example")
+
+    html = mime.get_body(preferencelist=("html",))
+    (logo,) = list(html.iter_attachments())
+    assert logo["Content-ID"] == "<logo>"
+    assert logo.get_content() == b"png-logo"
+
+
+def test_el_mime_con_html_conserva_los_qr_como_adjuntos():
+    mime = a_mime(MENSAJE_HTML, remitente="inscripciones@ecoharmony.example")
+
+    assert [a.get_filename() for a in mime.iter_attachments()] == ["qr-visitante-1.png"]
 
 
 class SmtpFalso:
