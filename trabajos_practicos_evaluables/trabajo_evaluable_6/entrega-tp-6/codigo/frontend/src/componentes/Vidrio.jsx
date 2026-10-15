@@ -12,6 +12,10 @@
 import LiquidGlass from "liquid-glass-react";
 import { useLayoutEffect, useRef, useState } from "react";
 
+// El mapa de refraccion de la libreria es un cuadrado de 256x256: en elementos mas anchos que esto
+// queda desalineado y se ve un contorno interior. Ahi alcanza con el vidrio esmerilado del CSS.
+const PROPORCION_MAXIMA = 1.6;
+
 export function Vidrio({
   children,
   className = "",
@@ -40,7 +44,7 @@ export function Vidrio({
       style={{ borderRadius: radio }}
       onClick={alClick}
     >
-      {refractar && medida && medida.ancho > 0 && medida.alto > 0 && (
+      {refractar && cabeLaRefraccion(medida) && (
         <div className="vidrio-capa" aria-hidden="true">
           <LiquidGlass
             cornerRadius={radio}
@@ -60,4 +64,9 @@ export function Vidrio({
       <div className="vidrio-contenido">{children}</div>
     </div>
   );
+}
+
+function cabeLaRefraccion(medida) {
+  if (!medida || medida.ancho <= 0 || medida.alto <= 0) return false;
+  return medida.ancho / medida.alto <= PROPORCION_MAXIMA;
 }
