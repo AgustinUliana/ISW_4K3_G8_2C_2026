@@ -55,7 +55,7 @@ diseño tomadas*. Este es ese documento. Cada decisión se presenta con el mismo
 |---|---|
 | Lenguaje y estilo | Python 3.13 (backend) y JavaScript/React 19 (front). **PEP 8**, verificado automáticamente con `ruff` (largo de línea 100). |
 | Enfoque | TDD de Kent Beck: lista de pruebas, y luego un ciclo **Red → Green → Refactor** por cada comportamiento, visible en `git log`. |
-| Pruebas automatizadas | **371 del backend** (336 sin base de datos + 35 contra PostgreSQL real y `qrcode` real) y **110 del front**. Todas verdes. |
+| Pruebas automatizadas | **373 del backend** (338 sin base de datos + 35 contra PostgreSQL real y `qrcode` real) y **110 del front**. Todas verdes. |
 | Persistencia | PostgreSQL 16 en Docker, SQL plano (sin ORM), visible desde DBeaver. |
 | Piezas reales y gratuitas | QR con la librería `qrcode`; email por SMTP genérico (Gmail o Brevo); PostgreSQL local. |
 | Interfaz | React + Vite, paleta y tipografía (Lato) del PO, estilo *Liquid Glass*, responsive. |
@@ -112,7 +112,7 @@ contrato**, que se ejecutan dos veces, contra el fake y contra PostgreSQL (§8.2
 
 | Cat. | Qué usa | Cuántas | Cuándo corre |
 |---|---|---|---|
-| **U** – unitarias | dominio y dobles; sin red, disco ni reloj real | 336 (backend) + 110 (front) | siempre (`pytest`, `vitest`) |
+| **U** – unitarias | dominio y dobles; sin red, disco ni reloj real | 338 (backend) + 110 (front) | siempre (`pytest`, `vitest`) |
 | **C** – contrato / integración local | PostgreSQL local, `qrcode` | 35 | con la base levantada (marcadores `db` y `local`); sin base se saltean con un aviso |
 | **X** – externas | email real a una casilla | 1 (se pide con `pytest -m externa`) | manual, antes de la entrega (marcador `externa`) |
 
@@ -288,7 +288,7 @@ no deseado. No hay forma de garantizar la bandeja de entrada (depende de la repu
 es mandar un mensaje bien formado (HTML con texto alternativo, `Date`, `Message-ID`, remitente igual al usuario SMTP) y marcarlo
 «No es spam» la primera vez. Un antivirus que analiza el correo saliente (Avast agrega un pie al mensaje) también puede
 influir.  
-**Respaldo:** `SMTP-01..13`, `MAIL-01/02`, `EML-01..15` y la prueba externa.
+**Respaldo:** `SMTP-01..13`, `MAIL-01/02`, `EML-01..17` y la prueba externa.
 
 ### D12. Términos y condiciones propios de cada actividad
 
@@ -466,7 +466,7 @@ biblioteca de componentes.
 
 ### 8.1 Pirámide
 
-- **Base (336 + 110):** unitarias del dominio, del servicio con dobles y de las pantallas con API falsa. Corren en
+- **Base (338 + 110):** unitarias del dominio, del servicio con dobles y de las pantallas con API falsa. Corren en
   segundos, sin infraestructura.
 - **Medio (35):** contratos contra PostgreSQL real y `qrcode` real, incluida la carrera por el último cupo.
 - **Cima:** aceptación (`ACE-01..08`, que además de las pruebas de usuario de la consigna cubren T&C ajenos y falta de sesión), cada una ejecutada con dobles **y** con PostgreSQL + QR real.
@@ -511,7 +511,7 @@ cd codigo
 docker compose up -d                       # PostgreSQL
 cd backend
 PYTHONPATH=src .venv/Scripts/python.exe -m ecoharmony.preparar_base
-.venv/Scripts/python.exe -m pytest         # 371 pruebas (las de base se saltean si no hay PostgreSQL)
+.venv/Scripts/python.exe -m pytest         # 373 pruebas (las de base se saltean si no hay PostgreSQL)
 .venv/Scripts/python.exe -m ruff check .   # PEP 8
 cd ../frontend
 npm install && npm test                    # 110 pruebas

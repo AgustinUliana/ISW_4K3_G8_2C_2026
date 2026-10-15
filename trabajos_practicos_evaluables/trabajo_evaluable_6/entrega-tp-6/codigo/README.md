@@ -135,7 +135,7 @@ EMAIL_REMITENTE=casilla-del-parque@gmail.com
 EMAIL_DE_PRUEBA=casilla-que-recibe-la-prueba@gmail.com
 ```
 
-4. Reiniciar la API. Desde ese momento los emails de las inscripciones se envían de verdad (si no se logra enviar tras 3
+4. **Reiniciar la API** (la configuración se lee al arrancar: si la API ya estaba corriendo, sigue guardando los emails en la carpeta). Desde ese momento los emails de las inscripciones se envían de verdad (si no se logra enviar tras 3
    intentos, la inscripción se anula). Sin esas variables, se guardan en `salida_de_emails/`.
 
 **Prueba externa (categoría X):** manda un email real con dos QR a `EMAIL_DE_PRUEBA`. No corre con `pytest` a secas; se pide
