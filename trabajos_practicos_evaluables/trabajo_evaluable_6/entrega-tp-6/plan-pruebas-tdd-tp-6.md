@@ -1,8 +1,8 @@
 # TP6 – TDD: Plan de pruebas (Test List)
 
 **User Story:** Inscribirme a actividad (EcoHarmony Park) · **Grupo 8** · ISW 4K3 · 2026
-**Estado:** v0.7 – backend y front React completos con TDD · 2026-10-16 (ver §11)
-**Documento hermano:** [preguntas-product-owner-tp-6.md](preguntas-product-owner-tp-6.md)
+**Estado:** v0.8 – backend y front React completos con TDD, T&C reales y documento de diseño · 2026-10-15 (ver §11)
+**Documentos hermanos:** [preguntas-product-owner-tp-6.md](preguntas-product-owner-tp-6.md) · [documento-de-diseno-tp-6.md](documento-de-diseno-tp-6.md)
 **Consigna:** [consigna-tp-6.pdf](../consigna-tp-6.pdf)
 
 **Cambios de la v0.3 (respuestas del PO, ver [preguntas-product-owner-tp-6.md](preguntas-product-owner-tp-6.md)):** fixtures reales (horarios, cupos, edades, talles); ventana de inscripción de 24 h a 15 min; **un QR por visitante** en un mismo email; conflicto de horario por DNI en cualquier actividad; máximo 10 personas; sólo DNI (7–8 dígitos).
@@ -477,7 +477,7 @@ Los contratos de los Grupos 6, 7 y 8 garantizan que reemplazar un doble por la p
 ## 11. Estado de la implementación (2026-10-15)
 
 Rama `tp6-tdd`: cada prueba se hizo con su ciclo visible en `git log` (`test(ID): rojo` → `feat(ID): verde` →
-`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **293 pruebas del backend y 108 del front, todas verdes** (sin base de
+`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **318 pruebas del backend y 108 del front, todas verdes** (sin base de
 datos y contra PostgreSQL real), PEP 8 limpio con `ruff`.
 
 | Grupo | Archivo de pruebas | Estado |
@@ -519,8 +519,8 @@ datos y contra PostgreSQL real), PEP 8 limpio con `ruff`.
 1. **Consultas de disponibilidad** (CAT-04..08) y la **API HTTP** (FastAPI) que la pantalla consume.
 2. **Front React** (paleta y fuente Lato del PO, responsive).
 3. **Prueba externa** de email real a una casilla del grupo (necesita credenciales de Gmail o Brevo).
-4. **Textos reales de los T&C** de cada actividad (hoy son un texto provisorio en `catalogo.py`).
-5. **Documento de decisiones de diseño** (`entrega-tp-6`), que pide la consigna.
+4. ~~Textos reales de los T&C~~ → hecho, ver §11.5.
+5. ~~Documento de decisiones de diseño~~ → hecho: [documento-de-diseno-tp-6.md](documento-de-diseno-tp-6.md) (y su PDF).
 6. **Usuarios con inicio de sesión simple** (decisión del grupo, 2026-10-15; grupo USU de abajo).
 7. Preguntas de baja prioridad abiertas al PO (ver `preguntas-product-owner-tp-6.md` §3).
 
@@ -626,6 +626,20 @@ antes de confirmar. Al volver desde la confirmación los datos cargados se conse
 ### 11.4 Lo que falta
 
 1. **Prueba externa** de email real a una casilla del grupo (necesita credenciales de Gmail o Brevo en el `.env`).
-2. **Textos reales de los T&C** de cada actividad (hoy son un texto provisorio en `catalogo.py`).
-3. **Documento de decisiones de diseño** (`entrega-tp-6`), que pide la consigna.
-4. Preguntas de baja prioridad abiertas al PO (ver `preguntas-product-owner-tp-6.md` §3).
+2. **Revisión del grupo de los T&C** (son un borrador, ver §11.5).
+3. Preguntas de baja prioridad abiertas al PO (ver `preguntas-product-owner-tp-6.md` §3).
+
+### 11.5 Términos y condiciones por actividad – hecho en la rama `docs/terminos-y-documento-de-diseno`
+
+El PO pidió un texto distinto por actividad, diseñado por el grupo. Cada texto lo arma `redactar_terminos` (módulo
+`terminos_texto.py`) con seis apartados (reserva, quiénes pueden participar, la actividad, el día de la actividad,
+seguridad y datos personales). Los números salen de las reglas de la actividad y de la ventana de inscripción, y lo propio
+de cada actividad (equipo de seguridad de la Tirolesa, animales del Safari, arnés de la Palestra, plantas y herramientas
+de Jardinería) es texto fijo. El front respeta los saltos de línea del texto.
+
+| Prueba | Qué verifica | Archivo |
+|---|---|---|
+| TYC-01..13 | ya no queda texto provisorio; versión `v1`; el título nombra la actividad; cada actividad tiene su apartado propio; edad mínima, talla y cupo por turno de cada actividad; reglas de reserva del PO (24 horas, 15 minutos, 10 personas, QR, DNI); el texto se arma con los datos y no con números fijos; una actividad sin texto propio no se puede redactar | `test_terminos_texto.py` |
+
+**Para que el grupo confirme:** suspensión por clima, menores de edad / adulto responsable (P10b), redacción de datos
+personales y las recomendaciones propias de cada actividad (calzado, accesorios, flash).
