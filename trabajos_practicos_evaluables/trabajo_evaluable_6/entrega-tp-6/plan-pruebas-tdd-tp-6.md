@@ -1,7 +1,7 @@
 # TP6 – TDD: Plan de pruebas (Test List)
 
 **User Story:** Inscribirme a actividad (EcoHarmony Park) · **Grupo 8** · ISW 4K3 · 2026
-**Estado:** v0.3 – con las respuestas del Product Owner · 2026-10-15
+**Estado:** v0.4 – dominio, servicio, base PostgreSQL y adaptadores implementados con TDD · 2026-10-15 (ver §11)
 **Documento hermano:** [preguntas-product-owner-tp-6.md](preguntas-product-owner-tp-6.md)
 **Consigna:** [consigna-tp-6.pdf](../consigna-tp-6.pdf)
 
@@ -419,8 +419,8 @@ pantalla React (tendría su propia lista con Jest + React Testing Library).
 |---|---|
 | Cómo se instala | **Docker** con un `docker-compose.yml` (imagen oficial `postgres`). Gratis, sin instalar Postgres en Windows, y cualquier integrante la levanta igual con `docker compose up -d`. Docker Desktop parece estar instalado en esta PC. Alternativas: instalador de Postgres para Windows, o una base gratuita en la nube (hay que revisar condiciones y límites vigentes antes de elegir). |
 | Dos bases | `ecoharmony`: desarrollo y demo, **la que se abre con DBeaver**. `ecoharmony_test`: solo para las pruebas automáticas, que la vacían en cada corrida; no sirve para mirar datos. |
-| Conexión en DBeaver | PostgreSQL → host `localhost`, puerto `5432` (el del contenedor), base `ecoharmony`, usuario y contraseña de `.env`. |
-| Esquema | `schema.sql` y `seed.sql` en SQL plano, versionados: se leen en DBeaver y la prueba REP-08 los ejecuta sobre una base vacía. |
+| Conexión en DBeaver | PostgreSQL → host `localhost`, puerto **`5433`** (el del host; evita chocar con otras bases locales), base `ecoharmony`, usuario y contraseña de `.env`. |
+| Esquema | `schema.sql` en SQL plano, versionado: se lee en DBeaver y la prueba REP-08 lo ejecuta sobre una base vacía. Las actividades se cargan desde el catálogo en Python (`preparar_base`), así hay una sola fuente de verdad (no hay `seed.sql`). |
 | Tablas tentativas | `actividad`, `horario_actividad` (cupo total y ocupado), `inscripcion`, `visitante_inscripto`, `aceptacion_terminos`. Se afinan cuando el PO responda P03–P06 y P15–P16. |
 | Cómo corren las pruebas | Unitarias (U): sin base, siempre. Contrato y aceptación (C/ACE): requieren `docker compose up -d`; si la base no responde se saltean con un mensaje que lo explica, para que `pytest` no falle por infraestructura. |
 
@@ -472,3 +472,50 @@ Los contratos de los Grupos 6, 7 y 8 garantizan que reemplazar un doble por la p
 ---
 
 *Total: 12 + 8 + 12 + 13 + 21 + 9 + 7 + 8 + 17 + 7 + 7 = 121 pruebas (QR-05 y QR-09 son opcionales). Se espera que la lista cambie durante la implementación.*
+
+
+## 11. Estado de la implementación (2026-10-15)
+
+Rama `tp6-tdd`: cada prueba se hizo con su ciclo visible en `git log` (`test(ID): rojo` → `feat(ID): verde` →
+`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **195 pruebas verdes** (170 sin base de
+datos + 25 contra PostgreSQL real), PEP 8 limpio con `ruff`.
+
+| Grupo | Archivo de pruebas | Estado |
+|---|---|---|
+| Actividad (ACT) | `test_actividad.py` | Hecho (ACT-01..09, 12). ACT-10 y ACT-11 pasaron al catálogo (CAT-01/ACT-11). |
+| Catálogo (CAT) | `test_catalogo.py`, `test_repositorio.py` | CAT-01, 02, 03 hechos. **CAT-04..08 (consultas de horarios disponibles) pendientes**: los necesita la API. |
+| Parque / Horario | `test_parque.py`, `test_horario.py` | Hecho (PAR-01..07, HOR-01..05). |
+| Visitante (VIS) | `test_visitante.py` | Hecho (VIS-01..16). Nuevos: VIS-14/15 (nombre, *provisorio*, P22) y VIS-16 (edad mínima). |
+| Inscripción (INS) | `test_inscripcion.py` | Hecho (INS-01..19, 06b). INS-20 (usuario registrado) queda fuera mientras P02 siga abierta. |
+| QR | `test_qr.py`, `test_generador_qr_local.py` | Hecho (QR-01..04, 06..08). QR-05 y QR-09 (opcionales) no se hicieron. |
+| Email (EML) | `test_mensaje_email.py` | Hecho (EML-01..07). |
+| Adaptador SMTP (SMTP, nuevo) | `test_servicio_email_smtp.py` | Hecho (SMTP-01..05) con un SMTP falso. El envío **real** a una casilla (categoría X) falta: requiere credenciales. |
+| Repositorios (REP) | `test_repositorio.py`, `test_esquema_postgres.py`, `test_preparar_base.py` | Hecho (REP-01..09, PREP-01/02), con el mismo contrato para el fake y para PostgreSQL. |
+| Servicio (SRV) | `test_inscripcion_service.py` | Hecho (SRV-01..20). Nuevos: SRV-18 actividad inexistente, SRV-19 y SRV-20 carreras por cupo y por DNI. |
+| Aceptación (ACE) | `test_aceptacion.py` | Hecho (ACE-01..07), cada una con fakes y con PostgreSQL + QR real. |
+| Reloj / entorno (nuevos) | `test_reloj.py`, `test_entorno.py` | Hecho. |
+| API HTTP (API) | – | **Pendiente.** |
+| Front React | – | **Pendiente** (Jest + React Testing Library, lista aparte). |
+
+### Decisiones que cambiaron respecto de lo planeado
+
+- **Orden de las operaciones del servicio:** validar → confirmar (código) → **generar los QR** → **guardar** (reserva
+  atómica de cupo + inscripción) → **enviar el email**. El QR se genera *antes* de guardar para que un fallo del QR no
+  deje la inscripción a medias (SRV-16); un fallo del email no deshace la inscripción (SRV-15, supuesto P13b).
+- **Reserva de cupo atómica en SQL** (una sola sentencia `INSERT … ON CONFLICT DO UPDATE … WHERE`): dos pedidos por el
+  último lugar no pueden ganar los dos (REP-05, probado con dos hilos contra PostgreSQL real).
+- **Conflicto de horario por DNI:** además de la comprobación previa (SRV-13) hay una restricción `UNIQUE (dni, fecha,
+  hora)` en la base (REP-09) y el servicio traduce esa carrera a `DNI_YA_INSCRIPTO` (SRV-20).
+- **Una prueba de contrato encontró un defecto real:** en el fake en memoria, `guardar` reservaba el cupo sobre la copia
+  de la actividad que traía la inscripción y no sobre la del repositorio (REP-03). Y una prueba (REP-04) dependía de que
+  el fake devolviera la misma instancia; se corrigió para preparar el estado usando solo la API del repositorio.
+- **Email por SMTP genérico:** un solo adaptador sirve para Gmail o Brevo (cambia solo la configuración del `.env`).
+
+### Lo que falta
+
+1. **Consultas de disponibilidad** (CAT-04..08) y la **API HTTP** (FastAPI) que la pantalla consume.
+2. **Front React** (paleta y fuente Lato del PO, responsive).
+3. **Prueba externa** de email real a una casilla del grupo (necesita credenciales de Gmail o Brevo).
+4. **Textos reales de los T&C** de cada actividad (hoy son un texto provisorio en `catalogo.py`).
+5. **Documento de decisiones de diseño** (`entrega-tp-6`), que pide la consigna.
+6. Preguntas abiertas al PO (ver `preguntas-product-owner-tp-6.md` §3): P01, P02, P07, P10b, P13b, P17.
