@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="titulo-logo">
+  <title id="titulo-logo">EcoHarmony Park – Grupo 8</title>
+  <defs>
+    <clipPath id="recorte"><circle cx="60" cy="60" r="56"/></clipPath>
+  </defs>
+  <circle cx="60" cy="60" r="58" fill="#F2E8CF"/>
+  <circle cx="60" cy="60" r="56" fill="#386641"/>
+  <g clip-path="url(#recorte)">
+    <circle cx="97" cy="37" r="9" fill="#F2E8CF" opacity="0.95"/>
+    <path d="M-4 78 C18 58 40 62 62 74 C84 86 102 70 124 60 L124 130 L-4 130 Z" fill="#6A994E"/>
+    <path d="M-4 92 C22 76 46 84 68 92 C88 99 106 90 124 82 L124 130 L-4 130 Z" fill="#A7C957"/>
+  </g>
+  <path d="M38 76 C30 48 46 24 76 20 C84 50 70 74 38 76 Z" fill="#F2E8CF"/>
+  <path d="M40 74 C50 58 60 44 72 28" fill="none" stroke="#386641" stroke-width="2.6" stroke-linecap="round"/>
+  <circle cx="60" cy="60" r="56" fill="none" stroke="#A7C957" stroke-width="2.5"/>
+  <rect x="38" y="84" width="44" height="24" rx="12" fill="#BC4749" stroke="#F2E8CF" stroke-width="2.5"/>
+  <text x="60" y="101.5" text-anchor="middle" font-family="Lato, 'Segoe UI', Arial, sans-serif" font-weight="900" font-size="17" fill="#F2E8CF">G8</text>
+</svg>
