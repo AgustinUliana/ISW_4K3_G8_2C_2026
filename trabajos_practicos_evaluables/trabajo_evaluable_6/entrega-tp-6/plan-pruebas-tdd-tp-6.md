@@ -570,7 +570,7 @@ con 2 QR; los mismos DNI otra vez → 409; sin sesión → 401; Tirolesa sin tal
    conexión SMTP tiene un tiempo límite de 10 s (SMTP-06) y el `.env.example` trae el SMTP comentado.
 2. Sin sesión, el rechazo también decía `dni_ya_inscripto`, lo que revelaba qué DNI estaban inscriptos (SRV-23).
 
-### 11.3 Front React – hecho en la rama `tp6-frontend`
+### 11.3 Front React – hecho en la rama `feature/front-react-liquid-glass`
 
 Las pruebas del front usan **Vitest + React Testing Library** (la lista original decía Jest: Vitest es el ejecutor
 natural de Vite y tiene la misma API). Cada pantalla recibe la API por parámetro y se prueba con una API falsa, igual
