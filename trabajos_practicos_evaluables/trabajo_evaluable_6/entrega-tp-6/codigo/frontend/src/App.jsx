@@ -147,10 +147,10 @@ export default function App({
             <div className="marca">
               <img
                 className="marca-logo"
-                src="/logo.svg"
+                src="/logo-emblema.png"
                 alt="Logo de EcoHarmony Park, grupo 8"
-                width="48"
-                height="48"
+                width="56"
+                height="56"
               />
               <div className="marca-textos">
                 <span className="marca-nombre">EcoHarmony Park</span>
