@@ -53,15 +53,15 @@ diseño tomadas*. Este es ese documento. Cada decisión se presenta con el mismo
 
 | Tema | Resultado |
 |---|---|
-| Lenguaje y estilo | Python 3.13 (backend) y JavaScript/React 19 (front). **PEP 8**, verificado automáticamente con `ruff` (largo de línea 100). |
+| Lenguaje y estilo | Python 3.13 (backend; compatible desde 3.11) y JavaScript/React 19 (front). **PEP 8**, verificado automáticamente con `ruff` (largo de línea 100). |
 | Enfoque | TDD de Kent Beck: lista de pruebas, y luego un ciclo **Red → Green → Refactor** por cada comportamiento, visible en `git log`. |
-| Pruebas automatizadas | **378 del backend** (343 sin base de datos + 35 contra PostgreSQL real y `qrcode` real) y **110 del front**. Todas verdes. |
+| Pruebas automatizadas | **380 del backend** (345 sin base de datos + 35 contra PostgreSQL real y `qrcode` real) y **110 del front**. Todas verdes. |
 | Persistencia | PostgreSQL 16 en Docker, SQL plano (sin ORM), visible desde DBeaver. |
-| Piezas reales y gratuitas | QR con la librería `qrcode`; email por SMTP genérico (Gmail o Brevo); PostgreSQL local. |
+| Piezas reales y gratuitas | QR con la librería `qrcode`; email real por SMTP con Gmail; PostgreSQL local. |
 | Interfaz | React + Vite, paleta y tipografía (Lato) del PO, estilo *Liquid Glass*, responsive. |
 
 Todo lo que el PO puede cambiar (horarios, cupos, edades, talles, máximo por inscripción) es **configuración
-inyectada**, no lógica fija. Las respuestas del PO (preguntas P01–P32) se absorbieron cambiando datos, no reescribiendo
+inyectada**, no lógica fija. Las respuestas del PO se absorbieron cambiando datos, no reescribiendo
 pruebas.
 
 ## 2. Cómo se aplicó TDD
@@ -89,7 +89,7 @@ pruebas.
 | *Starter Test* | Primer ciclo: `Actividad` con cupo 10 y pedido de 3 → quedan 7 (`ACT-01`). |
 | *Fake It* / *Triangulate* | Cupos (`ACT`) y edades mínimas: se parte de una constante y se generaliza al agregar un segundo caso. |
 | *Obvious Implementation* | Validaciones simples de `Visitante` (DNI, edad, nombre). |
-| *Child Test* | `INS-*` se dividió en pruebas chicas cuando una combinación de reglas falló. |
+| *Child Test* | Las reglas combinadas de `Inscripcion` se descompusieron en pruebas chicas, una por regla (`INS-01..20`), en lugar de una prueba grande. |
 | *Mock Object* | `ServicioEmail` (acción): se verifica que se envió una vez con el mensaje correcto. |
 | *Crash Test Dummy* | Dobles que lanzan excepción: email caído, QR roto, repositorio caído (`SRV-15..17`). |
 | *Clean Check-in* | Nada se commitea en rojo salvo la prueba nueva y nada se commitea sin ejecutar la suite. |
@@ -112,7 +112,7 @@ contrato**, que se ejecutan dos veces, contra el fake y contra PostgreSQL (§8.2
 
 | Cat. | Qué usa | Cuántas | Cuándo corre |
 |---|---|---|---|
-| **U** – unitarias | dominio y dobles; sin red, disco ni reloj real | 343 (backend) + 110 (front) | siempre (`pytest`, `vitest`) |
+| **U** – unitarias | dominio y dobles; sin red, disco ni reloj real | 345 (backend) + 110 (front) | siempre (`pytest`, `vitest`) |
 | **C** – contrato / integración local | PostgreSQL local, `qrcode` | 35 | con la base levantada (marcadores `db` y `local`); sin base se saltean con un aviso |
 | **X** – externas | email real a una casilla | 1 (se pide con `pytest -m externa`) | manual, antes de la entrega (marcador `externa`) |
 
@@ -134,9 +134,9 @@ React (front)  ──HTTP/JSON──▶  api.py (FastAPI)  ──▶  Inscripcio
 | Capa | Módulos (`backend/src/ecoharmony/`) | Responsabilidad |
 |---|---|---|
 | Dominio | `actividad`, `horario`, `parque`, `visitante`, `inscripcion`, `motivos`, `terminos`, `terminos_texto`, `catalogo`, `usuarios`, `contrasenas` | Reglas del negocio. Sin I/O. |
-| Aplicación | `inscripcion_service`, `disponibilidad`, `mensaje_email`, `qr` | Orquesta el caso de uso; armar el mensaje y el contenido del QR son funciones puras. |
+| Aplicación | `inscripcion_service`, `disponibilidad`, `mensaje_email`, `mensaje_html`, `qr` | Orquesta el caso de uso; armar el mensaje (texto y HTML) y el contenido del QR son funciones puras. |
 | Puertos | `puertos` | Contratos (`Protocol`) de reloj, QR, email y repositorios. |
-| Adaptadores | `repositorio_memoria`, `repositorio_postgres`, `repositorio_usuarios_*`, `generador_qr_local`, `servicio_email_smtp`, `servicio_email_en_carpeta`, `reloj` | Lo que toca el mundo exterior. |
+| Adaptadores | `recursos/` (logo del email), `repositorio_memoria`, `repositorio_postgres`, `repositorio_usuarios_*`, `generador_qr_local`, `servicio_email_smtp`, `servicio_email_en_carpeta`, `reloj` | Lo que toca el mundo exterior. |
 | Entrada | `api`, `main`, `preparar_base`, `entorno` | HTTP, armado de dependencias, configuración. |
 
 **Decisión: dependencias hacia adentro e inyección por constructor.** `InscripcionService` recibe repositorio, parque,
@@ -189,8 +189,9 @@ Las pruebas fijan el reloj en el miércoles 2026-11-04 08:00.
 
 ### D4. Un QR por visitante, en un único email
 
-**Se decidió:** el contenido del QR se arma con una función pura (`contenido_del_qr`: código de reserva, actividad,
-horario, DNI) y se genera un PNG por visitante, todos adjuntos a **un** email.  
+**Se decidió:** el contenido del QR se arma con una función pura (`contenido_del_qr`: código de reserva y número de
+visitante, por ejemplo `INS-0007|V2`) y se genera un PNG por visitante, todos en **un** email (a la vista en el cuerpo y también
+adjuntos).  
 **Por qué:** lo confirmó el PO (cada persona entra con su propio QR); un solo email evita que el titular reciba un
 mensaje por visitante. Separar *qué dice el QR* de *cómo se dibuja* permite probar el contenido sin imagen y reemplazar
 la librería sin tocar nada más.  
@@ -269,26 +270,28 @@ por cada inscripción. Se usó solo la biblioteca estándar para no sumar depend
 
 **Se decidió:** `ServicioEmailSmtp` envía por SMTP con STARTTLS y un **tiempo límite de 10 s**, configurado desde el `.env`. El
 grupo eligió **Gmail** (contraseña de aplicación): es gratuito, el mensaje sale de una casilla real y llega a la bandeja de
-entrada sin verificar dominios. El mensaje es **HTML con la marca** (paleta del PO, Lato, el logo y el código QR de cada
-visitante junto a su nombre), con una versión en texto plano y los QR también adjuntos. Las imágenes viajan dentro del propio
-mensaje (`cid:`), así se ven sin cargar imágenes remotas, y todo dato escrito por el usuario se escapa antes de entrar al
-HTML. Además lleva `Date` y un `Message-ID` único del dominio del remitente, cabeceras que los
-filtros de Gmail esperan para no tratarlo como correo basura. Si el `.env` no tiene SMTP, la API arranca con
-`ServicioEmailEnCarpeta`, que guarda el texto y los QR en `salida_de_emails/` (ignorada por git).  
+entrada sin verificar dominios. Si el `.env` no tiene SMTP, la API arranca con `ServicioEmailEnCarpeta`, que guarda el texto y
+los QR en `salida_de_emails/` (ignorada por git).
+**El mensaje:** HTML con la marca (paleta del PO, Lato, el logo, y por cada visitante su nombre, su DNI y su código QR), con
+una versión en texto plano y los QR también adjuntos. Las imágenes viajan dentro del propio mensaje (`cid:`), así se ven sin
+cargar imágenes remotas, y todo dato escrito por el usuario se escapa antes de entrar al HTML. Lleva `Date` y un `Message-ID`
+único, cabeceras que los filtros esperan para no tratarlo como correo basura. El **asunto es único por inscripción** (código,
+actividad, fecha y horario): con el mismo asunto, Gmail junta en una sola conversación los mails de dos inscripciones
+distintas y parece que llegó uno solo.
 **Por qué:** el PO exige un email real, pero las pruebas automáticas no pueden depender de internet ni de credenciales. La
 carpeta de desarrollo permite probar todo el recorrido sin enviar nada, y el adaptador sigue sirviendo para otro proveedor
 cambiando solo el `.env`. **Descartado:** Brevo u otro servicio transaccional gratuito (piden verificar remitente o dominio; sin
-eso suele ir a spam) y guardar la clave en el código.  
-**Hallazgo de la prueba manual:** con credenciales SMTP de ejemplo en el `.env`, la API se quedaba colgada intentando
-conectarse. Se agregó el tiempo límite (`SMTP-06`) y el `.env.example` trae el SMTP comentado.  
-**Prueba externa (categoría X):** `test_email_externo.py` (marcador `externa`) envía un email real con dos QR a
-`EMAIL_DE_PRUEBA`. Queda fuera de la corrida normal (`addopts = -m 'not externa'`) y se saltea sin credenciales.  
-**Spam:** el primer correo de prueba, un texto plano sin marca enviado de una casilla a sí misma, cayó en la carpeta de correo
-no deseado. No hay forma de garantizar la bandeja de entrada (depende de la reputación del remitente); lo que sí se controla
-es mandar un mensaje bien formado (HTML con texto alternativo, `Date`, `Message-ID`, remitente igual al usuario SMTP) y marcarlo
-«No es spam» la primera vez. Un antivirus que analiza el correo saliente (Avast agrega un pie al mensaje) también puede
-influir.  
-**Respaldo:** `SMTP-01..13`, `MAIL-01/02`, `EML-01..17` y la prueba externa.
+eso suele ir a spam) y guardar la clave en el código.
+**Hallazgos de las pruebas manuales:** (1) con credenciales SMTP de ejemplo en el `.env`, la API se quedaba colgada intentando
+conectarse: se agregó el tiempo límite (`SMTP-06`) y el `.env.example` trae el SMTP comentado; (2) la API lee el `.env` solo al
+arrancar, así que si ya estaba corriendo sigue guardando los emails en la carpeta: hay que reiniciarla al cambiar el `.env`; (3)
+dos inscripciones distintas se veían como un solo mail por el asunto repetido (`EML-19/20`).
+**Prueba externa (categoría X):** `test_email_externo.py` (marcador `externa`) envía por Gmail el mismo email que arma el sistema,
+con dos QR, a `EMAIL_DE_PRUEBA`. Queda fuera de la corrida normal (`addopts = -m 'not externa'`) y se saltea sin credenciales.
+**Spam:** no se puede garantizar la bandeja de entrada (depende de la reputación del remitente); lo que sí se controla es enviar
+un mensaje bien formado (HTML con texto alternativo, `Date`, `Message-ID`, remitente igual al usuario SMTP). El primer correo de
+prueba, de texto plano, cayó en spam; marcarlo «No es spam» la primera vez ayuda.
+**Respaldo:** `SMTP-01..13`, `MAIL-01/02`, `EML-01..20` y la prueba externa.
 
 ### D12. Términos y condiciones propios de cada actividad
 
@@ -308,7 +311,7 @@ instalaciones y del medioambiente, 9 datos personales, 10 fotografías y videos,
 
 **Qué es fijo y qué sale de los datos:** los números (edad mínima, talla, cupo por turno, 24 horas, 15 minutos, máximo de
 10 personas) salen de los mismos datos que usa el dominio, de modo que el texto no puede decir "8 años" si la regla dice
-10. Una actividad sin texto propio **no se puede crear** (error). Los textos se guardan con una versión interna (`v1`), que no se muestra al visitante, y se aceptan por actividad.
+10. Una actividad sin texto propio **no se puede crear** (error). Los textos se guardan con una versión interna (`v1`), que no se muestra al visitante, y se aceptan por actividad.  
 **Cómo se redactaron:** se tomó como base el modelo de términos y condiciones de participación que aportó el grupo y se
 adaptó cada actividad con las prácticas habituales que publican parques de aventura (tirolesa), reglamentos de rocódromos
 (palestra), parques zoológicos y de safari (safari) y guías de seguridad de huertas y talleres (jardinería); las fuentes
@@ -318,8 +321,8 @@ tutor o representante legal; al aceptar, quien se inscribe declara serlo. El sis
 exige un usuario registrado): es una declaración, no un control técnico.
 **Firma:** el modelo original termina con campos de firma; en un sistema web se reemplazan por la casilla «Acepto los
 términos y condiciones» de la inscripción (`TERMINOS_NO_ACEPTADOS` si no se marca).
-**Importante:** el contenido es un **borrador del grupo para revisar** (puntos a confirmar en §12).
-**Respaldo:** `TYC-01..31` (estructura de 11 apartados en orden, normas propias, equipo, salud, menores, fotografías,
+**Importante:** el contenido es un **borrador redactado por el grupo**; el PO no lo valida.
+**Respaldo:** `TYC-01..32` (estructura de 11 apartados en orden, normas propias, equipo, salud, menores, fotografías,
 aceptación sin firma, reglas del PO y textos distintos entre sí), `CAT-*`, `CONF-F*`.
 
 ### D13. Interfaz (front)
@@ -422,23 +425,23 @@ del grupo?* y, en ese caso, *¿qué aporta y cuánto cuesta?*
 
 | Tecnología | Para qué se usa | Origen | Qué aporta / costo |
 |---|---|---|---|
-| **Python 3.13** | Backend y reglas del negocio | Consigna: lenguaje a elección | Legible y con buen ecosistema de pruebas; el grupo ya tenía su guía de estilo (PEP 8). |
+| **Python 3.13** | Backend y reglas del negocio | Consigna: lenguaje a elección | Legible y con buen ecosistema de pruebas; el grupo ya tenía su guía de estilo (PEP 8). Se desarrolló con 3.13; el código es compatible desde 3.11. |
 | **pytest 8** | Ejecutar las pruebas | Consigna: pruebas automatizadas (herramienta libre) | Parametrización (un caso por actividad), *fixtures* y marcadores (`db`, `local`, `externa`). |
 | **ruff** | Verificar y formatear según PEP 8 | Consigna: estilo del TP2 | Automatiza el cumplimiento del estilo; una herramienta sola reemplaza varias. |
 | **qrcode[pil]** | Generar el código QR (PNG) | **User Story**: el email debe contener un QR | Real, gratuito y local; el contrato de pruebas asegura que sea reemplazable. |
-| **`smtplib` (biblioteca estándar)** | Enviar el email por SMTP | **User Story / PO**: correo real | Sin dependencia nueva; sirve para Gmail o Brevo con solo cambiar el `.env`. |
+| **`smtplib` (biblioteca estándar)** | Enviar el email por SMTP | **User Story / PO**: correo real | Sin dependencia nueva; se usa con Gmail y sirve para otro proveedor con solo cambiar el `.env`. |
 | **`hashlib.scrypt` y `hmac` (estándar)** | Contraseñas con sal y token de sesión | Decisión del grupo: visitante registrado | Seguridad razonable sin sumar librerías. |
 | **PostgreSQL 16 + `psycopg` 3 (SQL plano)** | Guardar inscripciones, cupos y usuarios | Decisión del grupo | La consigna no pide base de datos, pero el **cupo es un estado compartido** y la reserva atómica (D5) solo se puede probar contra una base real; visible en DBeaver. Costo: requiere Docker (las pruebas unitarias corren sin él). |
 | **Docker Compose** | Levantar PostgreSQL con un comando | Decisión del grupo | Cualquier integrante reproduce la base igual; reemplaza instalar PostgreSQL a mano. |
 | **FastAPI + uvicorn** | API HTTP entre el front y las reglas | Decisión del grupo | Valida y documenta (`/docs`) y se prueba sin servidor con `TestClient`. Costo: una capa más; se justifica porque el front está separado. |
-| **React 19 + Vite 8** | Pantallas de la inscripción | **PO**: paleta, tipografía y logo del front; la US es de interfaz (elegir, completar, aceptar) | Permite probar el recorrido completo del visitante; aporta 110 pruebas. Costo: más código fuera del núcleo evaluado (TDD del dominio). |
+| **React 19 + Vite 8** | Pantallas de la inscripción | **PO**: paleta y tipografía del front; la US es de interfaz (elegir, completar, aceptar) | Permite probar el recorrido completo del visitante; aporta 110 pruebas. Costo: más código fuera del núcleo evaluado (TDD del dominio). |
 | **Vitest + React Testing Library** | Pruebas del front | Decisión del grupo (reemplaza a Jest) | Misma API que Jest, integrado a Vite; prueba lo que ve el usuario, no la implementación. |
 | **`liquid-glass-react`** | Efecto *Liquid Glass* de los paneles | **Exigencia de estilo del front** | Encerrada en un solo componente (`Vidrio.jsx`): si falla, se cambia un archivo. |
 | **`@fontsource/lato`** | Tipografía Lato | **PO**: la fuente debe ser Lato | Se sirve desde el propio proyecto: sin depender de un CDN externo ni mandar datos a terceros. |
 | **Git / GitHub** | Historial rojo-verde-refactor y *pull requests* | Consigna: se evalúa el ciclo | Es la evidencia verificable del proceso. |
 
 **Conclusión.** Lo estrictamente necesario para la consigna es Python, pytest, el estilo PEP 8 y este documento. El resto
-se agregó porque la User Story o el PO lo piden (QR, email real, Lato, paleta, logo, *Liquid Glass*) o porque hacen
+se agregó porque la User Story o el PO lo piden (QR, email real, Lato, paleta, *Liquid Glass*) o porque hacen
 verificable una regla que si no quedaría sin probar (la base de datos para el cupo atómico). Se mantuvieron pocas
 dependencias: **4 librerías de ejecución en Python** (`qrcode`, `psycopg`, `fastapi`, `uvicorn`) y **4 en el front**
 (`react`, `react-dom`, `liquid-glass-react`, `@fontsource/lato`). No se usó ningún ORM, ni *framework* de CSS, ni
@@ -466,7 +469,7 @@ biblioteca de componentes.
 
 ### 8.1 Pirámide
 
-- **Base (343 + 110):** unitarias del dominio, del servicio con dobles y de las pantallas con API falsa. Corren en
+- **Base (345 + 110):** unitarias del dominio, del servicio con dobles y de las pantallas con API falsa. Corren en
   segundos, sin infraestructura.
 - **Medio (35):** contratos contra PostgreSQL real y `qrcode` real, incluida la carrera por el último cupo.
 - **Cima:** aceptación (`ACE-01..08`, que además de las pruebas de usuario de la consigna cubren T&C ajenos y falta de sesión), cada una ejecutada con dobles **y** con PostgreSQL + QR real.
@@ -489,6 +492,8 @@ Es la garantía de que reemplazar un doble no cambia el comportamiento.
 | 6 | La API rechazaba al front abierto en `127.0.0.1` (CORS) | corrida manual en el navegador | orígenes configurables (`MAIN-05/06`) |
 | 7 | El vidrio de la librería dibujaba un contorno interior en elementos anchos | corrida manual en el navegador | proporción máxima 1,6 (`VID-11/12`) |
 | 8 | Una regla nueva (`INS-11`) rompió `INS-02` (actividad nula) | la suite completa | guarda en `errores_por_visitante` |
+| 9 | La API ya iniciada no enviaba emails reales tras cargar el SMTP (lee el `.env` al arrancar) | corrida manual del grupo | reiniciar la API; quedó documentado en el README |
+| 10 | Dos inscripciones distintas se veían como un solo email (mismo asunto) | corrida manual del grupo | asunto único con código, fecha y horario (`EML-19/20`) |
 
 ## 9. Límites y trabajo futuro
 
@@ -511,7 +516,7 @@ cd codigo
 docker compose up -d                       # PostgreSQL
 cd backend
 PYTHONPATH=src .venv/Scripts/python.exe -m ecoharmony.preparar_base
-.venv/Scripts/python.exe -m pytest         # 378 pruebas (las de base se saltean si no hay PostgreSQL)
+.venv/Scripts/python.exe -m pytest         # 380 pruebas (las de base se saltean si no hay PostgreSQL)
 .venv/Scripts/python.exe -m ruff check .   # PEP 8
 cd ../frontend
 npm install && npm test                    # 110 pruebas
@@ -531,12 +536,3 @@ npm install && npm test                    # 110 pruebas
   seguridad en jardinería (calzado cerrado, cabello recogido, inspección de herramientas).
 - Modelo de términos y condiciones de participación aportado por el grupo, adaptado a cada actividad.
 - Enunciado del TP2 (EcoHarmony Park) y respuestas del Product Owner (ver [preguntas al PO](preguntas-product-owner-tp-6.md)).
-
-## 12. Puntos que el grupo debe confirmar antes de entregar
-
-1. **Textos de T&C** (borrador): normas propias de cada actividad (calzado, accesorios, uso de flash, equipo) y
-   redacción de datos personales y de fotografías. Además dos puntos que el PO no definió: si Tirolesa y Palestra tendrán
-   **límites de peso o altura** (los parques suelen tenerlos; no se incluyeron) y si se va a **verificar** que quien
-   inscribe a un menor sea su representante (hoy es solo una declaración).
-2. **Email real** (§2.4): la prueba externa se ejecutó con éxito (llegó con los dos QR) y una inscripción real desde la API envió el correo por Gmail; el primer correo de prueba cayó en spam (ver D11). Conviene volver a verificar la bandeja antes de la exposición.
-3. **Preguntas de baja prioridad al PO** (§9).
