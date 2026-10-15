@@ -1,10 +1,10 @@
-class CupoInsuficiente(Exception):
+class CupoInsuficienteError(Exception):
     """Se pidieron mas lugares que los que quedan en el turno."""
 
 
-class InscripcionNoConfirmada(Exception):
+class InscripcionNoConfirmadaError(Exception):
     """Se intento armar un QR o un email de una inscripcion que no esta confirmada."""
 
 
-class ActividadNoEncontrada(Exception):
+class ActividadNoEncontradaError(Exception):
     """No existe una actividad con ese nombre."""

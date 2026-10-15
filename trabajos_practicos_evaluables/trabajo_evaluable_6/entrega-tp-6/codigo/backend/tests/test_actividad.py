@@ -3,7 +3,7 @@ from datetime import date, time
 import pytest
 
 from ecoharmony.actividad import Actividad
-from ecoharmony.errores import CupoInsuficiente
+from ecoharmony.errores import CupoInsuficienteError
 from ecoharmony.horario import Horario
 
 H1 = Horario(date(2026, 11, 4), time(10, 0))
@@ -49,7 +49,7 @@ def test_reservas_sucesivas_se_acumulan(tirolesa):
 def test_reservar_mas_que_el_restante_falla_sin_modificar_el_cupo(tirolesa):
     tirolesa.reservar(H1, cantidad=8)
 
-    with pytest.raises(CupoInsuficiente):
+    with pytest.raises(CupoInsuficienteError):
         tirolesa.reservar(H1, cantidad=3)
 
     assert tirolesa.cupo_restante(H1) == 2

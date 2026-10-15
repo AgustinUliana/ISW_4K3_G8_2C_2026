@@ -1,4 +1,5 @@
 """Datos de prueba compartidos (Evident Data)."""
+
 from datetime import date, datetime, time
 
 from ecoharmony.catalogo import crear_actividades

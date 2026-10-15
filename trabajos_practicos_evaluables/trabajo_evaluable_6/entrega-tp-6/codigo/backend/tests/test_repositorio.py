@@ -4,11 +4,12 @@ El mismo conjunto debe pasar con RepositorioEnMemoria (el fake que usan las
 unitarias) y, mas adelante, con RepositorioPostgres: asi el fake no se aparta
 del comportamiento real (Beck, patron Mock Object).
 """
-import pytest
-from datos_de_prueba import ANA, H1, LUIS, una_inscripcion_confirmada
 
+import pytest
+
+from datos_de_prueba import ANA, H1, LUIS, una_inscripcion_confirmada
 from ecoharmony.catalogo import crear_actividades
-from ecoharmony.errores import ActividadNoEncontrada, CupoInsuficiente
+from ecoharmony.errores import ActividadNoEncontradaError, CupoInsuficienteError
 from ecoharmony.repositorio_memoria import RepositorioEnMemoria
 
 
@@ -22,7 +23,7 @@ def test_buscar_una_actividad_por_nombre_devuelve_la_actividad(repositorio):
 
 
 def test_buscar_una_actividad_inexistente_falla(repositorio):
-    with pytest.raises(ActividadNoEncontrada):
+    with pytest.raises(ActividadNoEncontradaError):
         repositorio.actividad("Rafting")
 
 
@@ -55,7 +56,7 @@ def test_guardar_la_inscripcion_y_reservar_el_cupo_es_todo_o_nada(repositorio):
     repositorio.actividad("Tirolesa").reservar(H1, cantidad=9)  # queda 1
     inscripcion = una_inscripcion_confirmada(repositorio.siguiente_codigo())  # pide 2
 
-    with pytest.raises(CupoInsuficiente):
+    with pytest.raises(CupoInsuficienteError):
         repositorio.guardar(inscripcion)
 
     assert repositorio.obtener(inscripcion.codigo) is None

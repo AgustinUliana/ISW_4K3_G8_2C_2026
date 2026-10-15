@@ -1,8 +1,9 @@
 import pytest
-from datos_de_prueba import una_inscripcion_confirmada
 
-from ecoharmony.errores import InscripcionNoConfirmada
+from datos_de_prueba import una_inscripcion_confirmada
+from ecoharmony.errores import InscripcionNoConfirmadaError
 from ecoharmony.qr import contenido_del_qr
+
 
 def test_el_contenido_del_qr_incluye_el_codigo_de_la_inscripcion():
     inscripcion = una_inscripcion_confirmada("INS-0001")
@@ -43,5 +44,5 @@ def test_no_se_arma_el_qr_de_una_inscripcion_no_confirmada():
     pendiente = una_inscripcion_confirmada()
     pendiente.estado = type(pendiente.estado).PENDIENTE
 
-    with pytest.raises(InscripcionNoConfirmada):
+    with pytest.raises(InscripcionNoConfirmadaError):
         contenido_del_qr(pendiente, 1)

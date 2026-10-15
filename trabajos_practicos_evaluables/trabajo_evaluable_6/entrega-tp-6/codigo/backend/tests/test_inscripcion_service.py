@@ -1,11 +1,11 @@
 from datetime import date, datetime, time
 
 import pytest
+
 from datos_de_prueba import AHORA, ANA, EMAIL_DE_ANA, H1, LUIS
 from dobles import EmailEnMemoria, EmailQueFalla, GeneradorQRFalso, GeneradorQRQueFalla, RelojFijo
-
 from ecoharmony.catalogo import crear_actividades
-from ecoharmony.errores import CupoInsuficiente
+from ecoharmony.errores import CupoInsuficienteError
 from ecoharmony.horario import Horario
 from ecoharmony.inscripcion_service import InscripcionService, SolicitudInscripcion
 from ecoharmony.motivos import MotivoRechazo
@@ -74,7 +74,9 @@ def test_sin_aceptar_los_terminos_no_confirma_ni_envia_email():
 def test_terminos_de_otra_actividad_no_confirman_ni_envian_email():
     repositorio, email = RepositorioEnMemoria(crear_actividades()), EmailEnMemoria()
 
-    resultado = armar_servicio(repositorio, email).inscribir(una_solicitud(terminos_aceptados="Jardinería"))
+    resultado = armar_servicio(repositorio, email).inscribir(
+        una_solicitud(terminos_aceptados="Jardinería")
+    )
 
     assert not resultado.confirmada
     assert resultado.motivos == [MotivoRechazo.TERMINOS_DE_OTRA_ACTIVIDAD]
@@ -123,7 +125,9 @@ def test_parque_cerrado_no_confirma_ni_envia_email():
     lunes = Horario(date(2026, 11, 2), time(10, 0))
     lunes_a_las_8 = datetime(2026, 11, 2, 8, 0)
 
-    resultado = armar_servicio(repositorio, email, ahora=lunes_a_las_8).inscribir(una_solicitud(horario=lunes))
+    resultado = armar_servicio(repositorio, email, ahora=lunes_a_las_8).inscribir(
+        una_solicitud(horario=lunes)
+    )
 
     assert not resultado.confirmada
     assert resultado.motivos == [MotivoRechazo.PARQUE_CERRADO]
@@ -155,7 +159,9 @@ def test_actividad_que_requiere_talla_sin_indicarla_no_confirma_ni_envia_email()
 def test_actividad_que_no_requiere_talla_sin_indicarla_confirma_y_envia_email():
     email = EmailEnMemoria()
     sin_talla = Visitante("Ana Perez", "30123456", 30)
-    solicitud = una_solicitud(actividad="Safari", terminos_aceptados="Safari", visitantes=[sin_talla])
+    solicitud = una_solicitud(
+        actividad="Safari", terminos_aceptados="Safari", visitantes=[sin_talla]
+    )
 
     resultado = armar_servicio(email=email).inscribir(solicitud)
 
@@ -182,7 +188,9 @@ def test_dni_ya_inscripto_en_el_mismo_horario_no_confirma_ni_envia_email():
     servicio = armar_servicio(repositorio, email)
     servicio.inscribir(una_solicitud(visitantes=[ANA]))  # Ana ya esta en Tirolesa a las 10:00
 
-    en_safari_a_la_misma_hora = una_solicitud(actividad="Safari", terminos_aceptados="Safari", visitantes=[ANA])
+    en_safari_a_la_misma_hora = una_solicitud(
+        actividad="Safari", terminos_aceptados="Safari", visitantes=[ANA]
+    )
     resultado = servicio.inscribir(en_safari_a_la_misma_hora)
 
     assert not resultado.confirmada
@@ -237,7 +245,7 @@ class RepositorioQuePierdeLaCarrera(RepositorioEnMemoria):
     """Otro usuario se llevo el ultimo cupo entre la validacion y el guardado."""
 
     def guardar(self, inscripcion):
-        raise CupoInsuficiente(inscripcion.actividad.nombre)
+        raise CupoInsuficienteError(inscripcion.actividad.nombre)
 
 
 def test_si_el_cupo_se_agota_justo_al_guardar_se_rechaza_por_falta_de_cupo():

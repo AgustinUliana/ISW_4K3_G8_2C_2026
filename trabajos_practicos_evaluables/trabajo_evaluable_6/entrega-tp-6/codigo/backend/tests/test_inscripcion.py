@@ -53,7 +53,9 @@ def test_se_rechaza_si_se_aceptan_los_terminos_de_otra_actividad():
 def test_se_confirma_cuando_se_aceptan_los_terminos_especificos_de_la_actividad():
     jardineria = crear_actividades()["Jardinería"]
 
-    motivos = motivos_de_una_inscripcion(actividad=jardineria, terminos_aceptados=jardineria.terminos)
+    motivos = motivos_de_una_inscripcion(
+        actividad=jardineria, terminos_aceptados=jardineria.terminos
+    )
 
     assert motivos == []
 
@@ -71,12 +73,17 @@ def test_se_rechaza_sin_visitantes():
 
 
 def n_visitantes(cantidad):
-    return [Visitante(f"Persona {chr(65 + i)}", str(30000001 + i), 30, talla="M") for i in range(cantidad)]
+    return [
+        Visitante(f"Persona {chr(65 + i)}", str(30000001 + i), 30, talla="M")
+        for i in range(cantidad)
+    ]
 
 
 @pytest.mark.parametrize("cantidad, motivos", [(10, []), (11, [MotivoRechazo.CANTIDAD_INVALIDA])])
 def test_se_rechaza_si_supera_el_maximo_de_10_personas_por_inscripcion(cantidad, motivos):
-    palestra = crear_actividades()["Palestra"]  # cupo 12: el limite que actua es el de 10 por inscripcion
+    palestra = crear_actividades()[
+        "Palestra"
+    ]  # cupo 12: el limite que actua es el de 10 por inscripcion
 
     resultado = motivos_de_una_inscripcion(actividad=palestra, visitantes=n_visitantes(cantidad))
 
@@ -85,7 +92,9 @@ def test_se_rechaza_si_supera_el_maximo_de_10_personas_por_inscripcion(cantidad,
 
 def test_se_rechaza_si_algun_visitante_es_invalido_e_indica_cual():
     sin_dni = Visitante("Luis Gomez", "", 41, talla="L")
-    inscripcion = una_inscripcion(visitantes=[ANA, sin_dni, Visitante("Eva Soto", "30123457", 25, talla="S")])
+    inscripcion = una_inscripcion(
+        visitantes=[ANA, sin_dni, Visitante("Eva Soto", "30123457", 25, talla="S")]
+    )
 
     assert inscripcion.motivos_de_rechazo(Parque(), AHORA) == [MotivoRechazo.VISITANTE_INVALIDO]
     assert inscripcion.errores_por_visitante() == {2: [MotivoRechazo.DNI_REQUERIDO]}
@@ -145,7 +154,9 @@ def test_se_rechaza_si_el_turno_esta_a_mas_de_24_horas():
     assert motivos_de_una_inscripcion(horario=viernes) == [MotivoRechazo.FUERA_DE_VENTANA]
 
 
-@pytest.mark.parametrize("email", ["", "ana", "ana@", "ana@dominio", "@dominio.com", "ana perez@dominio.com"])
+@pytest.mark.parametrize(
+    "email", ["", "ana", "ana@", "ana@dominio", "@dominio.com", "ana perez@dominio.com"]
+)
 def test_se_rechaza_sin_email_de_contacto_valido(email):
     assert motivos_de_una_inscripcion(email_de_contacto=email) == [MotivoRechazo.EMAIL_INVALIDO]
 

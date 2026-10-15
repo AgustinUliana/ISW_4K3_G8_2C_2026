@@ -1,4 +1,4 @@
-from ecoharmony.errores import CupoInsuficiente
+from ecoharmony.errores import CupoInsuficienteError
 
 
 class Actividad:
@@ -15,7 +15,7 @@ class Actividad:
 
     def reservar(self, horario, cantidad):
         if not self.tiene_cupo(horario, cantidad):
-            raise CupoInsuficiente(self.nombre)
+            raise CupoInsuficienteError(self.nombre)
         self._ocupados[horario] = self._ocupados.get(horario, 0) + cantidad
 
     def cupo_restante(self, horario):

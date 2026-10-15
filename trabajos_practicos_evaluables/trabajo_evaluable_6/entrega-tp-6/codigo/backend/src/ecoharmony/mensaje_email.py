@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from ecoharmony.errores import InscripcionNoConfirmada
+from ecoharmony.errores import InscripcionNoConfirmadaError
 from ecoharmony.inscripcion import EstadoDeLaInscripcion
 
 
@@ -21,7 +21,7 @@ class MensajeEmail:
 
 def armar_mensaje(inscripcion, qrs):
     if inscripcion.estado is not EstadoDeLaInscripcion.CONFIRMADA:
-        raise InscripcionNoConfirmada(inscripcion.codigo)
+        raise InscripcionNoConfirmadaError(inscripcion.codigo)
     horario = inscripcion.horario
     cuerpo = (
         f"Tu inscripción a {inscripcion.actividad.nombre} está confirmada.\n\n"
@@ -40,7 +40,10 @@ def armar_mensaje(inscripcion, qrs):
 
 
 def _lista_de_visitantes(inscripcion):
-    lineas = [f"{numero}. {visitante.nombre}" for numero, visitante in enumerate(inscripcion.visitantes, start=1)]
+    lineas = [
+        f"{numero}. {visitante.nombre}"
+        for numero, visitante in enumerate(inscripcion.visitantes, start=1)
+    ]
     return "\n".join(lineas)
 
 

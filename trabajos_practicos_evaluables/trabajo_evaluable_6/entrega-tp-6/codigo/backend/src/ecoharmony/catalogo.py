@@ -11,9 +11,21 @@ def _terminos(nombre):
 
 def crear_actividades():
     actividades = [
-        Actividad("Tirolesa", cupo_por_turno=10, edad_minima=8, requiere_talla=True, terminos=_terminos("Tirolesa")),
+        Actividad(
+            "Tirolesa",
+            cupo_por_turno=10,
+            edad_minima=8,
+            requiere_talla=True,
+            terminos=_terminos("Tirolesa"),
+        ),
         Actividad("Safari", cupo_por_turno=8, terminos=_terminos("Safari")),
-        Actividad("Palestra", cupo_por_turno=12, edad_minima=12, requiere_talla=True, terminos=_terminos("Palestra")),
+        Actividad(
+            "Palestra",
+            cupo_por_turno=12,
+            edad_minima=12,
+            requiere_talla=True,
+            terminos=_terminos("Palestra"),
+        ),
         Actividad("Jardinería", cupo_por_turno=12, terminos=_terminos("Jardinería")),
     ]
     return {actividad.nombre: actividad for actividad in actividades}

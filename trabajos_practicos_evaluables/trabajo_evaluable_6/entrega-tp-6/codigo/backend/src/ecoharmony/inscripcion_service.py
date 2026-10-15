@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass, field
 
-from ecoharmony.errores import ActividadNoEncontrada, CupoInsuficiente
+from ecoharmony.errores import ActividadNoEncontradaError, CupoInsuficienteError
 from ecoharmony.inscripcion import Inscripcion
 from ecoharmony.mensaje_email import armar_mensaje
 from ecoharmony.motivos import MotivoRechazo
@@ -38,8 +38,10 @@ class InscripcionService:
     def inscribir(self, solicitud):
         try:
             actividad = self._repositorio.actividad(solicitud.actividad)
-        except ActividadNoEncontrada:
-            return ResultadoInscripcion(confirmada=False, motivos=[MotivoRechazo.ACTIVIDAD_INEXISTENTE])
+        except ActividadNoEncontradaError:
+            return ResultadoInscripcion(
+                confirmada=False, motivos=[MotivoRechazo.ACTIVIDAD_INEXISTENTE]
+            )
         inscripcion = Inscripcion(
             actividad=actividad,
             horario=solicitud.horario,
@@ -56,10 +58,12 @@ class InscripcionService:
         qrs = self._generar_qrs(inscripcion)
         try:
             self._repositorio.guardar(inscripcion)
-        except CupoInsuficiente:
+        except CupoInsuficienteError:
             return ResultadoInscripcion(confirmada=False, motivos=[MotivoRechazo.SIN_CUPO])
         email_enviado = self._enviar_email(armar_mensaje(inscripcion, qrs))
-        return ResultadoInscripcion(confirmada=True, codigo=inscripcion.codigo, email_enviado=email_enviado)
+        return ResultadoInscripcion(
+            confirmada=True, codigo=inscripcion.codigo, email_enviado=email_enviado
+        )
 
     def _terminos_aceptados(self, nombre_de_la_actividad):
         if nombre_de_la_actividad is None:
@@ -68,7 +72,10 @@ class InscripcionService:
 
     def _generar_qrs(self, inscripcion):
         cantidad = len(inscripcion.visitantes)
-        return [self._generador_qr.generar(contenido_del_qr(inscripcion, n)) for n in range(1, cantidad + 1)]
+        return [
+            self._generador_qr.generar(contenido_del_qr(inscripcion, n))
+            for n in range(1, cantidad + 1)
+        ]
 
     def _hay_dni_ya_inscripto(self, inscripcion):
         return any(

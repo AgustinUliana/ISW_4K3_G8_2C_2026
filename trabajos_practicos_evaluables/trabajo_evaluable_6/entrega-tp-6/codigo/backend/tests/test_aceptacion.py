@@ -4,6 +4,7 @@ Se escribieron primero (ATDD) y estuvieron en xfail hasta que el sistema se
 construyo ciclo a ciclo desde las pruebas unitarias. ACE-01 paso a verde con
 SRV-04 (dobles en memoria); luego se apunta a Postgres y al QR real.
 """
+
 from datetime import date, datetime, time
 
 

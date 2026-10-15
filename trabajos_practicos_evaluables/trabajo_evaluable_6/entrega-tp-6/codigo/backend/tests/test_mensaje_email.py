@@ -1,6 +1,6 @@
 import pytest
-from datos_de_prueba import EMAIL_DE_ANA, una_inscripcion_confirmada
 
+from datos_de_prueba import EMAIL_DE_ANA, una_inscripcion_confirmada
 from ecoharmony.mensaje_email import armar_mensaje
 
 QRS = [b"qr-del-visitante-1", b"qr-del-visitante-2"]
@@ -45,15 +45,18 @@ def test_el_mensaje_adjunta_un_qr_png_por_visitante():
 
     assert [adjunto.contenido for adjunto in mensaje.adjuntos] == QRS
     assert all(adjunto.tipo == "image/png" for adjunto in mensaje.adjuntos)
-    assert [adjunto.nombre for adjunto in mensaje.adjuntos] == ["qr-visitante-1.png", "qr-visitante-2.png"]
+    assert [adjunto.nombre for adjunto in mensaje.adjuntos] == [
+        "qr-visitante-1.png",
+        "qr-visitante-2.png",
+    ]
 
 
 def test_no_se_arma_el_mensaje_de_una_inscripcion_no_confirmada():
-    from ecoharmony.errores import InscripcionNoConfirmada
+    from ecoharmony.errores import InscripcionNoConfirmadaError
     from ecoharmony.inscripcion import EstadoDeLaInscripcion
 
     pendiente = una_inscripcion_confirmada()
     pendiente.estado = EstadoDeLaInscripcion.PENDIENTE
 
-    with pytest.raises(InscripcionNoConfirmada):
+    with pytest.raises(InscripcionNoConfirmadaError):
         armar_mensaje(pendiente, QRS)

@@ -93,7 +93,13 @@ def test_el_nombre_tiene_como_maximo_30_caracteres(nombre, es_valido):
 
 @pytest.mark.parametrize(
     "nombre, es_valido",
-    [("Maria José", True), ("D'Angelo", True), ("Pérez-Núñez", True), ("Ana2", False), ("Ana@", False)],
+    [
+        ("Maria José", True),
+        ("D'Angelo", True),
+        ("Pérez-Núñez", True),
+        ("Ana2", False),
+        ("Ana@", False),
+    ],
 )
 def test_el_nombre_solo_admite_letras_espacios_apostrofe_y_guion(nombre, es_valido):
     assert (un_visitante(nombre=nombre).errores(safari) == []) is es_valido

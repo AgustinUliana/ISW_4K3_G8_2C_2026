@@ -1,4 +1,4 @@
-from ecoharmony.errores import ActividadNoEncontrada
+from ecoharmony.errores import ActividadNoEncontradaError
 
 
 class RepositorioEnMemoria:
@@ -8,7 +8,7 @@ class RepositorioEnMemoria:
 
     def actividad(self, nombre):
         if nombre not in self._actividades:
-            raise ActividadNoEncontrada(nombre)
+            raise ActividadNoEncontradaError(nombre)
         return self._actividades[nombre]
 
     def siguiente_codigo(self):
