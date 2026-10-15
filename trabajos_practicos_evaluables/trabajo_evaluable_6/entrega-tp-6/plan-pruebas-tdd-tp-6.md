@@ -1,7 +1,7 @@
 # TP6 – TDD: Plan de pruebas (Test List)
 
 **User Story:** Inscribirme a actividad (EcoHarmony Park) · **Grupo 8** · ISW 4K3 · 2026
-**Estado:** v0.6 – backend completo con TDD (dominio, usuarios, base PostgreSQL, adaptadores y API) · 2026-10-15 (ver §11)
+**Estado:** v0.7 – backend y front React completos con TDD · 2026-10-16 (ver §11)
 **Documento hermano:** [preguntas-product-owner-tp-6.md](preguntas-product-owner-tp-6.md)
 **Consigna:** [consigna-tp-6.pdf](../consigna-tp-6.pdf)
 
@@ -477,7 +477,7 @@ Los contratos de los Grupos 6, 7 y 8 garantizan que reemplazar un doble por la p
 ## 11. Estado de la implementación (2026-10-15)
 
 Rama `tp6-tdd`: cada prueba se hizo con su ciclo visible en `git log` (`test(ID): rojo` → `feat(ID): verde` →
-`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **280 pruebas verdes** (sin base de
+`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **282 pruebas del backend y 91 del front, todas verdes** (sin base de
 datos y contra PostgreSQL real), PEP 8 limpio con `ruff`.
 
 | Grupo | Archivo de pruebas | Estado |
@@ -570,10 +570,48 @@ con 2 QR; los mismos DNI otra vez → 409; sin sesión → 401; Tirolesa sin tal
    conexión SMTP tiene un tiempo límite de 10 s (SMTP-06) y el `.env.example` trae el SMTP comentado.
 2. Sin sesión, el rechazo también decía `dni_ya_inscripto`, lo que revelaba qué DNI estaban inscriptos (SRV-23).
 
-### 11.3 Lo que falta
+### 11.3 Front React – hecho en la rama `tp6-frontend`
 
-1. **Front React** (paleta y fuente Lato del PO, responsive): pantallas de registro, login, elegir actividad,
-   horario con cupo restante, datos de los visitantes, T&C e inscripción. Sus pruebas van aparte (Jest + React Testing Library).
-2. **Prueba externa** de email real a una casilla del grupo (necesita credenciales de Gmail o Brevo en el `.env`).
-3. **Textos reales de los T&C** de cada actividad (hoy son un texto provisorio en `catalogo.py`).
-4. **Documento de decisiones de diseño** (`entrega-tp-6`), que pide la consigna.
+Las pruebas del front usan **Vitest + React Testing Library** (la lista original decía Jest: Vitest es el ejecutor
+natural de Vite y tiene la misma API). Cada pantalla recibe la API por parámetro y se prueba con una API falsa, igual
+que el backend con sus dobles. Cada bloque se hizo con su commit rojo y su commit verde.
+
+| Bloque | Pruebas | Archivo |
+|---|---|---|
+| Calendario del PO (lunes, 25/12 y 1/1 cerrados; solo hoy y mañana se pueden elegir) | CAL-01..07 | `dominio/calendario.test.js` |
+| Mensajes de error en español para cada motivo de la API | MSJ-01..07 | `dominio/mensajes.test.js` |
+| Formato de fechas y cupos | 3 | `dominio/formato.test.js` |
+| Cliente HTTP (rutas, Bearer, errores, sin conexión) | API-F01..09 | `api/cliente.test.js` |
+| Acceso: registro e inicio de sesión simples | ACC-01..08 | `componentes/PantallaAcceso.test.jsx` |
+| Elegir actividad (requisitos, sin turnos, reintentar) | ACT-F01..05 | `componentes/PantallaActividades.test.jsx` |
+| Elegir día y horario (cupo restante, agotados, días deshabilitados) | HOR-F01..08 | `componentes/PantallaHorario.test.jsx` |
+| Visitantes (cantidad ≤ min(10, cupo), talla solo si se requiere) | VIS-F01..11 | `componentes/PantallaVisitantes.test.jsx` |
+| Confirmación (T&C de la actividad, resumen, errores, sesión vencida) y pantalla final | CONF-F01..12 | `componentes/PantallaConfirmacion.test.jsx` |
+| Recorrido completo, sesión guardada, cerrar sesión, sesión vencida | APP-01..09 | `App.test.jsx` |
+| Componente `Vidrio` (Liquid Glass) | VID-01..12 | `componentes/Vidrio.test.jsx` |
+
+**Liquid Glass.** Se usa la librería `liquid-glass-react` (MIT, para React 19), encerrada en un único componente
+(`Vidrio`) para poder cambiarla sin tocar las pantallas. No va contra lo exigido por el PO: es solo la textura de los
+paneles; la paleta (`386641 · 6A994E · A7C957 · F2E8CF · BC4749`) y la fuente Lato las controla el CSS.
+
+- *Hallazgo 1:* la librería es un elemento que se centra solo (`top/left 50%` + `translate`), pensado para flotar. Para
+  usarla de fondo de paneles, el contenido queda en el flujo normal y el vidrio se dibuja como **capa detrás**, del
+  tamaño medido del contenido (VID-04..06), con `padding: 0` (la librería suma el suyo, VID-07).
+- *Hallazgo 2:* su mapa de refracción es un cuadrado de 256×256. En elementos anchos queda desalineado y aparece un
+  contorno interior. Por eso `Vidrio` solo usa la librería si la proporción ancho/alto es ≤ 1,6 (VID-11/12); el panel
+  principal y el encabezado usan el vidrio esmerilado del CSS (`backdrop-filter`), y las **tarjetas de actividades**
+  usan la refracción real. En Safari y Firefox la refracción no se ve (lo avisa la librería): queda el esmerilado.
+- Accesibilidad: respeta `prefers-reduced-transparency` (panel sólido), `prefers-reduced-motion`, foco visible y
+  tamaños táctiles de 46 px.
+
+**Prueba manual en el navegador (API real + PostgreSQL real, escritorio y celular de 375 px):** registro, inicio de
+sesión, actividades, día y horario, visitantes, T&C, confirmación con código de reserva. De ahí salieron dos arreglos más,
+ambos con prueba primero: la API no aceptaba el front abierto en `127.0.0.1` (CORS; ahora acepta `localhost` y
+`127.0.0.1` y se configura con `ORIGENES_PERMITIDOS`, MAIN-05/06) y el ajuste de proporción del vidrio de arriba.
+
+### 11.4 Lo que falta
+
+1. **Prueba externa** de email real a una casilla del grupo (necesita credenciales de Gmail o Brevo en el `.env`).
+2. **Textos reales de los T&C** de cada actividad (hoy son un texto provisorio en `catalogo.py`).
+3. **Documento de decisiones de diseño** (`entrega-tp-6`), que pide la consigna.
+4. Preguntas de baja prioridad abiertas al PO (ver `preguntas-product-owner-tp-6.md` §3).
