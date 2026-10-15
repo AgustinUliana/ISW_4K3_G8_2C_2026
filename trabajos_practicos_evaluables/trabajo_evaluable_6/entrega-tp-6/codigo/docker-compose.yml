@@ -1,0 +1,26 @@
+# Base de datos PostgreSQL local y gratuita para EcoHarmony.
+#   Levantar:  docker compose up -d
+#   Bajar:     docker compose down        (los datos quedan en el volumen)
+#   Borrar datos: docker compose down -v
+# Se conecta con DBeaver a localhost:${POSTGRES_PUERTO} (por defecto 5433).
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ecoharmony_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PUERTO:-5433}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/sql/00_crear_base_de_pruebas.sql:/docker-entrypoint-initdb.d/00_crear_base_de_pruebas.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

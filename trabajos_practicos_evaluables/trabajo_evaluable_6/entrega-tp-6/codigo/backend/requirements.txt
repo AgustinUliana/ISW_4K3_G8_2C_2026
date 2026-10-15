@@ -1,1 +1,2 @@
 qrcode[pil]>=7.4
+psycopg[binary]>=3.2
