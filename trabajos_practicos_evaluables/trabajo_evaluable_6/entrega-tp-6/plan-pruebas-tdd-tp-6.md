@@ -301,7 +301,7 @@ se haya enviado ningún email ya prueba que ningún QR llegó a destino.
 | SRV-12 | `test_actividad_que_no_requiere_talla_sin_indicarla_confirma` | Safari sin talla → confirmada, email enviado | U | P09 |
 | SRV-13 | `test_dni_ya_inscripto_en_el_mismo_horario_no_confirma_ni_envia_email` | DNI X ya inscripto en **Tirolesa** 10:00 → inscribirlo en **Safari** 10:00 → `DNI_YA_INSCRIPTO` + `assert_sin_efectos()` | U | – |
 | SRV-14 | `test_el_ultimo_cupo_lo_obtiene_solo_la_primera_inscripcion` | restante 1; dos inscripciones seguidas → 1.ª confirma, 2.ª `SIN_CUPO` | U | – |
-| SRV-15 | `test_si_falla_el_envio_del_email_la_inscripcion_sigue_confirmada` | *Crash Test Dummy*: `ServicioEmail` lanza error → confirmada, cupo descontado, resultado con `email_enviado=False` | U | P13 |
+| SRV-15 | `test_si_el_email_falla_se_reintenta_y_si_nunca_se_envia_la_inscripcion_no_queda_confirmada` | email que falla 2 veces y luego anda → confirmada (3 intentos); email que siempre falla → no confirmada, `EMAIL_NO_ENVIADO`, cupo y DNI liberados; intentos y pausa configurables | U | P13b |
 | SRV-16 | `test_si_falla_la_generacion_del_qr_no_se_confirma_ni_se_descuenta_cupo` | *Crash Test Dummy*: `GeneradorQR` lanza error → cupo intacto, nada guardado, no se envía email | U | P13 |
 | SRV-17 | `test_si_falla_la_persistencia_no_se_envia_ningun_email` | *Crash Test Dummy*: el repositorio lanza error al guardar → el error se propaga y `ServicioEmail` sin llamadas | U | – |
 
@@ -477,8 +477,8 @@ Los contratos de los Grupos 6, 7 y 8 garantizan que reemplazar un doble por la p
 ## 11. Estado de la implementación (2026-10-15)
 
 Rama `tp6-tdd`: cada prueba se hizo con su ciclo visible en `git log` (`test(ID): rojo` → `feat(ID): verde` →
-`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **195 pruebas verdes** (170 sin base de
-datos + 25 contra PostgreSQL real), PEP 8 limpio con `ruff`.
+`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **204 pruebas verdes** (sin base de
+datos y contra PostgreSQL real), PEP 8 limpio con `ruff`.
 
 | Grupo | Archivo de pruebas | Estado |
 |---|---|---|
@@ -500,8 +500,11 @@ datos + 25 contra PostgreSQL real), PEP 8 limpio con `ruff`.
 ### Decisiones que cambiaron respecto de lo planeado
 
 - **Orden de las operaciones del servicio:** validar → confirmar (código) → **generar los QR** → **guardar** (reserva
-  atómica de cupo + inscripción) → **enviar el email**. El QR se genera *antes* de guardar para que un fallo del QR no
-  deje la inscripción a medias (SRV-16); un fallo del email no deshace la inscripción (SRV-15, supuesto P13b).
+  atómica de cupo + inscripción) → **enviar el email con reintentos**. El QR se genera *antes* de guardar para que un
+  fallo del QR no deje la inscripción a medias (SRV-16). **Si el email no se logra enviar tras los reintentos, se anula la
+  inscripción** (libera cupo y DNI) y no queda confirmada (SRV-15, decisión del grupo P13b, 2026-10-15). Limitación
+  conocida: si el proceso se cae justo entre guardar y enviar, la inscripción quedaría guardada sin email; una mejora
+  futura sería un estado *pendiente* con reintentos en segundo plano.
 - **Reserva de cupo atómica en SQL** (una sola sentencia `INSERT … ON CONFLICT DO UPDATE … WHERE`): dos pedidos por el
   último lugar no pueden ganar los dos (REP-05, probado con dos hilos contra PostgreSQL real).
 - **Conflicto de horario por DNI:** además de la comprobación previa (SRV-13) hay una restricción `UNIQUE (dni, fecha,

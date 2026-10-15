@@ -48,7 +48,7 @@ prueba correspondiente.
 | **P01** | El email de contacto es **el email con el que se registró el usuario**. | La solicitud lleva al usuario; el formulario no pide email. INS-16 se reemplaza por una regla sobre el usuario. |
 | **P02** | **Sí hay registro e inicio de sesión, pero simple**: email + contraseña que coincidan, y nada más. | Nuevo grupo de pruebas USU (registro, login, sesión) y tabla de usuarios. INS-20 pasa a ser obligatoria. |
 | **P07** | **Todo o nada**: si no entra todo el grupo, no se inscribe. La pantalla debería permitir elegir solo hasta el cupo disponible. | Ya implementado (`SIN_CUPO`). CAT-08 (cupo restante visible) lo necesita el front para limitar la cantidad. |
-| **P13b** | El email "no tendría por qué fallar". Se mantiene la defensa actual: si fallara, la inscripción queda confirmada y se informa `email_enviado=False`. | Sin cambios (SRV-15). |
+| **P13b** | **Si el email no se puede enviar, se reintenta; si nunca se logra, la inscripción no queda confirmada** (se liberan el cupo y el DNI) y se le informa al visitante. Decisión del grupo, 2026-10-15 (reemplaza a la anterior: "queda confirmada igual"). | SRV-15 reformulada: 3 intentos configurables con una pausa entre ellos; motivo `EMAIL_NO_ENVIADO`; `anular()` en los repositorios. |
 | **P17** | **Sin costo.** El email no lleva totales. | Sin cambios. |
 | **P22** | **El nombre del visitante no es opcional.** Se revisará más adelante. | Sin cambios (VIS-02/03). |
 
