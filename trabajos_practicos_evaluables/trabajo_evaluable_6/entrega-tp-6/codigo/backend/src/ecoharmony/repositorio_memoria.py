@@ -16,7 +16,8 @@ class RepositorioEnMemoria:
 
     def guardar(self, inscripcion):
         """Reserva el cupo y guarda la inscripcion (en Postgres sera una sola transaccion)."""
-        inscripcion.actividad.reservar(inscripcion.horario, len(inscripcion.visitantes))
+        actividad = self._actividades[inscripcion.actividad.nombre]
+        actividad.reservar(inscripcion.horario, len(inscripcion.visitantes))
         self._inscripciones[inscripcion.codigo] = inscripcion
 
     def obtener(self, codigo):
