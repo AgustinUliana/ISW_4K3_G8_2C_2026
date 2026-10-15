@@ -47,6 +47,7 @@ en `codigo/salida_de_emails/`, solo para desarrollo.
 | `GET /actividades` | las 4 actividades con sus reglas y `disponible` | 200 |
 | `GET /actividades/{nombre}/horarios?fecha=AAAA-MM-DD` | turnos con `cupo_restante` y `agotado` | 200 · 404 · 422 |
 | `GET /actividades/{nombre}/terminos` | T&C específicos de la actividad | 200 · 404 |
+| `POST /inscripciones/validar` (`Authorization: Bearer <token>`) | revisa los datos (visitantes, DNI, cupo) **sin inscribir**; el paso 3 lo usa para mostrar los errores ahí mismo | 200 · 401 · 404 · 409 · 422 |
 | `POST /inscripciones` (`Authorization: Bearer <token>`) | inscribe; envía el email con un QR por visitante | 201 · 401 · 404 · 409 (sin cupo, DNI ya inscripto) · 422 · 503 (email) |
 
 Cualquier error inesperado responde 500 con un mensaje genérico (no filtra detalles internos).

@@ -477,7 +477,7 @@ Los contratos de los Grupos 6, 7 y 8 garantizan que reemplazar un doble por la p
 ## 11. Estado de la implementación (2026-10-15)
 
 Rama `tp6-tdd`: cada prueba se hizo con su ciclo visible en `git log` (`test(ID): rojo` → `feat(ID): verde` →
-`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **282 pruebas del backend y 91 del front, todas verdes** (sin base de
+`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **293 pruebas del backend y 108 del front, todas verdes** (sin base de
 datos y contra PostgreSQL real), PEP 8 limpio con `ruff`.
 
 | Grupo | Archivo de pruebas | Estado |
@@ -608,6 +608,20 @@ paneles; la paleta (`386641 · 6A994E · A7C957 · F2E8CF · BC4749`) y la fuent
 sesión, actividades, día y horario, visitantes, T&C, confirmación con código de reserva. De ahí salieron dos arreglos más,
 ambos con prueba primero: la API no aceptaba el front abierto en `127.0.0.1` (CORS; ahora acepta `localhost` y
 `127.0.0.1` y se configura con `ORIGENES_PERMITIDOS`, MAIN-05/06) y el ajuste de proporción del vidrio de arriba.
+
+**Errores de los visitantes en el paso 3 (pedido del grupo).** Antes, un DNI o una edad inválidos recién se informaban
+al confirmar, en el paso 4. Ahora el paso 3 los revisa al tocar *Continuar* y muestra el error ahí mismo, por ejemplo
+"Visitante 1: el DNI debe tener 7 u 8 dígitos, la edad debe estar entre 0 y 100.", marca en rojo solo los campos con
+problema (`aria-invalid`), conserva lo escrito para corregirlo y recién avanza cuando está todo bien. Las reglas **no se
+duplican en el front**: las sigue aplicando el backend, que ahora tiene `POST /inscripciones/validar` (valida sin
+inscribir ni reservar cupo). Como el mismo chequeo incluye el cupo y los DNI ya inscriptos, esos avisos también llegan
+antes de confirmar. Al volver desde la confirmación los datos cargados se conservan.
+
+| Prueba | Archivo |
+|---|---|
+| SRV-24..30: `validar` sin efectos, visitante inválido, DNI ya inscripto, sin cupo, sin sesión, actividad inexistente, T&C de una actividad inexistente (antes daba error 500) | `test_inscripcion_service.py` |
+| API-14..17: `POST /inscripciones/validar` (200, 422 con detalle por visitante, 401, 409) | `test_api.py` |
+| API-F10 (cliente), CAM-01..04 (motivo → campo), VAL-F01..14 (pantalla), APP-10..12 (recorrido) | `cliente.test.js`, `campos.test.js`, `PantallaVisitantes.test.jsx`, `App.test.jsx` |
 
 ### 11.4 Lo que falta
 
