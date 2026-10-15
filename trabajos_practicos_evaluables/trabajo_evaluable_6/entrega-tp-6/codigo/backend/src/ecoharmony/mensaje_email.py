@@ -46,7 +46,10 @@ def armar_mensaje(inscripcion, qrs):
     )
     return MensajeEmail(
         destinatario=inscripcion.email_de_contacto,
-        asunto=f"Inscripción confirmada: {inscripcion.actividad.nombre}",
+        asunto=(
+            f"Inscripción confirmada {inscripcion.codigo}: {inscripcion.actividad.nombre} "
+            f"· {horario.fecha:%d/%m/%Y} {horario.hora_inicio:%H:%M}"
+        ),
         cuerpo=cuerpo,
         adjuntos=tuple(_adjuntos_de_qr(qrs)),
         cuerpo_html=armar_html(inscripcion, cantidad_de_qrs=len(qrs)),
