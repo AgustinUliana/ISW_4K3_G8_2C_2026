@@ -35,3 +35,9 @@ describe("mensajesDeRechazo", () => {
     expect(mensajesDeRechazo({})).toEqual(["No se pudo completar la operación. Probá de nuevo."]);
   });
 });
+
+describe("sin conexion", () => {
+  it("avisa que no se pudo conectar con el servidor", () => {
+    expect(mensajeDeMotivo("sin_conexion")).toMatch(/no pudimos conectarnos con el servidor/i);
+  });
+});
