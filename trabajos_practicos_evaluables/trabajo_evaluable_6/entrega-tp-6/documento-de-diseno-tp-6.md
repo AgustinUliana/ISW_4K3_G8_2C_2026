@@ -1,8 +1,45 @@
-# TP6 – TDD: Documento de decisiones de diseño
+<div class="portada" markdown="1">
 
-**User Story:** Inscribirme a actividad (EcoHarmony Park) · **Grupo 8** · ISW 4K3 · UTN FRC · 2026  
-**Estado:** v1.0 · 2026-10-15  
+![Logo de EcoHarmony Park, grupo 8](codigo/frontend/public/logo.svg)
+
+**Universidad Tecnológica Nacional – Facultad Regional Córdoba**<br>
+**Ingeniería en Sistemas de Información**<br>
+**Ingeniería y Calidad de Software**
+
+# Trabajo Práctico Evaluable N.º 6
+
+## TDD – Desarrollo guiado por pruebas
+
+**User Story:** Inscribirme a actividad (EcoHarmony Park) · **Documento de decisiones de diseño**
+
+</div>
+
+**Año:** 2026<br>
+**Docentes:** Ing. Laura Covaro, Ing. Cecilia Massano, Ing. Constanza Garnero, Ezequiel Izaguirre<br>
+**Curso:** 4K3<br>
+**Grupo Nro:** 8<br>
+**Integrantes:**
+
+- ULIANA, Agustin – 97828
+- LEDO FLORES, Francisco – 86489
+- CASTELO, Matias – 88413
+- DIAZ, Ivan – 87473
+- SORUCO, Jonatan – 79456
+- GIAIMO, Gino – 78426
+- PÁEZ DE LA TORRE, Matias – 83289
+- RAMALLO, Mateo – 94441
+- CORREA, Jeremías – 88714
+- VARGAS FERNANDEZ, Rodrigo – 96417
+- FORTI, Bruno – 80818
+- TRONCOZO, Valentina – 86268
+- LEYES MOLINA, Selene – 65743
+- CARDOZO ROJAS, Fernando – 89064
+
+**Fecha de Entrega:** 21/10
+
 **Documentos hermanos:** [plan de pruebas](plan-pruebas-tdd-tp-6.md) · [preguntas al PO](preguntas-product-owner-tp-6.md) · [partición de equivalencias](particion-equivalencias-tp-6.md) · [código](codigo/README.md)
+
+<div class="salto"></div>
 
 > COMO visitante QUIERO inscribirme a una actividad PARA reservar mi lugar en la misma.
 
@@ -18,7 +55,7 @@ diseño tomadas*. Este es ese documento. Cada decisión se presenta con el mismo
 |---|---|
 | Lenguaje y estilo | Python 3.13 (backend) y JavaScript/React 19 (front). **PEP 8**, verificado automáticamente con `ruff` (largo de línea 100). |
 | Enfoque | TDD de Kent Beck: lista de pruebas, y luego un ciclo **Red → Green → Refactor** por cada comportamiento, visible en `git log`. |
-| Pruebas automatizadas | **318 del backend** (283 sin base de datos + 35 contra PostgreSQL real y `qrcode` real) y **108 del front**. Todas verdes. |
+| Pruebas automatizadas | **356 del backend** (321 sin base de datos + 35 contra PostgreSQL real y `qrcode` real) y **110 del front**. Todas verdes. |
 | Persistencia | PostgreSQL 16 en Docker, SQL plano (sin ORM), visible desde DBeaver. |
 | Piezas reales y gratuitas | QR con la librería `qrcode`; email por SMTP genérico (Gmail o Brevo); PostgreSQL local. |
 | Interfaz | React + Vite, paleta y tipografía (Lato) del PO, estilo *Liquid Glass*, responsive. |
@@ -69,15 +106,15 @@ pruebas.
 
 **Por qué.** Verificar llamadas a una consulta vuelve la prueba frágil (se rompe ante un refactor que no cambia el
 comportamiento). Y un fake que no se contrasta con el real termina mintiendo: por eso existe el grupo de **pruebas de
-contrato**, que se ejecutan dos veces, contra el fake y contra PostgreSQL (§6.2).
+contrato**, que se ejecutan dos veces, contra el fake y contra PostgreSQL (§8.2).
 
 ### 2.4 Categorías de pruebas
 
 | Cat. | Qué usa | Cuántas | Cuándo corre |
 |---|---|---|---|
-| **U** – unitarias | dominio y dobles; sin red, disco ni reloj real | 283 (backend) + 108 (front) | siempre (`pytest`, `vitest`) |
+| **U** – unitarias | dominio y dobles; sin red, disco ni reloj real | 321 (backend) + 110 (front) | siempre (`pytest`, `vitest`) |
 | **C** – contrato / integración local | PostgreSQL local, `qrcode` | 35 | con la base levantada (marcadores `db` y `local`); sin base se saltean con un aviso |
-| **X** – externas | email real a una casilla | pendiente (ver §11) | manual, antes de la entrega (marcador `externa`) |
+| **X** – externas | email real a una casilla | pendiente (ver §12) | manual, antes de la entrega (marcador `externa`) |
 
 ## 3. Arquitectura
 
@@ -119,7 +156,7 @@ la hora, un email caído o una base caída).
 | `Inscripcion` | Reúne titular, actividad, horario, visitantes y T&C aceptados; aplica las reglas combinadas. |
 | `Usuario` | Email y contraseña; el visitante debe estar registrado (decisión del grupo). |
 | `TerminosYCondiciones` | Actividad, versión y texto. |
-| `MotivoRechazo` | Enumeración de las razones por las que se rechaza (§4.1). |
+| `MotivoRechazo` | Enumeración de las razones por las que se rechaza (D1). |
 
 ## 4. Decisiones de diseño
 
@@ -237,19 +274,39 @@ los QR en `salida_de_emails/` (ignorada por git).
 quiere comprometerse con un proveedor. La carpeta de desarrollo permite probar todo el recorrido sin enviar nada.  
 **Hallazgo de la prueba manual:** con credenciales SMTP de ejemplo en el `.env`, la API se quedaba colgada intentando
 conectarse. Se agregó el tiempo límite (`SMTP-06`) y el `.env.example` trae el SMTP comentado.  
-**Respaldo:** `SMTP-01..06`, `MAIL-01/02`, `EML-01..07`; la prueba externa con un email real está pendiente (§11).
+**Respaldo:** `SMTP-01..06`, `MAIL-01/02`, `EML-01..07`; la prueba externa con un email real está pendiente (§12).
 
 ### D12. Términos y condiciones propios de cada actividad
 
 **Se decidió:** un texto distinto por actividad, redactado por `redactar_terminos(nombre, edad_minima, requiere_talla,
-cupo_por_turno)` en `terminos_texto.py`. Las reglas (edad, talla, cupo, 24 h, 15 min, máximo de personas) salen de los
-mismos datos que usa el dominio; lo propio de cada actividad (seguridad de la tirolesa, trato de los animales en el safari,
-arnés de la palestra, herramientas de jardinería) es texto fijo. Llevan versión (`v1`) y se aceptan por actividad.  
-**Por qué:** el PO pidió un texto por actividad, diseñado por el grupo y sin validación de su parte. Armarlos con los datos
-evita que el texto diga "8 años" mientras la regla dice 10. Una actividad sin texto propio **no se puede crear** (error),
-para que nunca salga una sin T&C.  
-**Importante:** el contenido es un **borrador del grupo para revisar** (puntos a confirmar en §11).  
-**Respaldo:** `TYC-01..13`, `CAT-*`, `CONF-F*`.
+cupo_por_turno)` en `terminos_texto.py`. Todos siguen el mismo modelo de **11 apartados** (el que propuso el grupo):
+1 objeto de la actividad, 2 requisitos de inscripción, 3 normas de seguridad, 4 equipo o materiales, 5 salud y condiciones
+de participación, 6 responsabilidad de la organización, 7 modificaciones, suspensión o cancelación, 8 cuidado de las
+instalaciones y del medioambiente, 9 datos personales, 10 fotografías y videos, 11 aceptación.
+**Qué cambia en cada actividad:** el objeto, las normas de seguridad, el cuarto apartado, la salud y el cuidado del entorno.
+
+| Actividad | Cuarto apartado | Normas y salud propias (resumen) |
+|---|---|---|
+| Tirolesa | Uso del equipo de seguridad | Línea de vida, arnés, casco y polea que coloca y revisa el personal; esperar la autorización antes de cada descenso; sin objetos sueltos; calzado cerrado; avisar problemas de espalda, cuello o corazón, epilepsia, vértigo, lesiones o embarazo. |
+| Safari | Contacto con los animales y alimentación | Seguir al guía y no cruzar vallas; no alimentar, tocar ni molestar a los animales; voz baja y sin flash; solo el personal alimenta; avisar alergias y síntomas contagiosos. |
+| Palestra | Uso del equipo de seguridad | Pared de escalada con asegurador; arnés y casco; no escalar sin autorización ni descalzo; no pararse en la zona de caída; avisar lesiones, vértigo o embarazo. |
+| Jardinería y cuidado de espacios verdes | Uso de herramientas y materiales | Herramientas y fertilizantes solo con indicaciones del personal; guantes; calzado cerrado; avisar alergias a plantas, polen o tierra; protector solar. |
+
+**Qué es fijo y qué sale de los datos:** los números (edad mínima, talla, cupo por turno, 24 horas, 15 minutos, máximo de
+10 personas) salen de los mismos datos que usa el dominio, de modo que el texto no puede decir "8 años" si la regla dice
+10. Una actividad sin texto propio **no se puede crear** (error). Los textos llevan versión (`v1`) y se aceptan por actividad.
+**Cómo se redactaron:** se tomó como base el modelo de términos y condiciones de participación que aportó el grupo y se
+adaptó cada actividad con las prácticas habituales que publican parques de aventura (tirolesa), reglamentos de rocódromos
+(palestra), parques zoológicos y de safari (safari) y guías de seguridad de huertas y talleres (jardinería); las fuentes
+están en la bibliografía. No existe una norma única para estas actividades: los parques fijan sus propios requisitos.
+**Menores de edad:** el texto indica que la inscripción y la autorización de menores deben hacerlas su madre, padre,
+tutor o representante legal; al aceptar, quien se inscribe declara serlo. El sistema **no verifica** esa condición (solo
+exige un usuario registrado): es una declaración, no un control técnico.
+**Firma:** el modelo original termina con campos de firma; en un sistema web se reemplazan por la casilla «Acepto los
+términos y condiciones» de la inscripción (`TERMINOS_NO_ACEPTADOS` si no se marca).
+**Importante:** el contenido es un **borrador del grupo para revisar** (puntos a confirmar en §12).
+**Respaldo:** `TYC-01..31` (estructura de 11 apartados en orden, normas propias, equipo, salud, menores, fotografías,
+aceptación sin firma, reglas del PO y textos distintos entre sí), `CAT-*`, `CONF-F*`.
 
 ### D13. Interfaz (front)
 
@@ -266,16 +323,107 @@ para que nunca salga una sin T&C.
 
 ### D14. Estilo de código y herramientas
 
-PEP 8 con `ruff` (check + format, línea 100); nombres de pruebas en español, en `snake_case` y sin tildes, que nombran el
-comportamiento (`test_no_se_inscribe_sin_aceptar_los_terminos`). Un archivo de pruebas por grupo. Los datos de prueba
-comunes están en `datos_de_prueba.py` y los dobles en `dobles.py`.
+**Se decidió:** el estilo de código del grupo es **PEP 8** y se verifica automáticamente con `ruff`; el detalle de las
+reglas y de cómo se cumplen está en la sección 5.
+**Por qué:** la consigna pide usar el documento de estilos elegido en el TP2. Una regla que solo está escrita se olvida;
+una que se verifica en cada corrida se cumple.
 
 ### D15. Flujo de trabajo en git
 
 Una rama por tema (`feature/…`, `docs/…`), integradas a `main` con *pull request* y commit de merge. Los commits siguen
 `tipo(ámbito): rojo|verde|refactor – qué`. El historial se agrupa por tema (§2.1) para que cada ciclo se lea sin ruido.
 
-## 5. Trazabilidad con la User Story
+### D16. Identidad de marca: logo con el número de grupo
+
+**Se decidió:** el grupo diseñó un logo propio, `codigo/frontend/public/logo.svg`: un sello circular verde (#386641) con una
+hoja crema, el sol y las colinas en los verdes del PO, y una insignia roja (#BC4749) con **«G8»**. Se muestra en el
+encabezado de todas las pantallas (también sin sesión), como icono de la pestaña del navegador y en la portada de este
+documento.
+**Por qué:** el PO indicó, en el relevamiento del módulo Comprar Entradas, que el logo debe diseñarlo cada grupo y que el
+**número de grupo es obligatorio**; se aplicó el mismo criterio a este módulo. Es un SVG (vector) de un solo archivo: se ve
+nítido en cualquier tamaño, pesa menos de 2 KB y usa solo la paleta provista.
+**Respaldo:** `LOGO-01` (el encabezado muestra el logo con su descripción «EcoHarmony Park, grupo 8»), `LOGO-02` (sigue con la
+sesión iniciada).
+
+## 5. Estilo de código: PEP 8
+
+La consigna pide implementar con el lenguaje y **el documento de estilos de código elegidos por el grupo para el TP2**. El
+grupo eligió **PEP 8** (*Style Guide for Python Code*) para el backend. Esta sección resume qué reglas se aplican y cómo se
+comprueba que se cumplen.
+
+### 5.1 Reglas aplicadas
+
+| Tema | Regla (PEP 8) | Ejemplo en este proyecto |
+|---|---|---|
+| Sangría | 4 espacios por nivel, sin tabuladores | todo el código |
+| Largo de línea | PEP 8 fija 79 y admite que el equipo acuerde hasta 99–100: el grupo acordó **100** | `line-length = 100` en `pyproject.toml` |
+| Nombres de funciones, métodos y variables | `snake_case` | `crear_actividades`, `redactar_terminos`, `cupo_por_turno` |
+| Nombres de clases | `CapWords` | `InscripcionService`, `RepositorioPostgres`, `MotivoRechazo` |
+| Constantes | `MAYUSCULAS_CON_GUIONES_BAJOS` | `LARGO_MINIMO_DE_CONTRASENA`, `MAXIMO_DE_PERSONAS` |
+| Miembros no públicos | prefijo `_` | `_evaluar`, `_requisitos`, `_DE_LA_ACTIVIDAD` |
+| Importaciones | al principio, una por línea, agrupadas (biblioteca estándar, terceros, propias) y ordenadas | verificado con la regla `I` |
+| Espacios en blanco | dos líneas entre definiciones de nivel superior, una entre métodos; espacios alrededor de operadores | formateo automático con `ruff format` |
+| Comparaciones | `is None` / `is not None`, nada de `== None`; sin `import *` | regla `F` |
+| Documentación | *docstrings* en módulos y en clases o funciones cuyo propósito no es evidente | `terminos_texto.py`, `Inscripcion`, `InscripcionService.validar` |
+
+**Convención propia del grupo (permitida por PEP 8, que sugiere el idioma del equipo):** identificadores y nombres de
+pruebas en **español, sin tildes ni eñes** (`test_el_ultimo_cupo_lo_obtiene_solo_la_primera_inscripcion`). Los textos que
+ve el usuario sí llevan tildes. Cada prueba se nombra por el comportamiento y se lee como una frase.
+
+### 5.2 Cómo se verifica
+
+`ruff` (verificador y formateador) con las reglas **E** y **W** (pycodestyle, es decir PEP 8), **F** (errores como nombres sin
+usar), **N** (`pep8-naming`, nombres) e **I** (orden de importaciones):
+
+```bash
+python -m ruff check .     # All checks passed!
+python -m ruff format .    # formatea
+```
+
+El resultado de la corrida final del código entregado es **0 infracciones**. Además, `ruff` se ejecutó en cada paso del ciclo
+TDD (antes de cada commit), de modo que el estilo no es una limpieza de último momento. *Ejemplo real:* al agregar los
+términos y condiciones la herramienta marcó líneas de más de 100 caracteres (E501); se corrigieron en un commit de
+*refactor* sin cambiar el comportamiento (`refactor(T&C): …`).
+
+### 5.3 El front (JavaScript)
+
+PEP 8 es una guía de Python y no aplica a JavaScript. En el front el grupo mantuvo convenciones propias y homogéneas:
+componentes de React en `PascalCase` (`PantallaHorario.jsx`), funciones y variables en `camelCase`, constantes en
+`MAYUSCULAS`, una responsabilidad por archivo, sangría de 2 espacios y comillas dobles. **No se configuró un verificador
+automático (ESLint/Prettier) para el front**: es una limitación reconocida; el estilo se mantuvo por consistencia y revisión.
+
+## 6. Tecnologías utilizadas y por qué
+
+La consigna exige **un lenguaje elegido por el grupo, pruebas automatizadas, el ciclo Red-Green-Refactor, la
+implementación funcional de la User Story y este documento**. No exige interfaz gráfica, base de datos ni servidor. Cada
+tecnología de la tabla se evaluó con una pregunta: *¿es lo que pide la consigna, la User Story o el PO, o es una decisión
+del grupo?* y, en ese caso, *¿qué aporta y cuánto cuesta?*
+
+| Tecnología | Para qué se usa | Origen | Qué aporta / costo |
+|---|---|---|---|
+| **Python 3.13** | Backend y reglas del negocio | Consigna: lenguaje a elección | Legible y con buen ecosistema de pruebas; el grupo ya tenía su guía de estilo (PEP 8). |
+| **pytest 8** | Ejecutar las pruebas | Consigna: pruebas automatizadas (herramienta libre) | Parametrización (un caso por actividad), *fixtures* y marcadores (`db`, `local`, `externa`). |
+| **ruff** | Verificar y formatear según PEP 8 | Consigna: estilo del TP2 | Automatiza el cumplimiento del estilo; una herramienta sola reemplaza varias. |
+| **qrcode[pil]** | Generar el código QR (PNG) | **User Story**: el email debe contener un QR | Real, gratuito y local; el contrato de pruebas asegura que sea reemplazable. |
+| **`smtplib` (biblioteca estándar)** | Enviar el email por SMTP | **User Story / PO**: correo real | Sin dependencia nueva; sirve para Gmail o Brevo con solo cambiar el `.env`. |
+| **`hashlib.scrypt` y `hmac` (estándar)** | Contraseñas con sal y token de sesión | Decisión del grupo: visitante registrado | Seguridad razonable sin sumar librerías. |
+| **PostgreSQL 16 + `psycopg` 3 (SQL plano)** | Guardar inscripciones, cupos y usuarios | Decisión del grupo | La consigna no pide base de datos, pero el **cupo es un estado compartido** y la reserva atómica (D5) solo se puede probar contra una base real; visible en DBeaver. Costo: requiere Docker (las pruebas unitarias corren sin él). |
+| **Docker Compose** | Levantar PostgreSQL con un comando | Decisión del grupo | Cualquier integrante reproduce la base igual; reemplaza instalar PostgreSQL a mano. |
+| **FastAPI + uvicorn** | API HTTP entre el front y las reglas | Decisión del grupo | Valida y documenta (`/docs`) y se prueba sin servidor con `TestClient`. Costo: una capa más; se justifica porque el front está separado. |
+| **React 19 + Vite 8** | Pantallas de la inscripción | **PO**: paleta, tipografía y logo del front; la US es de interfaz (elegir, completar, aceptar) | Permite probar el recorrido completo del visitante; aporta 110 pruebas. Costo: más código fuera del núcleo evaluado (TDD del dominio). |
+| **Vitest + React Testing Library** | Pruebas del front | Decisión del grupo (reemplaza a Jest) | Misma API que Jest, integrado a Vite; prueba lo que ve el usuario, no la implementación. |
+| **`liquid-glass-react`** | Efecto *Liquid Glass* de los paneles | **Exigencia de estilo del front** | Encerrada en un solo componente (`Vidrio.jsx`): si falla, se cambia un archivo. |
+| **`@fontsource/lato`** | Tipografía Lato | **PO**: la fuente debe ser Lato | Se sirve desde el propio proyecto: sin depender de un CDN externo ni mandar datos a terceros. |
+| **Git / GitHub** | Historial rojo-verde-refactor y *pull requests* | Consigna: se evalúa el ciclo | Es la evidencia verificable del proceso. |
+
+**Conclusión.** Lo estrictamente necesario para la consigna es Python, pytest, el estilo PEP 8 y este documento. El resto
+se agregó porque la User Story o el PO lo piden (QR, email real, Lato, paleta, logo, *Liquid Glass*) o porque hacen
+verificable una regla que si no quedaría sin probar (la base de datos para el cupo atómico). Se mantuvieron pocas
+dependencias: **4 librerías de ejecución en Python** (`qrcode`, `psycopg`, `fastapi`, `uvicorn`) y **4 en el front**
+(`react`, `react-dom`, `liquid-glass-react`, `@fontsource/lato`). No se usó ningún ORM, ni *framework* de CSS, ni
+biblioteca de componentes.
+
+## 7. Trazabilidad con la User Story
 
 | Criterio de aceptación / prueba de usuario | Dónde se resuelve | Pruebas |
 |---|---|---|
@@ -293,22 +441,22 @@ Una rama por tema (`feature/…`, `docs/…`), integradas a `main` con *pull req
 | Falla: sin la talla requerida | `Visitante` | `ACE-06` |
 | Falla: T&C de otra actividad / sin haber iniciado sesión | `Inscripcion` | `ACE-07`, `ACE-08` |
 
-## 6. Estrategia de pruebas
+## 8. Estrategia de pruebas
 
-### 6.1 Pirámide
+### 8.1 Pirámide
 
-- **Base (283 + 108):** unitarias del dominio, del servicio con dobles y de las pantallas con API falsa. Corren en
+- **Base (321 + 110):** unitarias del dominio, del servicio con dobles y de las pantallas con API falsa. Corren en
   segundos, sin infraestructura.
 - **Medio (35):** contratos contra PostgreSQL real y `qrcode` real, incluida la carrera por el último cupo.
 - **Cima:** aceptación (`ACE-01..08`, que además de las pruebas de usuario de la consigna cubren T&C ajenos y falta de sesión), cada una ejecutada con dobles **y** con PostgreSQL + QR real.
 - **Externa (pendiente):** un email real a una casilla del grupo.
 
-### 6.2 Contratos que se ejecutan dos veces
+### 8.2 Contratos que se ejecutan dos veces
 
 Repositorio de inscripciones, repositorio de usuarios y generador de QR comparten pruebas entre el doble y la pieza real.
 Es la garantía de que reemplazar un doble no cambia el comportamiento.
 
-### 6.3 Hallazgos que encontraron las pruebas y las corridas manuales
+### 8.3 Hallazgos que encontraron las pruebas y las corridas manuales
 
 | # | Hallazgo | Quién lo encontró | Arreglo |
 |---|---|---|---|
@@ -321,7 +469,7 @@ Es la garantía de que reemplazar un doble no cambia el comportamiento.
 | 7 | El vidrio de la librería dibujaba un contorno interior en elementos anchos | corrida manual en el navegador | proporción máxima 1,6 (`VID-11/12`) |
 | 8 | Una regla nueva (`INS-11`) rompió `INS-02` (actividad nula) | la suite completa | guarda en `errores_por_visitante` |
 
-## 7. Límites y trabajo futuro
+## 9. Límites y trabajo futuro
 
 | Tema | Límite actual | Mejora posible |
 |---|---|---|
@@ -333,7 +481,7 @@ Es la garantía de que reemplazar un doble no cambia el comportamiento.
 | Refracción del vidrio | Solo en navegadores Chromium | Evaluar otra técnica |
 | Preguntas de baja prioridad | P10b, P12b, P15b, P18, P19b, P20, P21 siguen abiertas | Resolver con el PO |
 
-## 8. Cómo ejecutarlo
+## 10. Cómo ejecutarlo
 
 Los pasos completos están en [`codigo/README.md`](codigo/README.md). En resumen:
 
@@ -342,23 +490,32 @@ cd codigo
 docker compose up -d                       # PostgreSQL
 cd backend
 PYTHONPATH=src .venv/Scripts/python.exe -m ecoharmony.preparar_base
-.venv/Scripts/python.exe -m pytest         # 318 pruebas (las de base se saltean si no hay PostgreSQL)
+.venv/Scripts/python.exe -m pytest         # 356 pruebas (las de base se saltean si no hay PostgreSQL)
 .venv/Scripts/python.exe -m ruff check .   # PEP 8
 cd ../frontend
-npm install && npm test                    # 108 pruebas
+npm install && npm test                    # 110 pruebas
 ```
 
-## 9. Bibliografía
+## 11. Bibliografía
 
 - Beck, K. *Test-Driven Development by Example*. Addison-Wesley, 2002. Patrones: *Starter Test*, *One Step Test*,
   *Fake It*, *Triangulate*, *Obvious Implementation*, *Child Test*, *Mock Object*, *Crash Test Dummy*, *Clean Check-in*.
 - Ble, C. *Diseño Ágil con TDD*. Caps. 3 (ATDD), 6 (dobles de prueba), 8–9 (proyecto de ejemplo).
 - PEP 8 – *Style Guide for Python Code* (estilo elegido por el grupo en el TP2).
+- Fuentes consultadas para redactar las normas de seguridad de los términos y condiciones (no existe una norma única;
+  los parques fijan sus requisitos): American Academy of Pediatrics, *Zip Line Safety Tips* (healthychildren.org);
+  reglamentos de rocódromos de la Universidad de Extremadura, de Salamanca y de Vélez-Málaga (equipo homologado, casco,
+  arnés y menores acompañados); normas de visita de Bioparc Valencia, Bioparco (Roma) y Night Safari de Singapur (no
+  alimentar, no tocar, sin flash, mantener la distancia); normativas de seguridad de talleres de herramientas y guías de
+  seguridad en jardinería (calzado cerrado, cabello recogido, inspección de herramientas).
+- Modelo de términos y condiciones de participación aportado por el grupo, adaptado a cada actividad.
 - Enunciado del TP2 (EcoHarmony Park) y respuestas del Product Owner (ver [preguntas al PO](preguntas-product-owner-tp-6.md)).
 
-## 10. Puntos que el grupo debe confirmar antes de entregar
+## 12. Puntos que el grupo debe confirmar antes de entregar
 
-1. **Textos de T&C** (borrador): clima y suspensión de la actividad, menores de edad / adulto responsable, redacción de
-   datos personales, y las recomendaciones propias de cada actividad (calzado, accesorios, uso de flash).
+1. **Textos de T&C** (borrador): normas propias de cada actividad (calzado, accesorios, uso de flash, equipo) y
+   redacción de datos personales y de fotografías. Además dos puntos que el PO no definió: si Tirolesa y Palestra tendrán
+   **límites de peso o altura** (los parques suelen tenerlos; no se incluyeron) y si se va a **verificar** que quien
+   inscribe a un menor sea su representante (hoy es solo una declaración).
 2. **Prueba externa de email real** (§2.4): falta cargar credenciales SMTP en el `.env` y ejecutar la prueba de categoría X.
-3. **Preguntas de baja prioridad al PO** (§7).
+3. **Preguntas de baja prioridad al PO** (§9).

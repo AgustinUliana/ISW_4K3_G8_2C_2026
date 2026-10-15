@@ -477,7 +477,7 @@ Los contratos de los Grupos 6, 7 y 8 garantizan que reemplazar un doble por la p
 ## 11. Estado de la implementación (2026-10-15)
 
 Rama `tp6-tdd`: cada prueba se hizo con su ciclo visible en `git log` (`test(ID): rojo` → `feat(ID): verde` →
-`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **318 pruebas del backend y 108 del front, todas verdes** (sin base de
+`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **356 pruebas del backend y 110 del front, todas verdes** (sin base de
 datos y contra PostgreSQL real), PEP 8 limpio con `ruff`.
 
 | Grupo | Archivo de pruebas | Estado |
@@ -629,17 +629,24 @@ antes de confirmar. Al volver desde la confirmación los datos cargados se conse
 2. **Revisión del grupo de los T&C** (son un borrador, ver §11.5).
 3. Preguntas de baja prioridad abiertas al PO (ver `preguntas-product-owner-tp-6.md` §3).
 
-### 11.5 Términos y condiciones por actividad – hecho en la rama `docs/terminos-y-documento-de-diseno`
+### 11.5 Términos y condiciones por actividad y logo – hecho en la rama `docs/terminos-y-documento-de-diseno`
 
-El PO pidió un texto distinto por actividad, diseñado por el grupo. Cada texto lo arma `redactar_terminos` (módulo
-`terminos_texto.py`) con seis apartados (reserva, quiénes pueden participar, la actividad, el día de la actividad,
-seguridad y datos personales). Los números salen de las reglas de la actividad y de la ventana de inscripción, y lo propio
-de cada actividad (equipo de seguridad de la Tirolesa, animales del Safari, arnés de la Palestra, plantas y herramientas
-de Jardinería) es texto fijo. El front respeta los saltos de línea del texto.
+El PO pidió un texto distinto por actividad, diseñado por el grupo. Todos siguen el modelo de 11 apartados que aportó el
+grupo (objeto, requisitos de inscripción, normas de seguridad, equipo o materiales, salud, responsabilidad, suspensión,
+cuidado del entorno, datos personales, fotografías y aceptación) y cada actividad tiene normas propias, redactadas a partir
+de las prácticas habituales de parques de aventura, rocódromos, zoológicos y huertas (fuentes en el documento de diseño).
+`redactar_terminos` (módulo `terminos_texto.py`) toma de los datos de la actividad la edad mínima, la talla, el cupo, la
+ventana de inscripción y el máximo de personas. El front respeta los saltos de línea del texto. En lugar de los campos de
+firma del modelo original, la aceptación es la casilla «Acepto los términos y condiciones».
 
 | Prueba | Qué verifica | Archivo |
 |---|---|---|
-| TYC-01..13 | ya no queda texto provisorio; versión `v1`; el título nombra la actividad; cada actividad tiene su apartado propio; edad mínima, talla y cupo por turno de cada actividad; reglas de reserva del PO (24 horas, 15 minutos, 10 personas, QR, DNI); el texto se arma con los datos y no con números fijos; una actividad sin texto propio no se puede redactar | `test_terminos_texto.py` |
+| TYC-01..31 | sin texto provisorio; versión `v1`; encabezado «TÉRMINOS Y CONDICIONES DE PARTICIPACIÓN» + actividad; los 11 apartados en orden; cuarto apartado propio (equipo, materiales, contacto con animales); normas distintas y marcas propias de cada actividad; equipo en altura (arnés, casco, calzado cerrado); safari (no tocar, sin flash); jardinería (guantes, alergias); salud (avisar antes de comenzar); menores (madre, padre, tutor o representante legal); responsabilidad sin renuncia general; suspensión por clima o seguridad; fotos con autorización específica; aceptación sin firma; edad, talla, cupo y reglas del PO tomadas de los datos | `test_terminos_texto.py` |
+| LOGO-01..02 | el encabezado muestra el logo con «EcoHarmony Park, grupo 8», con y sin sesión | `App.test.jsx` |
 
-**Para que el grupo confirme:** suspensión por clima, menores de edad / adulto responsable (P10b), redacción de datos
-personales y las recomendaciones propias de cada actividad (calzado, accesorios, flash).
+**Logo.** `codigo/frontend/public/logo.svg`: sello circular con hoja, sol y colinas en la paleta del PO y una insignia **G8**
+(el número de grupo es obligatorio según el PO). Está en el encabezado, como icono de la pestaña y en la portada del
+documento de diseño.
+
+**Para que el grupo confirme:** normas propias de cada actividad, límites de peso o altura (no definidos por el PO), si se
+verificará que quien inscribe a un menor sea su representante, y la redacción de datos personales y fotografías.
