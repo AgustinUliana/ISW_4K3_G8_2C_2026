@@ -4,6 +4,7 @@ from email.message import EmailMessage
 from email.utils import formatdate, make_msgid
 
 TIEMPO_LIMITE_EN_SEGUNDOS = 10
+SERVIDOR_DE_GMAIL = "smtp.gmail.com"
 VARIABLES = ("SMTP_SERVIDOR", "SMTP_PUERTO", "SMTP_USUARIO", "SMTP_CLAVE", "EMAIL_REMITENTE")
 
 
@@ -24,11 +25,15 @@ class ConfiguracionSmtp:
         faltantes = [v for v in VARIABLES if not entorno.get(v)]
         if faltantes:
             raise ConfiguracionIncompletaError(f"Falta configurar: {', '.join(faltantes)}")
+        servidor = entorno["SMTP_SERVIDOR"]
+        clave = entorno["SMTP_CLAVE"]
+        if servidor == SERVIDOR_DE_GMAIL:
+            clave = clave.replace(" ", "")  # Google muestra la clave en 4 grupos separados
         return cls(
-            servidor=entorno["SMTP_SERVIDOR"],
+            servidor=servidor,
             puerto=int(entorno["SMTP_PUERTO"]),
             usuario=entorno["SMTP_USUARIO"],
-            clave=entorno["SMTP_CLAVE"],
+            clave=clave,
             remitente=entorno["EMAIL_REMITENTE"],
         )
 
