@@ -130,3 +130,17 @@ def test_el_html_escapa_los_datos_del_usuario():
 
     assert "<script>" not in html
     assert "&lt;script&gt;" in html
+
+
+def test_el_html_muestra_el_dni_debajo_del_nombre_de_cada_visitante():
+    html = _html()
+
+    assert html.index("Ana Perez") < html.index("DNI 30123456") < html.index("qr-visitante-1")
+    assert html.index("Luis Gomez") < html.index("DNI 28123456") < html.index("qr-visitante-2")
+
+
+def test_el_texto_plano_tambien_incluye_el_dni_de_cada_visitante():
+    cuerpo = armar_mensaje(una_inscripcion_confirmada(), QRS).cuerpo
+
+    assert "1. Ana Perez (DNI 30123456)" in cuerpo
+    assert "2. Luis Gomez (DNI 28123456)" in cuerpo
