@@ -24,3 +24,5 @@ class MotivoRechazo(Enum):
     INSCRIPCION_CERRADA = "inscripcion_cerrada"
     FUERA_DE_VENTANA = "fuera_de_ventana"
     EMAIL_INVALIDO = "email_invalido"
+    DNI_YA_INSCRIPTO = "dni_ya_inscripto"
+    ACTIVIDAD_INEXISTENTE = "actividad_inexistente"
