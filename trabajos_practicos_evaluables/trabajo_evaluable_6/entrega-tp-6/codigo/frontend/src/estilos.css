@@ -502,7 +502,8 @@ form .boton-principal {
 }
 
 .texto-terminos {
-  max-height: 160px;
+  max-height: 240px;
+  white-space: pre-line;
   padding: 10px 14px;
   overflow-y: auto;
   font-size: 0.92rem;
