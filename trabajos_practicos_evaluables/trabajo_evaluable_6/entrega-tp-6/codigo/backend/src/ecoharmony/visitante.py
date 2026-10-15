@@ -24,7 +24,7 @@ class Visitante:
         ]
 
     def _errores_de_nombre(self):
-        if not self.nombre.strip():
+        if not isinstance(self.nombre, str) or not self.nombre.strip():
             return [MotivoRechazo.NOMBRE_REQUERIDO]
         solo_caracteres_validos = all(c.isalpha() or c in " '-" for c in self.nombre)
         if len(self.nombre) > LARGO_MAXIMO_NOMBRE or not solo_caracteres_validos:
@@ -34,7 +34,11 @@ class Visitante:
     def _errores_de_dni(self):
         if not self.dni:
             return [MotivoRechazo.DNI_REQUERIDO]
-        if not self.dni.isdigit() or len(self.dni) not in LARGOS_VALIDOS_DNI:
+        if (
+            not isinstance(self.dni, str)
+            or not self.dni.isdigit()
+            or len(self.dni) not in LARGOS_VALIDOS_DNI
+        ):
             return [MotivoRechazo.DNI_INVALIDO]
         return []
 
