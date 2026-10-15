@@ -151,3 +151,19 @@ def test_el_email_nunca_dice_prueba():
 
     for texto in (mensaje.asunto, mensaje.cuerpo, mensaje.cuerpo_html):
         assert "prueba" not in texto.lower()
+
+
+def test_el_asunto_incluye_el_codigo_fecha_y_horario_para_que_cada_inscripcion_sea_un_mail_aparte():
+    asunto = armar_mensaje(una_inscripcion_confirmada("INS-0007"), QRS).asunto
+
+    assert "INS-0007" in asunto
+    assert "Tirolesa" in asunto
+    assert "04/11/2026" in asunto
+    assert "10:00" in asunto
+
+
+def test_dos_inscripciones_a_la_misma_actividad_no_tienen_el_mismo_asunto():
+    uno = armar_mensaje(una_inscripcion_confirmada("INS-0001"), QRS).asunto
+    otro = armar_mensaje(una_inscripcion_confirmada("INS-0002"), QRS).asunto
+
+    assert uno != otro
