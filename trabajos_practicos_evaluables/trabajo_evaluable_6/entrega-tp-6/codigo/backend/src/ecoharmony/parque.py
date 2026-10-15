@@ -12,8 +12,11 @@ class Parque:
         self.cierre = cierre
 
     def esta_abierto(self, horario):
-        if horario.fecha.weekday() == LUNES:
-            return False
-        if (horario.fecha.month, horario.fecha.day) in FERIADOS:
-            return False
+        return self._abre_ese_dia(horario.fecha) and self._entra_en_el_horario(horario)
+
+    def _abre_ese_dia(self, fecha):
+        es_feriado = (fecha.month, fecha.day) in FERIADOS
+        return fecha.weekday() != LUNES and not es_feriado
+
+    def _entra_en_el_horario(self, horario):
         return self.apertura <= horario.hora_inicio and horario.hora_fin <= self.cierre
