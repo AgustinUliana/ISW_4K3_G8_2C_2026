@@ -1,4 +1,5 @@
 """Contrato del GeneradorQRLocal (categoria C: usa la libreria qrcode, sin red)."""
+
 import pytest
 
 from ecoharmony.generador_qr_local import GeneradorQRLocal
