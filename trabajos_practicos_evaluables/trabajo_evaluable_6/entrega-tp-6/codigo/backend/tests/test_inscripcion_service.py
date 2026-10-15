@@ -319,3 +319,13 @@ def test_si_el_dni_se_inscribe_en_paralelo_se_rechaza_por_dni_ya_inscripto():
     assert not resultado.confirmada
     assert resultado.motivos == [MotivoRechazo.DNI_YA_INSCRIPTO]
     assert email.enviados == []
+
+
+def test_sin_usuario_registrado_no_confirma_ni_envia_email():
+    repositorio, email = RepositorioEnMemoria(crear_actividades()), EmailEnMemoria()
+
+    resultado = armar_servicio(repositorio, email).inscribir(una_solicitud(titular=None))
+
+    assert not resultado.confirmada
+    assert resultado.motivos == [MotivoRechazo.USUARIO_NO_REGISTRADO]
+    assert_sin_efectos(repositorio, email)

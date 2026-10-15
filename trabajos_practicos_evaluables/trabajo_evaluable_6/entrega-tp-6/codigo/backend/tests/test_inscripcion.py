@@ -7,6 +7,7 @@ from ecoharmony.horario import Horario
 from ecoharmony.inscripcion import EstadoDeLaInscripcion, Inscripcion
 from ecoharmony.motivos import MotivoRechazo
 from ecoharmony.parque import Parque
+from ecoharmony.usuarios import Usuario
 from ecoharmony.visitante import Visitante
 
 AHORA = datetime(2026, 11, 4, 8, 0)  # miercoles 08:00
@@ -21,7 +22,7 @@ def una_inscripcion(**cambios):
         "actividad": actividad,
         "horario": H1,
         "visitantes": [ANA],
-        "email_de_contacto": "ana.perez@example.com",
+        "titular": Usuario("ana.perez@example.com"),
         "terminos_aceptados": actividad.terminos if actividad else None,
     }
     datos.update(cambios)
@@ -154,11 +155,8 @@ def test_se_rechaza_si_el_turno_esta_a_mas_de_24_horas():
     assert motivos_de_una_inscripcion(horario=viernes) == [MotivoRechazo.FUERA_DE_VENTANA]
 
 
-@pytest.mark.parametrize(
-    "email", ["", "ana", "ana@", "ana@dominio", "@dominio.com", "ana perez@dominio.com"]
-)
-def test_se_rechaza_sin_email_de_contacto_valido(email):
-    assert motivos_de_una_inscripcion(email_de_contacto=email) == [MotivoRechazo.EMAIL_INVALIDO]
+def test_se_rechaza_una_inscripcion_sin_usuario_registrado():
+    assert motivos_de_una_inscripcion(titular=None) == [MotivoRechazo.USUARIO_NO_REGISTRADO]
 
 
 def test_se_acumulan_todos_los_motivos_de_rechazo():
