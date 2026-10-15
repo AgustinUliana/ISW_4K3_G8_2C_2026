@@ -5,6 +5,7 @@ from datetime import date, datetime, time
 from ecoharmony.catalogo import crear_actividades
 from ecoharmony.horario import Horario
 from ecoharmony.inscripcion import Inscripcion
+from ecoharmony.inscripcion_service import SolicitudInscripcion
 from ecoharmony.visitante import Visitante
 
 AHORA = datetime(2026, 11, 4, 8, 0)  # miercoles 08:00
@@ -34,3 +35,16 @@ def n_visitantes(cantidad, primer_dni=30000001):
         Visitante(f"Persona {chr(65 + i)}", str(primer_dni + i), 30, talla="M")
         for i in range(cantidad)
     ]
+
+
+def una_solicitud(**cambios):
+    """Solicitud valida: Tirolesa, H1, Ana y Luis, con los T&C de Tirolesa."""
+    datos = {
+        "actividad": "Tirolesa",
+        "horario": H1,
+        "visitantes": [ANA, LUIS],
+        "email_de_contacto": EMAIL_DE_ANA,
+        "terminos_aceptados": "Tirolesa",
+    }
+    datos.update(cambios)
+    return SolicitudInscripcion(**datos)

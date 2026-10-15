@@ -2,12 +2,12 @@ from datetime import date, datetime, time
 
 import pytest
 
-from datos_de_prueba import AHORA, ANA, EMAIL_DE_ANA, H1, LUIS
+from datos_de_prueba import AHORA, ANA, EMAIL_DE_ANA, H1, LUIS, una_solicitud
 from dobles import EmailEnMemoria, EmailQueFalla, GeneradorQRFalso, GeneradorQRQueFalla, RelojFijo
 from ecoharmony.catalogo import crear_actividades
 from ecoharmony.errores import CupoInsuficienteError, DniYaInscriptoError
 from ecoharmony.horario import Horario
-from ecoharmony.inscripcion_service import InscripcionService, SolicitudInscripcion
+from ecoharmony.inscripcion_service import InscripcionService
 from ecoharmony.motivos import MotivoRechazo
 from ecoharmony.parque import Parque
 from ecoharmony.repositorio_memoria import RepositorioEnMemoria
@@ -22,19 +22,6 @@ def armar_servicio(repositorio=None, email=None, generador_qr=None, ahora=AHORA)
         generador_qr=generador_qr or GeneradorQRFalso(),
         servicio_email=email or EmailEnMemoria(),
     )
-
-
-def una_solicitud(**cambios):
-    """Solicitud valida: Tirolesa, H1, Ana y Luis, con los T&C de Tirolesa."""
-    datos = {
-        "actividad": "Tirolesa",
-        "horario": H1,
-        "visitantes": [ANA, LUIS],
-        "email_de_contacto": EMAIL_DE_ANA,
-        "terminos_aceptados": "Tirolesa",
-    }
-    datos.update(cambios)
-    return SolicitudInscripcion(**datos)
 
 
 def test_inscripcion_valida_se_confirma_y_devuelve_el_codigo_de_reserva():
