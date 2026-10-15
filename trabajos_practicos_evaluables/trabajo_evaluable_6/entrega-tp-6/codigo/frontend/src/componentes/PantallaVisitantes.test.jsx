@@ -1,28 +1,35 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { ACTIVIDADES } from "../test/apiFalsa";
+import { ACTIVIDADES, crearApiFalsa, falla, ok } from "../test/apiFalsa";
 import { PantallaVisitantes } from "./PantallaVisitantes";
 
 const TIROLESA = ACTIVIDADES[0]; // pide talla, desde 8 años
 const SAFARI = ACTIVIDADES[1]; // no pide talla
+const SESION = { token: "tok", email: "ana@example.com" };
 
-function mostrar(actividad, cupoRestante) {
+function mostrar(actividad, cupoRestante, { api = crearApiFalsa(), visitantesIniciales } = {}) {
   const alContinuar = vi.fn();
   const alVolver = vi.fn();
+  const alSesionVencida = vi.fn();
   render(
     <PantallaVisitantes
+      api={api}
+      sesion={SESION}
       actividad={actividad}
       fecha="2026-11-04"
       turno={{ hora: "10:00", cupo_restante: cupoRestante, agotado: false }}
+      visitantesIniciales={visitantesIniciales}
       alContinuar={alContinuar}
       alVolver={alVolver}
+      alSesionVencida={alSesionVencida}
     />,
   );
-  return { alContinuar, alVolver };
+  return { api, alContinuar, alVolver, alSesionVencida };
 }
 
 const visitante = (numero) => within(screen.getByRole("group", { name: `Visitante ${numero}` }));
+const continuar = (usuario) => usuario.click(screen.getByRole("button", { name: /Continuar|Revisando/ }));
 
 async function completar(usuario, numero, { nombre, dni, edad, talla }) {
   const grupo = visitante(numero);
@@ -31,6 +38,9 @@ async function completar(usuario, numero, { nombre, dni, edad, talla }) {
   await usuario.type(grupo.getByLabelText("Edad"), String(edad));
   if (talla) await usuario.selectOptions(grupo.getByLabelText("Talla"), talla);
 }
+
+const rechazoDeDniYEdad = () =>
+  falla(422, { motivos: ["visitante_invalido"], visitantes: { 1: ["dni_invalido", "edad_invalida"] } });
 
 describe("PantallaVisitantes", () => {
   it("la cantidad maxima es el cupo restante del turno", () => {
@@ -71,7 +81,16 @@ describe("PantallaVisitantes", () => {
 
   it("pide la talla solo si la actividad la requiere", () => {
     const { unmount } = render(
-      <PantallaVisitantes actividad={TIROLESA} fecha="2026-11-04" turno={{ hora: "10:00", cupo_restante: 5 }} alContinuar={vi.fn()} alVolver={vi.fn()} />,
+      <PantallaVisitantes
+        api={crearApiFalsa()}
+        sesion={SESION}
+        actividad={TIROLESA}
+        fecha="2026-11-04"
+        turno={{ hora: "10:00", cupo_restante: 5 }}
+        alContinuar={vi.fn()}
+        alVolver={vi.fn()}
+        alSesionVencida={vi.fn()}
+      />,
     );
     expect(visitante(1).getByLabelText("Talla")).toBeInTheDocument();
     unmount();
@@ -86,37 +105,18 @@ describe("PantallaVisitantes", () => {
     expect(screen.getByText("Edad mínima de la actividad: 8 años.")).toBeInTheDocument();
   });
 
-  it("al continuar entrega los datos de los visitantes (edad como numero)", async () => {
+  it("si falta algun dato indica de que visitante y no consulta a la API ni continua", async () => {
     const usuario = userEvent.setup();
-    const { alContinuar } = mostrar(TIROLESA, 5);
-
-    await completar(usuario, 1, { nombre: " Ana Perez ", dni: "30123456", edad: 30, talla: "M" });
-    await usuario.click(screen.getByRole("button", { name: "Continuar" }));
-
-    expect(alContinuar).toHaveBeenCalledWith([{ nombre: "Ana Perez", dni: "30123456", edad: 30, talla: "M" }]);
-  });
-
-  it("en una actividad sin talla no manda la talla", async () => {
-    const usuario = userEvent.setup();
-    const { alContinuar } = mostrar(SAFARI, 5);
-
-    await completar(usuario, 1, { nombre: "Luis Gomez", dni: "28123456", edad: 41 });
-    await usuario.click(screen.getByRole("button", { name: "Continuar" }));
-
-    expect(alContinuar).toHaveBeenCalledWith([{ nombre: "Luis Gomez", dni: "28123456", edad: 41, talla: null }]);
-  });
-
-  it("si falta algun dato indica de que visitante y no continua", async () => {
-    const usuario = userEvent.setup();
-    const { alContinuar } = mostrar(SAFARI, 5);
+    const { alContinuar, api } = mostrar(SAFARI, 5);
     await usuario.selectOptions(screen.getByLabelText("Cantidad de personas"), "2");
     await completar(usuario, 1, { nombre: "Luis Gomez", dni: "28123456", edad: 41 });
     await usuario.type(visitante(2).getByLabelText("Nombre"), "Eva Soto");
 
-    await usuario.click(screen.getByRole("button", { name: "Continuar" }));
+    await continuar(usuario);
 
     expect(screen.getByRole("alert")).toHaveTextContent("Completá todos los datos del visitante 2.");
     expect(alContinuar).not.toHaveBeenCalled();
+    expect(api.validarInscripcion).not.toHaveBeenCalled();
   });
 
   it("si la actividad pide talla y no se eligio, no continua", async () => {
@@ -124,7 +124,7 @@ describe("PantallaVisitantes", () => {
     const { alContinuar } = mostrar(TIROLESA, 5);
     await completar(usuario, 1, { nombre: "Ana Perez", dni: "30123456", edad: 30 });
 
-    await usuario.click(screen.getByRole("button", { name: "Continuar" }));
+    await continuar(usuario);
 
     expect(screen.getByRole("alert")).toHaveTextContent("Completá todos los datos del visitante 1.");
     expect(alContinuar).not.toHaveBeenCalled();
@@ -137,5 +137,163 @@ describe("PantallaVisitantes", () => {
     await usuario.click(screen.getByRole("button", { name: "Volver" }));
 
     expect(alVolver).toHaveBeenCalled();
+  });
+});
+
+describe("PantallaVisitantes: validacion en este mismo paso", () => {
+  it("antes de continuar valida los datos con la API y recien entonces avanza (edad como numero)", async () => {
+    const usuario = userEvent.setup();
+    const { alContinuar, api } = mostrar(TIROLESA, 5);
+    const datos = [{ nombre: "Ana Perez", dni: "30123456", edad: 30, talla: "M" }];
+
+    await completar(usuario, 1, { nombre: " Ana Perez ", dni: "30123456", edad: 30, talla: "M" });
+    await continuar(usuario);
+
+    await waitFor(() => expect(alContinuar).toHaveBeenCalledWith(datos));
+    expect(api.validarInscripcion).toHaveBeenCalledWith(
+      { actividad: "Tirolesa", fecha: "2026-11-04", hora: "10:00", visitantes: datos },
+      "tok",
+    );
+  });
+
+  it("en una actividad sin talla no manda la talla", async () => {
+    const usuario = userEvent.setup();
+    const { alContinuar } = mostrar(SAFARI, 5);
+
+    await completar(usuario, 1, { nombre: "Luis Gomez", dni: "28123456", edad: 41 });
+    await continuar(usuario);
+
+    await waitFor(() =>
+      expect(alContinuar).toHaveBeenCalledWith([{ nombre: "Luis Gomez", dni: "28123456", edad: 41, talla: null }]),
+    );
+  });
+
+  it("si la API rechaza los datos, el error aparece aca indicando visitante y motivos, y no avanza", async () => {
+    const usuario = userEvent.setup();
+    const api = crearApiFalsa({ validarInscripcion: vi.fn(async () => rechazoDeDniYEdad()) });
+    const { alContinuar } = mostrar(SAFARI, 5, { api });
+    await completar(usuario, 1, { nombre: "Eva Soto", dni: "123", edad: 150 });
+
+    await continuar(usuario);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Visitante 1: el DNI debe tener 7 u 8 dígitos, la edad debe estar entre 0 y 100.",
+    );
+    expect(alContinuar).not.toHaveBeenCalled();
+  });
+
+  it("marca los campos con problema y deja sin marcar los que estan bien", async () => {
+    const usuario = userEvent.setup();
+    const api = crearApiFalsa({ validarInscripcion: vi.fn(async () => rechazoDeDniYEdad()) });
+    mostrar(SAFARI, 5, { api });
+    await completar(usuario, 1, { nombre: "Eva Soto", dni: "123", edad: 150 });
+
+    await continuar(usuario);
+    await screen.findByRole("alert");
+
+    expect(visitante(1).getByLabelText("DNI")).toHaveAttribute("aria-invalid", "true");
+    expect(visitante(1).getByLabelText("Edad")).toHaveAttribute("aria-invalid", "true");
+    expect(visitante(1).getByLabelText("Nombre")).not.toHaveAttribute("aria-invalid");
+  });
+
+  it("conserva lo escrito y al corregir un campo se le quita la marca de error", async () => {
+    const usuario = userEvent.setup();
+    const api = crearApiFalsa({ validarInscripcion: vi.fn(async () => rechazoDeDniYEdad()) });
+    mostrar(SAFARI, 5, { api });
+    await completar(usuario, 1, { nombre: "Eva Soto", dni: "123", edad: 150 });
+    await continuar(usuario);
+    await screen.findByRole("alert");
+
+    expect(visitante(1).getByLabelText("DNI")).toHaveValue("123");
+    await usuario.type(visitante(1).getByLabelText("DNI"), "45678");
+
+    expect(visitante(1).getByLabelText("DNI")).not.toHaveAttribute("aria-invalid");
+    expect(visitante(1).getByLabelText("Edad")).toHaveAttribute("aria-invalid", "true");
+  });
+
+  it("despues de corregir se puede volver a continuar y esta vez avanza", async () => {
+    const usuario = userEvent.setup();
+    const validarInscripcion = vi
+      .fn()
+      .mockResolvedValueOnce(rechazoDeDniYEdad())
+      .mockResolvedValueOnce(ok({ valida: true }));
+    const { alContinuar } = mostrar(SAFARI, 5, { api: crearApiFalsa({ validarInscripcion }) });
+    await completar(usuario, 1, { nombre: "Eva Soto", dni: "123", edad: 150 });
+    await continuar(usuario);
+    await screen.findByRole("alert");
+
+    await usuario.clear(visitante(1).getByLabelText("DNI"));
+    await usuario.type(visitante(1).getByLabelText("DNI"), "40123456");
+    await usuario.clear(visitante(1).getByLabelText("Edad"));
+    await usuario.type(visitante(1).getByLabelText("Edad"), "25");
+    await continuar(usuario);
+
+    await waitFor(() =>
+      expect(alContinuar).toHaveBeenCalledWith([{ nombre: "Eva Soto", dni: "40123456", edad: 25, talla: null }]),
+    );
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("tambien muestra los problemas que no son de un visitante, como la falta de cupo", async () => {
+    const usuario = userEvent.setup();
+    const api = crearApiFalsa({ validarInscripcion: vi.fn(async () => falla(409, { motivos: ["sin_cupo"] })) });
+    mostrar(SAFARI, 5, { api });
+    await completar(usuario, 1, { nombre: "Eva Soto", dni: "40123456", edad: 25 });
+
+    await continuar(usuario);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("No quedan lugares suficientes en ese horario.");
+  });
+
+  it("mientras revisa los datos deshabilita el boton", async () => {
+    const usuario = userEvent.setup();
+    let responder;
+    const api = crearApiFalsa({ validarInscripcion: vi.fn(() => new Promise((resolver) => { responder = resolver; })) });
+    mostrar(SAFARI, 5, { api });
+    await completar(usuario, 1, { nombre: "Eva Soto", dni: "40123456", edad: 25 });
+
+    await continuar(usuario);
+
+    expect(screen.getByRole("button", { name: /Revisando/ })).toBeDisabled();
+    responder(ok({ valida: true }));
+  });
+
+  it("si la sesion vencio avisa para volver a iniciar sesion", async () => {
+    const usuario = userEvent.setup();
+    const api = crearApiFalsa({
+      validarInscripcion: vi.fn(async () => falla(401, { motivos: ["usuario_no_registrado"] })),
+    });
+    const { alSesionVencida } = mostrar(SAFARI, 5, { api });
+    await completar(usuario, 1, { nombre: "Eva Soto", dni: "40123456", edad: 25 });
+
+    await continuar(usuario);
+
+    await waitFor(() => expect(alSesionVencida).toHaveBeenCalled());
+  });
+
+  it("si se vuelve a este paso, arranca con los datos que ya se habian cargado", () => {
+    mostrar(TIROLESA, 5, {
+      visitantesIniciales: [
+        { nombre: "Ana Perez", dni: "30123456", edad: 30, talla: "M" },
+        { nombre: "Luis Gomez", dni: "28123456", edad: 41, talla: "L" },
+      ],
+    });
+
+    expect(screen.getByLabelText("Cantidad de personas")).toHaveValue("2");
+    expect(visitante(1).getByLabelText("Nombre")).toHaveValue("Ana Perez");
+    expect(visitante(2).getByLabelText("DNI")).toHaveValue("28123456");
+    expect(visitante(2).getByLabelText("Edad")).toHaveValue(41);
+    expect(visitante(2).getByLabelText("Talla")).toHaveValue("L");
+  });
+
+  it("los datos cargados nunca superan el cupo actual del turno", () => {
+    mostrar(SAFARI, 1, {
+      visitantesIniciales: [
+        { nombre: "Ana Perez", dni: "30123456", edad: 30, talla: null },
+        { nombre: "Luis Gomez", dni: "28123456", edad: 41, talla: null },
+      ],
+    });
+
+    expect(screen.getAllByRole("group", { name: /^Visitante/ })).toHaveLength(1);
   });
 });

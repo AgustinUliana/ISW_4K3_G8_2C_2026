@@ -30,6 +30,7 @@ export function crearApiFalsa(sobrescribir = {}) {
     terminos: vi.fn(async (nombre) =>
       ok({ actividad: nombre, version: "v1", texto: `Texto de los términos de ${nombre}.` }),
     ),
+    validarInscripcion: vi.fn(async () => ok({ valida: true })),
     inscribir: vi.fn(async () => ok({ codigo: "INS-0001" }, 201)),
     ...sobrescribir,
   };

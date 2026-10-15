@@ -176,3 +176,78 @@ describe("App", () => {
     expect(screen.getByRole("heading", { name: "Ingresá para inscribirte" })).toBeInTheDocument();
   });
 });
+
+
+describe("App: los datos de los visitantes se validan en su propio paso", () => {
+  async function llegarAlPasoDeVisitantes(usuario) {
+    const safari = await screen.findByRole("article", { name: "Safari" });
+    await usuario.click(within(safari).getByRole("button", { name: "Elegir" }));
+    await usuario.click(await screen.findByRole("button", { name: /^10:00/ }));
+    return within(await screen.findByRole("group", { name: "Visitante 1" }));
+  }
+
+  it("si los datos no son validos el error aparece en el paso 3 y se corrige ahi mismo", async () => {
+    const usuario = userEvent.setup();
+    const validarInscripcion = vi
+      .fn()
+      .mockResolvedValueOnce(
+        falla(422, { motivos: ["visitante_invalido"], visitantes: { 1: ["dni_invalido", "edad_invalida"] } }),
+      )
+      .mockResolvedValueOnce({ ok: true, estado: 200, datos: { valida: true } });
+    montar({ api: crearApiFalsa({ validarInscripcion }), almacenamiento: almacenamientoEnMemoria(SESION_GUARDADA) });
+    const grupo = await llegarAlPasoDeVisitantes(usuario);
+    await usuario.type(grupo.getByLabelText("Nombre"), "Eva Soto");
+    await usuario.type(grupo.getByLabelText("DNI"), "123");
+    await usuario.type(grupo.getByLabelText("Edad"), "150");
+
+    await usuario.click(screen.getByRole("button", { name: "Continuar" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Visitante 1: el DNI debe tener 7 u 8 dígitos, la edad debe estar entre 0 y 100.",
+    );
+    expect(screen.getByRole("heading", { name: "¿Quiénes participan?" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Revisá y confirmá" })).toBeNull();
+
+    await usuario.clear(grupo.getByLabelText("DNI"));
+    await usuario.type(grupo.getByLabelText("DNI"), "40123456");
+    await usuario.clear(grupo.getByLabelText("Edad"));
+    await usuario.type(grupo.getByLabelText("Edad"), "25");
+    await usuario.click(screen.getByRole("button", { name: "Continuar" }));
+
+    expect(await screen.findByRole("heading", { name: "Revisá y confirmá" })).toBeInTheDocument();
+  });
+
+  it("al volver desde la confirmacion encuentra los datos que habia cargado", async () => {
+    const usuario = userEvent.setup();
+    montar({ almacenamiento: almacenamientoEnMemoria(SESION_GUARDADA) });
+    const grupo = await llegarAlPasoDeVisitantes(usuario);
+    await usuario.type(grupo.getByLabelText("Nombre"), "Eva Soto");
+    await usuario.type(grupo.getByLabelText("DNI"), "40123456");
+    await usuario.type(grupo.getByLabelText("Edad"), "25");
+    await usuario.click(screen.getByRole("button", { name: "Continuar" }));
+    await screen.findByRole("heading", { name: "Revisá y confirmá" });
+
+    await usuario.click(screen.getByRole("button", { name: "Volver" }));
+
+    const otraVez = within(await screen.findByRole("group", { name: "Visitante 1" }));
+    expect(otraVez.getByLabelText("Nombre")).toHaveValue("Eva Soto");
+    expect(otraVez.getByLabelText("DNI")).toHaveValue("40123456");
+  });
+
+  it("si la sesion vence al validar, vuelve al acceso con un aviso", async () => {
+    const usuario = userEvent.setup();
+    const api = crearApiFalsa({
+      validarInscripcion: vi.fn(async () => falla(401, { motivos: ["usuario_no_registrado"] })),
+    });
+    montar({ api, almacenamiento: almacenamientoEnMemoria(SESION_GUARDADA) });
+    const grupo = await llegarAlPasoDeVisitantes(usuario);
+    await usuario.type(grupo.getByLabelText("Nombre"), "Eva Soto");
+    await usuario.type(grupo.getByLabelText("DNI"), "40123456");
+    await usuario.type(grupo.getByLabelText("Edad"), "25");
+
+    await usuario.click(screen.getByRole("button", { name: "Continuar" }));
+
+    expect(await screen.findByRole("heading", { name: "Ingresá para inscribirte" })).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(/tu sesión venció/i);
+  });
+});
