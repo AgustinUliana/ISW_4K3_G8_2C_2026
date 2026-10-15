@@ -1,4 +1,4 @@
-"""T&C propios de cada actividad: texto real (borrador para revisar), armado con las reglas del PO."""
+"""T&C propios de cada actividad: texto real (borrador), armado con las reglas del PO."""
 
 import pytest
 
