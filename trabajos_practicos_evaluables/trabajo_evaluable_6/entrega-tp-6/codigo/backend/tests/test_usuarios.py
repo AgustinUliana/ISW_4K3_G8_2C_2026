@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import pytest
 
 from datos_de_prueba import AHORA
