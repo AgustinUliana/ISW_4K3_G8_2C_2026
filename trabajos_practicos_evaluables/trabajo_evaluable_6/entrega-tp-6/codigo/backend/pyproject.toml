@@ -1,0 +1,19 @@
+[tool.pytest.ini_options]
+pythonpath = ["src", "tests"]
+testpaths = ["tests"]
+markers = [
+    "local: usa recursos locales y gratuitos (libreria qrcode, PostgreSQL local)",
+    "db: requiere la base PostgreSQL de pruebas (docker compose up -d)",
+    "externa: toca internet (email real); fuera de la corrida normal",
+]
+
+[tool.ruff]
+line-length = 100          # PEP 8 admite hasta 99-100 si el equipo lo acuerda
+target-version = "py311"
+
+[tool.ruff.lint]
+# E/W: pycodestyle (PEP 8) · F: pyflakes · N: pep8-naming · I: orden de imports
+select = ["E", "W", "F", "N", "I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["ecoharmony", "datos_de_prueba", "dobles"]

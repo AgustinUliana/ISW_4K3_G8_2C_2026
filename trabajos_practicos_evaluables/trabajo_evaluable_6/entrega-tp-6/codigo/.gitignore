@@ -1,0 +1,13 @@
+# Secretos y entorno local (el repositorio es publico)
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Frontend
+node_modules/
+dist/
+
+# Datos locales de PostgreSQL
+pgdata/
