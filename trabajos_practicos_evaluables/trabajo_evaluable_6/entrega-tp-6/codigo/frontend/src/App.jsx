@@ -104,9 +104,13 @@ export default function App({
   } else if (paso === "visitantes") {
     pantalla = (
       <PantallaVisitantes
+        api={api}
+        sesion={sesion}
         actividad={eleccion.actividad}
         fecha={eleccion.fecha}
         turno={eleccion.turno}
+        visitantesIniciales={eleccion.visitantes}
+        alSesionVencida={() => salir(AVISO_SESION_VENCIDA)}
         alContinuar={(visitantes) => {
           setEleccion((actual) => ({ ...actual, visitantes }));
           setPaso("confirmacion");

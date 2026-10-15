@@ -241,6 +241,12 @@ select {
   border-radius: 14px;
 }
 
+input[aria-invalid="true"],
+select[aria-invalid="true"] {
+  border-color: var(--rojo);
+  background: rgba(188, 71, 73, 0.1);
+}
+
 input:focus-visible,
 select:focus-visible,
 button:focus-visible {
