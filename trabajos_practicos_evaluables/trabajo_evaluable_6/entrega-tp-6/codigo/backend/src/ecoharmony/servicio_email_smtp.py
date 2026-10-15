@@ -2,6 +2,7 @@ import smtplib
 from dataclasses import dataclass
 from email.message import EmailMessage
 
+TIEMPO_LIMITE_EN_SEGUNDOS = 10
 VARIABLES = ("SMTP_SERVIDOR", "SMTP_PUERTO", "SMTP_USUARIO", "SMTP_CLAVE", "EMAIL_REMITENTE")
 
 
@@ -41,7 +42,9 @@ class ServicioEmailSmtp:
     def enviar(self, mensaje):
         configuracion = self._configuracion
         mime = a_mime(mensaje, remitente=configuracion.remitente)
-        with self._smtp_factory(configuracion.servidor, configuracion.puerto) as smtp:
+        with self._smtp_factory(
+            configuracion.servidor, configuracion.puerto, timeout=TIEMPO_LIMITE_EN_SEGUNDOS
+        ) as smtp:
             smtp.starttls()
             smtp.login(configuracion.usuario, configuracion.clave)
             smtp.send_message(mime)
