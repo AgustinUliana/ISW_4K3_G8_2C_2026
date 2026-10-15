@@ -211,7 +211,7 @@ def test_post_inscripcion_sin_sesion_valida_responde_401(cliente, encabezados):
     )
 
     assert respuesta.status_code == 401
-    assert respuesta.json()["motivos"] == ["usuario_no_registrado"]
+    assert respuesta.json()["motivos"] == ["usuario_no_registrado"]  # y nada mas que eso
     assert cliente.email.enviados == []
 
 

@@ -338,3 +338,12 @@ def test_el_rechazo_por_un_visitante_invalido_indica_cual_y_por_que():
 
     assert resultado.motivos == [MotivoRechazo.VISITANTE_INVALIDO]
     assert resultado.errores_por_visitante == {2: [MotivoRechazo.DNI_REQUERIDO]}
+
+
+def test_sin_usuario_registrado_el_rechazo_no_revela_si_un_dni_ya_esta_inscripto():
+    repositorio = RepositorioEnMemoria(crear_actividades())
+    armar_servicio(repositorio).inscribir(una_solicitud(visitantes=[ANA]))  # Ana ya esta inscripta
+
+    anonimo = armar_servicio(repositorio).inscribir(una_solicitud(titular=None, visitantes=[ANA]))
+
+    assert anonimo.motivos == [MotivoRechazo.USUARIO_NO_REGISTRADO]
