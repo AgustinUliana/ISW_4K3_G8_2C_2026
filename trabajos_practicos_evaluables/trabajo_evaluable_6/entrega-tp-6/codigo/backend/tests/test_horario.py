@@ -2,7 +2,7 @@ from datetime import date, datetime, time
 
 import pytest
 
-from ecoharmony.horario import Horario
+from ecoharmony.horario import Horario, turnos_del_dia
 
 
 def test_un_horario_dura_una_hora():
@@ -60,3 +60,10 @@ def test_se_puede_inscribir_exactamente_24_horas_antes_del_turno():
     turno = Horario(date(2026, 11, 5), time(10, 0))
 
     assert turno.admite_inscripcion(ahora=datetime(2026, 11, 4, 10, 0))
+
+
+def test_los_turnos_del_dia_son_nueve_uno_por_hora_de_9_a_17():
+    turnos = turnos_del_dia(date(2026, 11, 4))
+
+    assert [turno.hora_inicio for turno in turnos] == [time(hora) for hora in range(9, 18)]
+    assert all(turno.es_turno() for turno in turnos)
