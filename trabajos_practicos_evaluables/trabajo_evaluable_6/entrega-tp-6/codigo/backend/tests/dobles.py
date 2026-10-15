@@ -37,5 +37,27 @@ class EmailEnMemoria:
 
 
 class EmailQueFalla:
+    """Crash Test Dummy: siempre falla (y cuenta los intentos)."""
+
+    def __init__(self):
+        self.intentos = 0
+        self.enviados = []
+
     def enviar(self, mensaje):
+        self.intentos += 1
         raise ConnectionError("el servidor de correo no responde")
+
+
+class EmailQueFallaLasPrimeras:
+    """Falla las primeras `fallos` veces y despues funciona."""
+
+    def __init__(self, fallos):
+        self.fallos = fallos
+        self.intentos = 0
+        self.enviados = []
+
+    def enviar(self, mensaje):
+        self.intentos += 1
+        if self.intentos <= self.fallos:
+            raise ConnectionError("el servidor de correo no responde")
+        self.enviados.append(mensaje)

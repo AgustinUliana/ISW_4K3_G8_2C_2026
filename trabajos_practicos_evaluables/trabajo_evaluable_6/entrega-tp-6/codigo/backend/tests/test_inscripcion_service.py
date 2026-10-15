@@ -3,7 +3,14 @@ from datetime import date, datetime, time
 import pytest
 
 from datos_de_prueba import AHORA, ANA, EMAIL_DE_ANA, H1, LUIS, una_solicitud
-from dobles import EmailEnMemoria, EmailQueFalla, GeneradorQRFalso, GeneradorQRQueFalla, RelojFijo
+from dobles import (
+    EmailEnMemoria,
+    EmailQueFalla,
+    EmailQueFallaLasPrimeras,
+    GeneradorQRFalso,
+    GeneradorQRQueFalla,
+    RelojFijo,
+)
 from ecoharmony.catalogo import crear_actividades
 from ecoharmony.errores import CupoInsuficienteError, DniYaInscriptoError
 from ecoharmony.horario import Horario
@@ -14,13 +21,24 @@ from ecoharmony.repositorio_memoria import RepositorioEnMemoria
 from ecoharmony.visitante import Visitante
 
 
-def armar_servicio(repositorio=None, email=None, generador_qr=None, ahora=AHORA):
+def armar_servicio(
+    repositorio=None,
+    email=None,
+    generador_qr=None,
+    ahora=AHORA,
+    intentos_de_email=3,
+    dormir=None,
+    pausa=0,
+):
     return InscripcionService(
         repositorio=repositorio or RepositorioEnMemoria(crear_actividades()),
         parque=Parque(),
         reloj=RelojFijo(ahora),
         generador_qr=generador_qr or GeneradorQRFalso(),
         servicio_email=email or EmailEnMemoria(),
+        intentos_de_email=intentos_de_email,
+        dormir=dormir or (lambda segundos: None),
+        pausa_entre_intentos=pausa,
     )
 
 
@@ -187,21 +205,52 @@ def test_dni_ya_inscripto_en_el_mismo_horario_no_confirma_ni_envia_email():
     assert len(email.enviados) == 1
 
 
-def test_si_el_email_se_envia_el_resultado_lo_indica():
-    resultado = armar_servicio().inscribir(una_solicitud())
+def test_si_el_email_falla_se_reintenta_hasta_que_se_envia():
+    email = EmailQueFallaLasPrimeras(fallos=2)
 
-    assert resultado.email_enviado
-
-
-def test_si_falla_el_envio_del_email_la_inscripcion_sigue_confirmada():
-    repositorio = RepositorioEnMemoria(crear_actividades())
-
-    resultado = armar_servicio(repositorio, email=EmailQueFalla()).inscribir(una_solicitud())
+    resultado = armar_servicio(email=email).inscribir(una_solicitud())
 
     assert resultado.confirmada
-    assert not resultado.email_enviado
-    assert repositorio.obtener(resultado.codigo) is not None
-    assert repositorio.actividad("Tirolesa").cupo_restante(H1) == 8
+    assert email.intentos == 3
+    assert len(email.enviados) == 1
+
+
+def test_si_el_email_nunca_se_envia_la_inscripcion_no_queda_confirmada():
+    repositorio, email = RepositorioEnMemoria(crear_actividades()), EmailQueFalla()
+
+    resultado = armar_servicio(repositorio, email).inscribir(una_solicitud())
+
+    assert not resultado.confirmada
+    assert resultado.motivos == [MotivoRechazo.EMAIL_NO_ENVIADO]
+    assert email.intentos == 3
+    assert_sin_efectos(repositorio, email)
+
+
+def test_la_cantidad_de_intentos_de_email_es_configurable():
+    email = EmailQueFalla()
+
+    armar_servicio(email=email, intentos_de_email=5).inscribir(una_solicitud())
+
+    assert email.intentos == 5
+
+
+def test_entre_un_intento_de_email_y_el_siguiente_se_espera():
+    esperas = []
+
+    armar_servicio(email=EmailQueFalla(), dormir=esperas.append, pausa=0.5).inscribir(
+        una_solicitud()
+    )
+
+    assert esperas == [0.5, 0.5]  # 3 intentos: 2 esperas
+
+
+def test_tras_anularse_por_el_email_se_puede_volver_a_intentar_la_inscripcion():
+    repositorio = RepositorioEnMemoria(crear_actividades())
+    armar_servicio(repositorio, EmailQueFalla()).inscribir(una_solicitud())
+
+    de_nuevo = armar_servicio(repositorio, EmailEnMemoria()).inscribir(una_solicitud())
+
+    assert de_nuevo.confirmada  # el cupo y los DNI quedaron libres
 
 
 def test_si_falla_la_generacion_del_qr_no_se_confirma_ni_se_descuenta_cupo():
