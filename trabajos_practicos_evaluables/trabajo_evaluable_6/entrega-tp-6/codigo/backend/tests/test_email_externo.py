@@ -41,9 +41,9 @@ def test_se_envia_un_email_real_con_un_qr_por_visitante_a_la_casilla_de_prueba()
     except ConfiguracionIncompletaError as error:
         pytest.skip(str(error))
     generador = GeneradorQRLocal()
-    inscripcion = una_inscripcion_confirmada("PRUEBA-0001")
-    qrs = [generador.generar(f"PRUEBA-0001|V{n}") for n in (1, 2)]
+    inscripcion = una_inscripcion_confirmada("INS-0001")
+    qrs = [generador.generar(f"INS-0001|V{n}") for n in (1, 2)]
     real = armar_mensaje(inscripcion, qrs)  # el mismo mensaje que arma el sistema al inscribir
-    mensaje = replace(real, destinatario=destinatario, asunto=f"[PRUEBA] {real.asunto}")
+    mensaje = replace(real, destinatario=destinatario, asunto=real.asunto)
 
     ServicioEmailSmtp(configuracion).enviar(mensaje)  # si falla la conexion o el login, lanza error
