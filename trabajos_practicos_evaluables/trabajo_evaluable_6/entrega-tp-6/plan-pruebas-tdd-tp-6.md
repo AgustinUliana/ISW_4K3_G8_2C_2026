@@ -518,4 +518,29 @@ datos + 25 contra PostgreSQL real), PEP 8 limpio con `ruff`.
 3. **Prueba externa** de email real a una casilla del grupo (necesita credenciales de Gmail o Brevo).
 4. **Textos reales de los T&C** de cada actividad (hoy son un texto provisorio en `catalogo.py`).
 5. **Documento de decisiones de diseño** (`entrega-tp-6`), que pide la consigna.
-6. Preguntas abiertas al PO (ver `preguntas-product-owner-tp-6.md` §3): P01, P02, P07, P10b, P13b, P17.
+6. **Usuarios con inicio de sesión simple** (decisión del grupo, 2026-10-15; grupo USU de abajo).
+7. Preguntas de baja prioridad abiertas al PO (ver `preguntas-product-owner-tp-6.md` §3).
+
+### 11.1 Grupo nuevo: Usuarios (USU) – por la decisión de P01/P02
+
+El visitante debe estar registrado, con un inicio de sesión simple: **email + contraseña**. El email de la
+inscripción es el del usuario. Las contraseñas se guardan con un *hash* con sal (`hashlib.scrypt`, de la biblioteca
+estándar: gratis y sin dependencias nuevas).
+
+| ID | Prueba | Dado → Entonces | Cat. |
+|---|---|---|---|
+| USU-01 | `test_se_registra_un_usuario_con_email_y_contrasena_validos` | `ana@x.com` + `secreto1` → usuario registrado | U |
+| USU-02 | `test_no_se_registra_con_un_email_invalido` | `ana`, `ana@` → `EMAIL_INVALIDO` | U |
+| USU-03 | `test_no_se_registra_con_una_contrasena_demasiado_corta` | 5 caracteres → `CONTRASENA_INVALIDA`; 6 → ok (*provisorio*) | U |
+| USU-04 | `test_no_se_registra_dos_veces_el_mismo_email` | segundo registro → `EMAIL_YA_REGISTRADO` (sin distinguir mayúsculas) | U |
+| USU-05 | `test_la_contrasena_no_se_guarda_en_texto_plano` | el valor guardado no contiene la contraseña y es distinto con cada sal | U |
+| USU-06 | `test_el_inicio_de_sesion_con_email_y_contrasena_correctos_devuelve_una_sesion` | → token | U |
+| USU-07 | `test_el_inicio_de_sesion_falla_con_contrasena_incorrecta_o_email_inexistente` | mismo error en ambos casos (no revela cuál falló) | U |
+| USU-08 | `test_un_token_valido_identifica_al_usuario_y_uno_alterado_se_rechaza` | token firmado con HMAC | U |
+| USU-09 | `test_el_repositorio_de_usuarios_cumple_el_contrato` | guardar / buscar por email, en memoria y en PostgreSQL | C |
+| INS-20 | `test_se_rechaza_una_inscripcion_sin_usuario_registrado` | sin titular → `USUARIO_NO_REGISTRADO` | U |
+| SRV-21 | `test_el_email_de_confirmacion_va_al_email_del_usuario_registrado` | destinatario = email del usuario (la solicitud ya no trae email) | U |
+
+Consecuencias en lo ya hecho: `SolicitudInscripcion` pasa a llevar al usuario titular (el email deja de ser un
+campo del formulario) y INS-16 se reformula como "el email del titular es válido". Tabla nueva `usuario` en
+`schema.sql`.

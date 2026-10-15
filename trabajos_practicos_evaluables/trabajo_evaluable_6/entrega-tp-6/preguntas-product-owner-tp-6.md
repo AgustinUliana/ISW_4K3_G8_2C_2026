@@ -38,23 +38,31 @@ la lista de consultas del grupo; acá se indica entre paréntesis como `[PO #n]`
 | Conflicto de horario `[PO #29]` | Se compara por **DNI** y por **fecha + hora** de inicio, en cualquier actividad, y también dentro de la misma inscripción. | "No tenga inscripciones en otros turnos del mismo horario". |
 | Cupo | Se mide en **personas**, por actividad + fecha + hora. | `[PO #13]`. |
 
-## 3. Preguntas que siguen abiertas
+## 3. Decisiones del grupo sobre las preguntas pendientes (2026-10-15)
 
-| ID | Prioridad | Pregunta | Si no responde, asumimos | Respuesta del PO |
-|---|---|---|---|---|
-| **P01** | Alta | ¿A **qué email** se envía? Los datos del visitante no incluyen email. ¿Se pide un email de contacto en el formulario? | Un **email de contacto** obligatorio en el formulario; un solo email por inscripción. | |
-| **P02** | Alta | ¿El visitante debe estar **registrado / logueado** para inscribirse? | **No** requiere registro. | |
-| **P07** | Media | Si piden 4 lugares y quedan 3, ¿se rechaza todo o se ofrecen 3? | **Todo o nada.** | |
-| **P10b** | Media | **Menores de edad:** ¿necesitan adulto responsable inscripto? ¿Quién acepta los T&C por ellos? | Sin adulto responsable. | |
-| **P13b** | Alta | Si el **envío del email falla**, ¿la inscripción queda confirmada? ¿Se muestra el QR en pantalla? | Queda confirmada, se informa el fallo y se muestran los QR en pantalla. | |
-| **P12b** | Media | ¿Qué debe **codificar** el QR y quién lo valida? ¿Uso único? | Código de reserva + número de visitante, sin datos personales. | |
-| **P15b** | Baja | ¿Los T&C se aceptan **una vez por inscripción** o por visitante? ¿Se guarda evidencia (versión y fecha)? | Una aceptación por inscripción; se guarda versión y momento. | |
-| **P17** | Media | `[PO #18]` habla de "subtotales y total". ¿Las actividades **tienen costo**? | **Sin costo.** El email no lleva totales. | |
-| **P18** | Baja | ¿Cómo se marca una actividad "no disponible" (clima, mantenimiento)? | No disponible = sin turno cargado. | |
-| **P19b** | Baja | Un turno **sin cupo**: ¿se oculta o se muestra deshabilitado ("Agotado")? | Deshabilitado, mostrando `0` cupos. | |
-| **P20** | Baja | ¿Se pueden cancelar / modificar inscripciones? | Fuera de alcance. | |
-| **P21** | Baja | Al terminar, ¿pantalla de confirmación con qué datos? | Resumen + código de reserva + QR. | |
-| **P22** | Media | `[PO #22]` "¿Pueden agregar el nombre de la persona de la actividad? Sí, **pero opcional**." Es ambiguo: ¿el **nombre del visitante** pasa a ser opcional, o es un dato adicional? | El **nombre del visitante sigue siendo obligatorio** (lo exige el criterio de aceptación). | |
+Quedaron resueltas por decisión del grupo (no por el PO). Si el PO contradice alguna, se ajusta el dato o la
+prueba correspondiente.
+
+| ID | Decisión | Efecto |
+|---|---|---|
+| **P01** | El email de contacto es **el email con el que se registró el usuario**. | La solicitud lleva al usuario; el formulario no pide email. INS-16 se reemplaza por una regla sobre el usuario. |
+| **P02** | **Sí hay registro e inicio de sesión, pero simple**: email + contraseña que coincidan, y nada más. | Nuevo grupo de pruebas USU (registro, login, sesión) y tabla de usuarios. INS-20 pasa a ser obligatoria. |
+| **P07** | **Todo o nada**: si no entra todo el grupo, no se inscribe. La pantalla debería permitir elegir solo hasta el cupo disponible. | Ya implementado (`SIN_CUPO`). CAT-08 (cupo restante visible) lo necesita el front para limitar la cantidad. |
+| **P13b** | El email "no tendría por qué fallar". Se mantiene la defensa actual: si fallara, la inscripción queda confirmada y se informa `email_enviado=False`. | Sin cambios (SRV-15). |
+| **P17** | **Sin costo.** El email no lleva totales. | Sin cambios. |
+| **P22** | **El nombre del visitante no es opcional.** Se revisará más adelante. | Sin cambios (VIS-02/03). |
+
+### Siguen abiertas (baja prioridad)
+
+| ID | Pregunta | Si no responde, asumimos |
+|---|---|---|
+| **P10b** | Menores de edad: ¿adulto responsable? ¿quién acepta los T&C? | Sin adulto responsable. |
+| **P12b** | ¿Qué codifica el QR y quién lo valida? | Código de reserva + número de visitante. |
+| **P15b** | ¿T&C una vez por inscripción o por visitante? | Una por inscripción, con versión y momento. |
+| **P18** | ¿Cómo se marca una actividad "no disponible"? | Sin turno cargado. |
+| **P19b** | Turno sin cupo: ¿oculto o deshabilitado? | Deshabilitado, mostrando `0`. |
+| **P20** | ¿Cancelar o modificar inscripciones? | Fuera de alcance. |
+| **P21** | ¿Pantalla de confirmación con qué datos? | Resumen, código de reserva y QR. |
 
 ## 4. Decisión técnica del grupo: el email
 
