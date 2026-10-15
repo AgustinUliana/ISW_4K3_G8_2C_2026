@@ -5,12 +5,13 @@ import { Vidrio } from "./Vidrio";
 
 // La libreria se reemplaza por un doble que deja ver con que props la usamos.
 vi.mock("liquid-glass-react", () => ({
-  default: ({ children, cornerRadius, elasticity, padding, style }) => (
+  default: ({ children, cornerRadius, elasticity, padding, displacementScale, style }) => (
     <div
       data-testid="liquid-glass"
       data-radio={cornerRadius}
       data-elasticidad={elasticity}
       data-relleno={padding}
+      data-refraccion={displacementScale}
       data-style={JSON.stringify(style)}
     >
       {children}
@@ -121,5 +122,27 @@ describe("Vidrio", () => {
     );
 
     expect(screen.getByTestId("liquid-glass")).toHaveAttribute("data-relleno", "0px");
+  });
+
+  it("la intensidad de la refraccion es configurable: los paneles grandes la piden mas suave", () => {
+    simularNavegadorConMedicion({ ancho: 800, alto: 400 });
+    render(
+      <Vidrio refraccion={24}>
+        <p>contenido</p>
+      </Vidrio>,
+    );
+
+    expect(screen.getByTestId("liquid-glass")).toHaveAttribute("data-refraccion", "24");
+  });
+
+  it("sin indicarla usa una refraccion moderada por defecto", () => {
+    simularNavegadorConMedicion({ ancho: 200, alto: 80 });
+    render(
+      <Vidrio>
+        <p>contenido</p>
+      </Vidrio>,
+    );
+
+    expect(screen.getByTestId("liquid-glass")).toHaveAttribute("data-refraccion", "40");
   });
 });
