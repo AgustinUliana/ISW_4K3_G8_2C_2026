@@ -7,7 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from datos_de_prueba import AHORA
-from dobles import EmailEnMemoria, GeneradorQRFalso, RelojFijo
+from dobles import EmailEnMemoria, EmailQueFalla, GeneradorQRFalso, RelojFijo
 from ecoharmony.api import Servicios, crear_app
 from ecoharmony.catalogo import crear_actividades
 from ecoharmony.horario import Horario
@@ -165,3 +165,135 @@ def test_get_terminos_de_una_actividad_devuelve_los_de_esa_actividad(cliente):
 
 def test_get_terminos_de_una_actividad_inexistente_responde_404(cliente):
     assert cliente.http.get("/actividades/Rafting/terminos").status_code == 404
+
+
+VISITANTES = [
+    {"nombre": "Ana Perez", "dni": "30123456", "edad": 30, "talla": "M"},
+    {"nombre": "Luis Gomez", "dni": "28123456", "edad": 41, "talla": "L"},
+]
+
+
+def una_inscripcion_json(**cambios):
+    datos = {
+        "actividad": "Tirolesa",
+        "fecha": "2026-11-04",
+        "hora": "10:00",
+        "visitantes": VISITANTES,
+        "terminos_aceptados": "Tirolesa",
+    }
+    datos.update(cambios)
+    return datos
+
+
+def entrar(cliente, email="ana.perez@example.com", contrasena="secreto1"):
+    """Registra a un usuario, inicia sesion y devuelve el encabezado Authorization."""
+    cliente.http.post("/registro", json={"email": email, "contrasena": contrasena})
+    token = cliente.http.post("/sesion", json={"email": email, "contrasena": contrasena}).json()
+    return {"Authorization": f"Bearer {token['token']}"}
+
+
+def test_post_inscripcion_valida_responde_201_y_envia_el_email_al_usuario(cliente):
+    respuesta = cliente.http.post(
+        "/inscripciones", json=una_inscripcion_json(), headers=entrar(cliente)
+    )
+
+    assert respuesta.status_code == 201
+    assert respuesta.json() == {"codigo": "INS-0001"}
+    (mensaje,) = cliente.email.enviados
+    assert mensaje.destinatario == "ana.perez@example.com"
+    assert len(mensaje.adjuntos) == 2  # un QR por visitante
+
+
+@pytest.mark.parametrize("encabezados", [{}, {"Authorization": "Bearer token-falso"}])
+def test_post_inscripcion_sin_sesion_valida_responde_401(cliente, encabezados):
+    respuesta = cliente.http.post(
+        "/inscripciones", json=una_inscripcion_json(), headers=encabezados
+    )
+
+    assert respuesta.status_code == 401
+    assert respuesta.json()["motivos"] == ["usuario_no_registrado"]
+    assert cliente.email.enviados == []
+
+
+def test_post_inscripcion_sin_cupo_responde_409(cliente):
+    cliente.repositorio.actividad("Tirolesa").reservar(
+        Horario(date(2026, 11, 4), time(10, 0)), cantidad=10
+    )
+
+    respuesta = cliente.http.post(
+        "/inscripciones", json=una_inscripcion_json(), headers=entrar(cliente)
+    )
+
+    assert respuesta.status_code == 409
+    assert respuesta.json()["motivos"] == ["sin_cupo"]
+
+
+def test_post_inscripcion_con_un_visitante_invalido_responde_422_indicando_cual(cliente):
+    sin_dni = {"nombre": "Luis Gomez", "dni": "", "edad": 41, "talla": "L"}
+
+    respuesta = cliente.http.post(
+        "/inscripciones",
+        json=una_inscripcion_json(visitantes=[VISITANTES[0], sin_dni]),
+        headers=entrar(cliente),
+    )
+
+    assert respuesta.status_code == 422
+    assert respuesta.json()["motivos"] == ["visitante_invalido"]
+    assert respuesta.json()["visitantes"] == {"2": ["dni_requerido"]}
+
+
+def test_post_inscripcion_con_un_horario_que_no_es_fecha_responde_422(cliente):
+    respuesta = cliente.http.post(
+        "/inscripciones", json=una_inscripcion_json(fecha="no-es-fecha"), headers=entrar(cliente)
+    )
+
+    assert respuesta.status_code == 422
+    assert "horario_requerido" in respuesta.json()["motivos"]
+
+
+def test_post_inscripcion_con_tipos_inesperados_responde_422_y_no_falla(cliente):
+    raro = {"nombre": None, "dni": 30123456, "edad": "treinta", "talla": 5}
+
+    respuesta = cliente.http.post(
+        "/inscripciones", json=una_inscripcion_json(visitantes=[raro]), headers=entrar(cliente)
+    )
+
+    assert respuesta.status_code == 422
+    assert respuesta.json()["motivos"] == ["visitante_invalido"]
+
+
+def test_post_inscripcion_a_una_actividad_inexistente_responde_404(cliente):
+    respuesta = cliente.http.post(
+        "/inscripciones", json=una_inscripcion_json(actividad="Rafting"), headers=entrar(cliente)
+    )
+
+    assert respuesta.status_code == 404
+
+
+def test_post_inscripcion_si_el_email_nunca_se_envia_responde_503_y_no_queda_confirmada():
+    cliente = armar_cliente(email=EmailQueFalla())
+
+    respuesta = cliente.http.post(
+        "/inscripciones", json=una_inscripcion_json(), headers=entrar(cliente)
+    )
+
+    assert respuesta.status_code == 503
+    assert respuesta.json()["motivos"] == ["email_no_enviado"]
+    assert cliente.repositorio.inscripciones() == []
+
+
+class RepositorioQueExplota(RepositorioEnMemoria):
+    def guardar(self, inscripcion):
+        raise RuntimeError("detalle interno que no debe filtrarse")
+
+
+def test_un_error_inesperado_responde_500_sin_detalles_internos():
+    cliente = armar_cliente(repositorio=RepositorioQueExplota(crear_actividades()))
+
+    respuesta = cliente.http.post(
+        "/inscripciones", json=una_inscripcion_json(), headers=entrar(cliente)
+    )
+
+    assert respuesta.status_code == 500
+    assert respuesta.json() == {"detalle": "Error interno del servidor"}
+    assert "detalle interno" not in respuesta.text
