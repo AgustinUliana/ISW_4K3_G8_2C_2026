@@ -1,7 +1,7 @@
 # TP6 – TDD: Plan de pruebas (Test List)
 
 **User Story:** Inscribirme a actividad (EcoHarmony Park) · **Grupo 8** · ISW 4K3 · 2026
-**Estado:** v0.5 – dominio, servicio, usuarios, base PostgreSQL y adaptadores implementados con TDD · 2026-10-15 (ver §11)
+**Estado:** v0.6 – backend completo con TDD (dominio, usuarios, base PostgreSQL, adaptadores y API) · 2026-10-15 (ver §11)
 **Documento hermano:** [preguntas-product-owner-tp-6.md](preguntas-product-owner-tp-6.md)
 **Consigna:** [consigna-tp-6.pdf](../consigna-tp-6.pdf)
 
@@ -477,7 +477,7 @@ Los contratos de los Grupos 6, 7 y 8 garantizan que reemplazar un doble por la p
 ## 11. Estado de la implementación (2026-10-15)
 
 Rama `tp6-tdd`: cada prueba se hizo con su ciclo visible en `git log` (`test(ID): rojo` → `feat(ID): verde` →
-`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **232 pruebas verdes** (sin base de
+`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **280 pruebas verdes** (sin base de
 datos y contra PostgreSQL real), PEP 8 limpio con `ruff`.
 
 | Grupo | Archivo de pruebas | Estado |
@@ -549,10 +549,31 @@ inscripción es el del usuario (decisión del grupo, P01/P02). Las contraseñas 
 INS-16 (email de contacto válido) se reemplazó por INS-20: el email ahora se valida al registrar el usuario.
 `Inscripcion.titular` reemplaza al campo `email_de_contacto` (que queda como propiedad). Tabla nueva `usuario`.
 
-### 11.2 Lo que falta
+### 11.2 Disponibilidad, API y arranque – hecho en la rama `tp6-api-disponibilidad`
 
-1. **Consultas de disponibilidad** (CAT-04..08) y la **API HTTP** (FastAPI) con registro, login y inscripción.
-2. **Front React** (paleta y fuente Lato del PO, responsive).
-3. **Prueba externa** de email real (necesita credenciales de Gmail o Brevo).
-4. **Textos reales de los T&C** de cada actividad.
-5. **Documento de decisiones de diseño** (`entrega-tp-6`).
+| Grupo | Pruebas | Archivo |
+|---|---|---|
+| Turnos del día y disponibilidad | HOR-06, CAT-04..06, CAT-07, CAT-08, CAT-09 | `test_horario.py`, `test_disponibilidad.py`, `test_repositorio.py` |
+| Robustez ante datos de una API | VIS-17, VIS-18 (nombre nulo, DNI que no es texto), SRV-22 (indica el visitante inválido) | `test_visitante.py`, `test_inscripcion_service.py` |
+| API HTTP (FastAPI) | API-01..13: registro, sesión, CORS, actividades, horarios, T&C, inscripción y todos sus estados HTTP, error 500 genérico | `test_api.py` |
+| Email de desarrollo | MAIL-01, MAIL-02: guarda texto y QR en `salida_de_emails/` cuando no hay SMTP | `test_servicio_email_en_carpeta.py` |
+| Arranque desde el `.env` | MAIN-01..04 | `test_main.py` |
+| Tiempo límite SMTP | SMTP-06 | `test_servicio_email_smtp.py` |
+| Privacidad | SRV-23: sin sesión no se revela si un DNI ya está inscripto | `test_inscripcion_service.py` |
+
+**Prueba manual de punta a punta** (API real + PostgreSQL real, 2026-10-15): registro, inicio de sesión, horarios,
+inscripción de 2 personas (cupo de Tirolesa 10 → 8, filas en `inscripcion`, `visitante_inscripto` y `ocupacion`), email
+con 2 QR; los mismos DNI otra vez → 409; sin sesión → 401; Tirolesa sin talla → 422; menor de 8 años → 422.
+
+**Hallazgos de esa prueba manual, corregidos con TDD:**
+1. Con credenciales SMTP de ejemplo en el `.env`, la API intentaba conectarse de verdad y se colgaba: ahora la
+   conexión SMTP tiene un tiempo límite de 10 s (SMTP-06) y el `.env.example` trae el SMTP comentado.
+2. Sin sesión, el rechazo también decía `dni_ya_inscripto`, lo que revelaba qué DNI estaban inscriptos (SRV-23).
+
+### 11.3 Lo que falta
+
+1. **Front React** (paleta y fuente Lato del PO, responsive): pantallas de registro, login, elegir actividad,
+   horario con cupo restante, datos de los visitantes, T&C e inscripción. Sus pruebas van aparte (Jest + React Testing Library).
+2. **Prueba externa** de email real a una casilla del grupo (necesita credenciales de Gmail o Brevo en el `.env`).
+3. **Textos reales de los T&C** de cada actividad (hoy son un texto provisorio en `catalogo.py`).
+4. **Documento de decisiones de diseño** (`entrega-tp-6`), que pide la consigna.
