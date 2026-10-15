@@ -20,7 +20,7 @@ class SolicitudInscripcion:
     actividad: str
     horario: object
     visitantes: list
-    email_de_contacto: str
+    titular: object  # el Usuario autenticado (None si no inicio sesion)
     terminos_aceptados: str = None
 
 
@@ -63,7 +63,7 @@ class InscripcionService:
             actividad=actividad,
             horario=solicitud.horario,
             visitantes=solicitud.visitantes,
-            email_de_contacto=solicitud.email_de_contacto,
+            titular=solicitud.titular,
             terminos_aceptados=self._terminos_aceptados(solicitud.terminos_aceptados),
         )
         motivos = inscripcion.motivos_de_rechazo(self._parque, self._reloj.ahora())

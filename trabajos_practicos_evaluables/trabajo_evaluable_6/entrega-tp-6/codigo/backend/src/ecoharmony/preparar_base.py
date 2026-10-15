@@ -9,11 +9,9 @@ ESQUEMA = Path(__file__).resolve().parents[2] / "sql" / "schema.sql"
 
 
 def preparar_base(url):
-    """Crea el esquema (si falta) y carga el catalogo de actividades. Se puede repetir."""
+    """Crea las tablas que falten y carga el catalogo de actividades. Se puede repetir."""
     with psycopg.connect(url) as conexion:
-        existe = conexion.execute("SELECT to_regclass('public.actividad')").fetchone()[0]
-        if existe is None:
-            conexion.execute(ESQUEMA.read_text(encoding="utf-8"))
+        conexion.execute(ESQUEMA.read_text(encoding="utf-8"))
     RepositorioPostgres(url).cargar_actividades(crear_actividades())
 
 

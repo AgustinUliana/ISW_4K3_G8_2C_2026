@@ -144,3 +144,11 @@ def test_ace_07_inscribirse_aceptando_los_terminos_de_otra_actividad_falla(siste
     assert not resultado.confirmada
     assert resultado.motivos == [MotivoRechazo.TERMINOS_DE_OTRA_ACTIVIDAD]
     assert sistema.email.enviados == []
+
+
+def test_ace_08_inscribirse_sin_haber_iniciado_sesion_falla(sistema):
+    resultado = sistema.servicio.inscribir(una_solicitud(titular=None))
+
+    assert not resultado.confirmada
+    assert resultado.motivos == [MotivoRechazo.USUARIO_NO_REGISTRADO]
+    assert sistema.email.enviados == []

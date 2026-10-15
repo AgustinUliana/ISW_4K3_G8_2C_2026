@@ -1,4 +1,3 @@
-import re
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -6,7 +5,6 @@ from ecoharmony.horario import EstadoDeInscripcion
 from ecoharmony.motivos import MotivoRechazo
 
 MAXIMO_DE_PERSONAS = 10
-EMAIL_VALIDO = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 _MOTIVO_SEGUN_ESTADO = {
     EstadoDeInscripcion.CERRADA: MotivoRechazo.INSCRIPCION_CERRADA,
@@ -24,18 +22,23 @@ class Inscripcion:
     actividad: object
     horario: object
     visitantes: list = field(default_factory=list)
-    email_de_contacto: str = ""
+    titular: object = None  # el usuario registrado que hace la inscripcion
     terminos_aceptados: object = None
     codigo: str = None
     estado: EstadoDeLaInscripcion = EstadoDeLaInscripcion.PENDIENTE
     confirmada_el: object = None
+
+    @property
+    def email_de_contacto(self):
+        """El email del titular: a esa casilla se envia la confirmacion."""
+        return self.titular.email if self.titular else ""
 
     def motivos_de_rechazo(self, parque, ahora):
         return [
             *self._motivos_de_actividad_y_terminos(),
             *self._motivos_de_horario(parque, ahora),
             *self._motivos_de_visitantes(),
-            *self._motivos_de_contacto(),
+            *self._motivos_de_titular(),
         ]
 
     def confirmar(self, codigo, ahora):
@@ -90,7 +93,7 @@ class Inscripcion:
             motivos.append(MotivoRechazo.DNI_DUPLICADO)
         return motivos
 
-    def _motivos_de_contacto(self):
-        if not EMAIL_VALIDO.match(self.email_de_contacto or ""):
-            return [MotivoRechazo.EMAIL_INVALIDO]
+    def _motivos_de_titular(self):
+        if self.titular is None:
+            return [MotivoRechazo.USUARIO_NO_REGISTRADO]
         return []

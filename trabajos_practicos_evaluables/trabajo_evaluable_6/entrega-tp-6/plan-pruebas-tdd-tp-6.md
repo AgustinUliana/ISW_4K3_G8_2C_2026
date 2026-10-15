@@ -1,7 +1,7 @@
 # TP6 – TDD: Plan de pruebas (Test List)
 
 **User Story:** Inscribirme a actividad (EcoHarmony Park) · **Grupo 8** · ISW 4K3 · 2026
-**Estado:** v0.4 – dominio, servicio, base PostgreSQL y adaptadores implementados con TDD · 2026-10-15 (ver §11)
+**Estado:** v0.5 – dominio, servicio, usuarios, base PostgreSQL y adaptadores implementados con TDD · 2026-10-15 (ver §11)
 **Documento hermano:** [preguntas-product-owner-tp-6.md](preguntas-product-owner-tp-6.md)
 **Consigna:** [consigna-tp-6.pdf](../consigna-tp-6.pdf)
 
@@ -477,7 +477,7 @@ Los contratos de los Grupos 6, 7 y 8 garantizan que reemplazar un doble por la p
 ## 11. Estado de la implementación (2026-10-15)
 
 Rama `tp6-tdd`: cada prueba se hizo con su ciclo visible en `git log` (`test(ID): rojo` → `feat(ID): verde` →
-`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **204 pruebas verdes** (sin base de
+`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **232 pruebas verdes** (sin base de
 datos y contra PostgreSQL real), PEP 8 limpio con `ruff`.
 
 | Grupo | Archivo de pruebas | Estado |
@@ -524,26 +524,35 @@ datos y contra PostgreSQL real), PEP 8 limpio con `ruff`.
 6. **Usuarios con inicio de sesión simple** (decisión del grupo, 2026-10-15; grupo USU de abajo).
 7. Preguntas de baja prioridad abiertas al PO (ver `preguntas-product-owner-tp-6.md` §3).
 
-### 11.1 Grupo nuevo: Usuarios (USU) – por la decisión de P01/P02
+### 11.1 Usuarios (USU) – hecho en la rama `tp6-usuarios`
 
 El visitante debe estar registrado, con un inicio de sesión simple: **email + contraseña**. El email de la
-inscripción es el del usuario. Las contraseñas se guardan con un *hash* con sal (`hashlib.scrypt`, de la biblioteca
-estándar: gratis y sin dependencias nuevas).
+inscripción es el del usuario (decisión del grupo, P01/P02). Las contraseñas se guardan con *hash* scrypt con sal
+(`hashlib.scrypt`, biblioteca estándar) y la sesión es un token firmado con HMAC-SHA256 que vence a las 8 horas.
 
-| ID | Prueba | Dado → Entonces | Cat. |
+| ID | Prueba | Archivo | Estado |
 |---|---|---|---|
-| USU-01 | `test_se_registra_un_usuario_con_email_y_contrasena_validos` | `ana@x.com` + `secreto1` → usuario registrado | U |
-| USU-02 | `test_no_se_registra_con_un_email_invalido` | `ana`, `ana@` → `EMAIL_INVALIDO` | U |
-| USU-03 | `test_no_se_registra_con_una_contrasena_demasiado_corta` | 5 caracteres → `CONTRASENA_INVALIDA`; 6 → ok (*provisorio*) | U |
-| USU-04 | `test_no_se_registra_dos_veces_el_mismo_email` | segundo registro → `EMAIL_YA_REGISTRADO` (sin distinguir mayúsculas) | U |
-| USU-05 | `test_la_contrasena_no_se_guarda_en_texto_plano` | el valor guardado no contiene la contraseña y es distinto con cada sal | U |
-| USU-06 | `test_el_inicio_de_sesion_con_email_y_contrasena_correctos_devuelve_una_sesion` | → token | U |
-| USU-07 | `test_el_inicio_de_sesion_falla_con_contrasena_incorrecta_o_email_inexistente` | mismo error en ambos casos (no revela cuál falló) | U |
-| USU-08 | `test_un_token_valido_identifica_al_usuario_y_uno_alterado_se_rechaza` | token firmado con HMAC | U |
-| USU-09 | `test_el_repositorio_de_usuarios_cumple_el_contrato` | guardar / buscar por email, en memoria y en PostgreSQL | C |
-| INS-20 | `test_se_rechaza_una_inscripcion_sin_usuario_registrado` | sin titular → `USUARIO_NO_REGISTRADO` | U |
-| SRV-21 | `test_el_email_de_confirmacion_va_al_email_del_usuario_registrado` | destinatario = email del usuario (la solicitud ya no trae email) | U |
+| USU-01 | se registra un usuario con email y contraseña válidos (email normalizado a minúsculas) | `test_usuarios.py` | Hecho |
+| USU-02 | no se registra con un email inválido | `test_usuarios.py` | Hecho |
+| USU-03 | la contraseña debe tener al menos 6 caracteres (*provisorio*) | `test_usuarios.py` | Hecho |
+| USU-04 | no se registra dos veces el mismo email (sin distinguir mayúsculas) | `test_usuarios.py` | Hecho |
+| USU-05 | la contraseña no se guarda en texto plano; el hash lleva sal | `test_contrasenas.py`, `test_usuarios.py` | Hecho |
+| USU-06 | el inicio de sesión con credenciales correctas devuelve un token del usuario | `test_usuarios.py` | Hecho |
+| USU-07 | contraseña incorrecta o email inexistente fallan igual (no revela cuál) | `test_usuarios.py` | Hecho |
+| USU-08 | un token alterado, de otra clave o vencido no identifica a nadie | `test_usuarios.py` | Hecho |
+| USU-09 | contrato del repositorio de usuarios, en memoria y en PostgreSQL | `test_repositorio_usuarios.py` | Hecho |
+| INS-20 | se rechaza una inscripción sin usuario registrado (`USUARIO_NO_REGISTRADO`) | `test_inscripcion.py` | Hecho |
+| SRV-21 | sin titular no se confirma ni se envía email; el email va al del usuario | `test_inscripcion_service.py` | Hecho |
+| ACE-08 | inscribirse sin haber iniciado sesión falla (fakes y PostgreSQL) | `test_aceptacion.py` | Hecho |
+| PREP-03 | el esquema es reaplicable: agrega las tablas nuevas a una base ya preparada | `test_preparar_base.py` | Hecho |
 
-Consecuencias en lo ya hecho: `SolicitudInscripcion` pasa a llevar al usuario titular (el email deja de ser un
-campo del formulario) y INS-16 se reformula como "el email del titular es válido". Tabla nueva `usuario` en
-`schema.sql`.
+INS-16 (email de contacto válido) se reemplazó por INS-20: el email ahora se valida al registrar el usuario.
+`Inscripcion.titular` reemplaza al campo `email_de_contacto` (que queda como propiedad). Tabla nueva `usuario`.
+
+### 11.2 Lo que falta
+
+1. **Consultas de disponibilidad** (CAT-04..08) y la **API HTTP** (FastAPI) con registro, login y inscripción.
+2. **Front React** (paleta y fuente Lato del PO, responsive).
+3. **Prueba externa** de email real (necesita credenciales de Gmail o Brevo).
+4. **Textos reales de los T&C** de cada actividad.
+5. **Documento de decisiones de diseño** (`entrega-tp-6`).

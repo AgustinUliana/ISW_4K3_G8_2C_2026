@@ -9,6 +9,7 @@ from ecoharmony.errores import (
 from ecoharmony.horario import Horario
 from ecoharmony.inscripcion import EstadoDeLaInscripcion, Inscripcion
 from ecoharmony.terminos import TerminosYCondiciones
+from ecoharmony.usuarios import Usuario
 from ecoharmony.visitante import Visitante
 
 # Reserva atomica del cupo: inserta el turno o suma las personas, pero solo si no se pasa del
@@ -194,7 +195,7 @@ class RepositorioPostgres:
             actividad=actividad,
             horario=Horario(fecha, hora),
             visitantes=[Visitante(*datos) for datos in visitantes],
-            email_de_contacto=email,
+            titular=Usuario(email),
             terminos_aceptados=TerminosYCondiciones(
                 nombre_actividad, version, actividad.terminos.texto
             ),
