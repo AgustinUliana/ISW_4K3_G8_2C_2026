@@ -12,7 +12,7 @@ TITULOS_DE_APARTADOS = [
     "Objeto de la actividad",
     "Requisitos de inscripción",
     "Normas de seguridad",
-    None,  # el cuarto apartado cambia segun la actividad (equipo, materiales, contacto con animales)
+    None,  # el cuarto apartado es propio de cada actividad
     "Salud y condiciones de participación",
     "Responsabilidad de la organización",
     "Modificaciones, suspensión o cancelación",
@@ -148,7 +148,7 @@ def test_los_menores_se_inscriben_a_traves_de_su_madre_padre_tutor_o_representan
 def test_la_responsabilidad_del_parque_no_es_una_renuncia_general(terminos, nombre):
     responsabilidad = _apartados(terminos[nombre].texto)[6][1]
 
-    assert "no implican una renuncia general" in responsabilidad
+    assert "ni implican una renuncia general" in responsabilidad
 
 
 @pytest.mark.parametrize("nombre", ACTIVIDADES)
