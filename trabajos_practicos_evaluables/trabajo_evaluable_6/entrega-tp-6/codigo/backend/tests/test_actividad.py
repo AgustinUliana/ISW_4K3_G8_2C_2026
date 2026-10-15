@@ -79,3 +79,19 @@ def test_actividad_sin_edad_minima_admite_todas_las_edades():
     safari = Actividad("Safari", cupo_por_turno=8)
 
     assert safari.admite_edad(0)
+
+
+def test_liberar_devuelve_lugares_al_cupo_restante(tirolesa):
+    tirolesa.reservar(H1, cantidad=5)
+
+    tirolesa.liberar(H1, cantidad=3)
+
+    assert tirolesa.cupo_restante(H1) == 8
+
+
+def test_liberar_mas_de_lo_reservado_nunca_supera_el_cupo_maximo(tirolesa):
+    tirolesa.reservar(H1, cantidad=2)
+
+    tirolesa.liberar(H1, cantidad=5)
+
+    assert tirolesa.cupo_restante(H1) == 10

@@ -147,3 +147,18 @@ def test_dos_reservas_simultaneas_del_ultimo_cupo_solo_dejan_pasar_una(base_con_
 
     assert sorted(resultados) == ["guardada", "sin cupo"]
     assert repositorio.actividad("Tirolesa").cupo_restante(H1) == 0
+
+
+def test_anular_una_inscripcion_libera_el_cupo_y_el_dni(repositorio):
+    inscripcion = una_inscripcion_confirmada(repositorio.siguiente_codigo())  # Ana y Luis
+    repositorio.guardar(inscripcion)
+
+    repositorio.anular(inscripcion.codigo)
+
+    assert repositorio.obtener(inscripcion.codigo) is None
+    assert repositorio.actividad("Tirolesa").cupo_restante(H1) == 10
+    assert not repositorio.dni_inscripto_en(ANA.dni, H1)
+
+
+def test_anular_un_codigo_inexistente_no_falla(repositorio):
+    repositorio.anular("INS-9999")
