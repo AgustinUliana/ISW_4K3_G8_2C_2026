@@ -538,5 +538,5 @@ npm install && npm test                    # 110 pruebas
    redacción de datos personales y de fotografías. Además dos puntos que el PO no definió: si Tirolesa y Palestra tendrán
    **límites de peso o altura** (los parques suelen tenerlos; no se incluyeron) y si se va a **verificar** que quien
    inscribe a un menor sea su representante (hoy es solo una declaración).
-2. **Prueba externa de email real** (§2.4): cargar las credenciales de Gmail en el `.env`, ejecutar `pytest -m externa` y verificar a mano que el mensaje llega a la bandeja de entrada.
+2. **Email real** (§2.4): la prueba externa se ejecutó con éxito (llegó con los dos QR) y una inscripción real desde la API envió el correo por Gmail; el primer correo de prueba cayó en spam (ver D11). Conviene volver a verificar la bandeja antes de la exposición.
 3. **Preguntas de baja prioridad al PO** (§9).
