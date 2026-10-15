@@ -6,7 +6,7 @@ prueba externa (categoria X) que se ejecuta aparte.
 
 import pytest
 
-from ecoharmony.mensaje_email import Adjunto, MensajeEmail
+from ecoharmony.mensaje_email import Adjunto, ImagenEnLinea, MensajeEmail
 from ecoharmony.servicio_email_smtp import (
     ConfiguracionIncompletaError,
     ConfiguracionSmtp,
@@ -53,6 +53,51 @@ def test_el_mime_adjunta_cada_qr_como_png():
     assert [a.get_filename() for a in adjuntos] == ["qr-visitante-1.png", "qr-visitante-2.png"]
     assert [a.get_content_type() for a in adjuntos] == ["image/png", "image/png"]
     assert [a.get_content() for a in adjuntos] == [b"png-1", b"png-2"]
+
+
+def test_el_mime_lleva_fecha_e_identificador_para_no_parecer_correo_basura():
+    mime = a_mime(MENSAJE, remitente="inscripciones@ecoharmony.example")
+
+    assert mime["Date"]
+    assert mime["Message-ID"].startswith("<") and "@" in mime["Message-ID"]
+
+
+def test_cada_mensaje_tiene_su_propio_identificador():
+    uno = a_mime(MENSAJE, remitente="inscripciones@ecoharmony.example")
+    otro = a_mime(MENSAJE, remitente="inscripciones@ecoharmony.example")
+
+    assert uno["Message-ID"] != otro["Message-ID"]
+
+
+MENSAJE_HTML = MensajeEmail(
+    destinatario="ana.perez@example.com",
+    asunto="Inscripción confirmada: Tirolesa",
+    cuerpo="Texto plano",
+    cuerpo_html='<!doctype html><html><body><img src="cid:logo"><p>Hola</p></body></html>',
+    imagenes_en_linea=(ImagenEnLinea("logo", "image/png", b"png-logo"),),
+    adjuntos=(Adjunto("qr-visitante-1.png", "image/png", b"png-1"),),
+)
+
+
+def test_el_mime_con_html_ofrece_texto_plano_y_html_como_alternativas():
+    mime = a_mime(MENSAJE_HTML, remitente="inscripciones@ecoharmony.example")
+
+    assert mime.get_body(preferencelist=("plain",)).get_content().strip() == "Texto plano"
+    assert "<p>Hola</p>" in mime.get_body(preferencelist=("html",)).get_content()
+
+
+def test_el_mime_con_html_incluye_las_imagenes_en_linea_con_su_content_id():
+    mime = a_mime(MENSAJE_HTML, remitente="inscripciones@ecoharmony.example")
+
+    (logo,) = [parte for parte in mime.walk() if parte["Content-ID"]]
+    assert logo["Content-ID"] == "<logo>"
+    assert logo.get_content() == b"png-logo"
+
+
+def test_el_mime_con_html_conserva_los_qr_como_adjuntos():
+    mime = a_mime(MENSAJE_HTML, remitente="inscripciones@ecoharmony.example")
+
+    assert [a.get_filename() for a in mime.iter_attachments()] == ["qr-visitante-1.png"]
 
 
 class SmtpFalso:
@@ -130,3 +175,19 @@ def test_la_conexion_smtp_tiene_un_tiempo_limite_para_no_colgar_la_inscripcion()
 
     (smtp,) = SmtpFalso.instancias
     assert smtp.timeout == 10
+
+
+def test_la_clave_de_aplicacion_de_gmail_se_acepta_con_los_espacios_de_google():
+    entorno = {
+        **ENTORNO,
+        "SMTP_SERVIDOR": "smtp.gmail.com",
+        "SMTP_CLAVE": "abcd efgh ijkl mnop",
+    }
+
+    assert ConfiguracionSmtp.desde_entorno(entorno).clave == "abcdefghijklmnop"
+
+
+def test_en_otros_servidores_la_clave_no_se_modifica():
+    entorno = {**ENTORNO, "SMTP_CLAVE": "clave con espacios"}
+
+    assert ConfiguracionSmtp.desde_entorno(entorno).clave == "clave con espacios"

@@ -55,7 +55,7 @@ diseño tomadas*. Este es ese documento. Cada decisión se presenta con el mismo
 |---|---|
 | Lenguaje y estilo | Python 3.13 (backend) y JavaScript/React 19 (front). **PEP 8**, verificado automáticamente con `ruff` (largo de línea 100). |
 | Enfoque | TDD de Kent Beck: lista de pruebas, y luego un ciclo **Red → Green → Refactor** por cada comportamiento, visible en `git log`. |
-| Pruebas automatizadas | **356 del backend** (321 sin base de datos + 35 contra PostgreSQL real y `qrcode` real) y **110 del front**. Todas verdes. |
+| Pruebas automatizadas | **378 del backend** (343 sin base de datos + 35 contra PostgreSQL real y `qrcode` real) y **110 del front**. Todas verdes. |
 | Persistencia | PostgreSQL 16 en Docker, SQL plano (sin ORM), visible desde DBeaver. |
 | Piezas reales y gratuitas | QR con la librería `qrcode`; email por SMTP genérico (Gmail o Brevo); PostgreSQL local. |
 | Interfaz | React + Vite, paleta y tipografía (Lato) del PO, estilo *Liquid Glass*, responsive. |
@@ -112,9 +112,9 @@ contrato**, que se ejecutan dos veces, contra el fake y contra PostgreSQL (§8.2
 
 | Cat. | Qué usa | Cuántas | Cuándo corre |
 |---|---|---|---|
-| **U** – unitarias | dominio y dobles; sin red, disco ni reloj real | 321 (backend) + 110 (front) | siempre (`pytest`, `vitest`) |
+| **U** – unitarias | dominio y dobles; sin red, disco ni reloj real | 343 (backend) + 110 (front) | siempre (`pytest`, `vitest`) |
 | **C** – contrato / integración local | PostgreSQL local, `qrcode` | 35 | con la base levantada (marcadores `db` y `local`); sin base se saltean con un aviso |
-| **X** – externas | email real a una casilla | pendiente (ver §12) | manual, antes de la entrega (marcador `externa`) |
+| **X** – externas | email real a una casilla | 1 (se pide con `pytest -m externa`) | manual, antes de la entrega (marcador `externa`) |
 
 ## 3. Arquitectura
 
@@ -265,16 +265,30 @@ por cada inscripción. Se usó solo la biblioteca estándar para no sumar depend
 **Descartado:** guardar la contraseña con un hash rápido (SHA) o en texto plano; JWT con librería externa.  
 **Respaldo:** `USU-01..09`, `INS-20`, `SRV-21`, `SRV-23`, `ACE-08`.
 
-### D11. Email: un adaptador SMTP genérico y un reemplazo para desarrollo
+### D11. Email: Gmail por SMTP y un reemplazo para desarrollo
 
-**Se decidió:** `ServicioEmailSmtp` habla SMTP con STARTTLS y un **tiempo límite de 10 s**; sirve para Gmail o Brevo
-cambiando solo el `.env`. Si el `.env` no tiene SMTP, la API arranca con `ServicioEmailEnCarpeta`, que guarda el texto y
-los QR en `salida_de_emails/` (ignorada por git).  
-**Por qué:** el PO exige un email real, pero las pruebas no pueden depender de internet ni de credenciales, y el grupo no
-quiere comprometerse con un proveedor. La carpeta de desarrollo permite probar todo el recorrido sin enviar nada.  
+**Se decidió:** `ServicioEmailSmtp` envía por SMTP con STARTTLS y un **tiempo límite de 10 s**, configurado desde el `.env`. El
+grupo eligió **Gmail** (contraseña de aplicación): es gratuito, el mensaje sale de una casilla real y llega a la bandeja de
+entrada sin verificar dominios. El mensaje es **HTML con la marca** (paleta del PO, Lato, el logo y el código QR de cada
+visitante junto a su nombre), con una versión en texto plano y los QR también adjuntos. Las imágenes viajan dentro del propio
+mensaje (`cid:`), así se ven sin cargar imágenes remotas, y todo dato escrito por el usuario se escapa antes de entrar al
+HTML. Además lleva `Date` y un `Message-ID` único del dominio del remitente, cabeceras que los
+filtros de Gmail esperan para no tratarlo como correo basura. Si el `.env` no tiene SMTP, la API arranca con
+`ServicioEmailEnCarpeta`, que guarda el texto y los QR en `salida_de_emails/` (ignorada por git).  
+**Por qué:** el PO exige un email real, pero las pruebas automáticas no pueden depender de internet ni de credenciales. La
+carpeta de desarrollo permite probar todo el recorrido sin enviar nada, y el adaptador sigue sirviendo para otro proveedor
+cambiando solo el `.env`. **Descartado:** Brevo u otro servicio transaccional gratuito (piden verificar remitente o dominio; sin
+eso suele ir a spam) y guardar la clave en el código.  
 **Hallazgo de la prueba manual:** con credenciales SMTP de ejemplo en el `.env`, la API se quedaba colgada intentando
 conectarse. Se agregó el tiempo límite (`SMTP-06`) y el `.env.example` trae el SMTP comentado.  
-**Respaldo:** `SMTP-01..06`, `MAIL-01/02`, `EML-01..07`; la prueba externa con un email real está pendiente (§12).
+**Prueba externa (categoría X):** `test_email_externo.py` (marcador `externa`) envía un email real con dos QR a
+`EMAIL_DE_PRUEBA`. Queda fuera de la corrida normal (`addopts = -m 'not externa'`) y se saltea sin credenciales.  
+**Spam:** el primer correo de prueba, un texto plano sin marca enviado de una casilla a sí misma, cayó en la carpeta de correo
+no deseado. No hay forma de garantizar la bandeja de entrada (depende de la reputación del remitente); lo que sí se controla
+es mandar un mensaje bien formado (HTML con texto alternativo, `Date`, `Message-ID`, remitente igual al usuario SMTP) y marcarlo
+«No es spam» la primera vez. Un antivirus que analiza el correo saliente (Avast agrega un pie al mensaje) también puede
+influir.  
+**Respaldo:** `SMTP-01..13`, `MAIL-01/02`, `EML-01..17` y la prueba externa.
 
 ### D12. Términos y condiciones propios de cada actividad
 
@@ -294,7 +308,7 @@ instalaciones y del medioambiente, 9 datos personales, 10 fotografías y videos,
 
 **Qué es fijo y qué sale de los datos:** los números (edad mínima, talla, cupo por turno, 24 horas, 15 minutos, máximo de
 10 personas) salen de los mismos datos que usa el dominio, de modo que el texto no puede decir "8 años" si la regla dice
-10. Una actividad sin texto propio **no se puede crear** (error). Los textos llevan versión (`v1`) y se aceptan por actividad.
+10. Una actividad sin texto propio **no se puede crear** (error). Los textos se guardan con una versión interna (`v1`), que no se muestra al visitante, y se aceptan por actividad.
 **Cómo se redactaron:** se tomó como base el modelo de términos y condiciones de participación que aportó el grupo y se
 adaptó cada actividad con las prácticas habituales que publican parques de aventura (tirolesa), reglamentos de rocódromos
 (palestra), parques zoológicos y de safari (safari) y guías de seguridad de huertas y talleres (jardinería); las fuentes
@@ -346,8 +360,7 @@ página, por eso el logo solo se usa sobre superficies claras.
 **Colores en el sistema:** el encabezado es un panel de vidrio translúcido, y debajo asoman los verdes de la página, que
 apagaban las hojas del logo. Por eso el emblema lleva un círculo de fondo claro propio (#f8f9f3) con una sombra suave y los
 colores se ven como en el original.  
-**Número de grupo:** el PO indicó, en el relevamiento del módulo Comprar Entradas, que el logo debía llevar el número de
-grupo. **El grupo decidió no incluirlo en el logo de este módulo**; queda como punto a confirmar (§12).  
+**Número de grupo:** la consigna y las respuestas del PO de este módulo no piden que el logo lleve el número de grupo, por lo que no se incluye.  
 **Límite:** al ser una imagen, no escala sin perder nitidez como un SVG; el emblema se entrega a 360 px (6 veces el tamaño con
 que se muestra) y el logo completo a 760 px.  
 **Respaldo:** `LOGO-01` (el encabezado muestra el emblema con la descripción «Logo de EcoHarmony Park»), `LOGO-02` (sigue con la
@@ -453,11 +466,11 @@ biblioteca de componentes.
 
 ### 8.1 Pirámide
 
-- **Base (321 + 110):** unitarias del dominio, del servicio con dobles y de las pantallas con API falsa. Corren en
+- **Base (343 + 110):** unitarias del dominio, del servicio con dobles y de las pantallas con API falsa. Corren en
   segundos, sin infraestructura.
 - **Medio (35):** contratos contra PostgreSQL real y `qrcode` real, incluida la carrera por el último cupo.
 - **Cima:** aceptación (`ACE-01..08`, que además de las pruebas de usuario de la consigna cubren T&C ajenos y falta de sesión), cada una ejecutada con dobles **y** con PostgreSQL + QR real.
-- **Externa (pendiente):** un email real a una casilla del grupo.
+- **Externa (1):** un email real con QR a una casilla del grupo; requiere las credenciales de Gmail en el `.env`.
 
 ### 8.2 Contratos que se ejecutan dos veces
 
@@ -498,7 +511,7 @@ cd codigo
 docker compose up -d                       # PostgreSQL
 cd backend
 PYTHONPATH=src .venv/Scripts/python.exe -m ecoharmony.preparar_base
-.venv/Scripts/python.exe -m pytest         # 356 pruebas (las de base se saltean si no hay PostgreSQL)
+.venv/Scripts/python.exe -m pytest         # 378 pruebas (las de base se saltean si no hay PostgreSQL)
 .venv/Scripts/python.exe -m ruff check .   # PEP 8
 cd ../frontend
 npm install && npm test                    # 110 pruebas
@@ -525,6 +538,5 @@ npm install && npm test                    # 110 pruebas
    redacción de datos personales y de fotografías. Además dos puntos que el PO no definió: si Tirolesa y Palestra tendrán
    **límites de peso o altura** (los parques suelen tenerlos; no se incluyeron) y si se va a **verificar** que quien
    inscribe a un menor sea su representante (hoy es solo una declaración).
-2. **Número de grupo en el logo:** el PO lo pidió para el módulo Comprar Entradas; el grupo decidió no ponerlo. Confirmar que no se exige en este módulo.
-3. **Prueba externa de email real** (§2.4): falta cargar credenciales SMTP en el `.env` y ejecutar la prueba de categoría X.
-4. **Preguntas de baja prioridad al PO** (§9).
+2. **Prueba externa de email real** (§2.4): cargar las credenciales de Gmail en el `.env`, ejecutar `pytest -m externa` y verificar a mano que el mensaje llega a la bandeja de entrada.
+3. **Preguntas de baja prioridad al PO** (§9).

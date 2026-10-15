@@ -284,8 +284,5 @@ def redactar_terminos(nombre, edad_minima, requiere_talla, cupo_por_turno):
         _apartado(10, "Fotografías y videos", _FOTOGRAFIAS),
         _apartado(11, "Aceptación", _ACEPTACION),
     ]
-    encabezado = (
-        "TÉRMINOS Y CONDICIONES DE PARTICIPACIÓN\n"
-        f"Actividad: {propio['titulo']} (versión {VERSION_DE_LOS_TERMINOS})"
-    )
+    encabezado = f"TÉRMINOS Y CONDICIONES DE PARTICIPACIÓN\nActividad: {propio['titulo']}"
     return "\n\n".join([encabezado, *apartados]) + "\n"

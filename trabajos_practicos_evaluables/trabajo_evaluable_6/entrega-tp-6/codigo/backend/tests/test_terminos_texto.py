@@ -230,3 +230,12 @@ def test_el_texto_se_arma_con_las_reglas_de_la_actividad_y_no_con_numeros_fijos(
 def test_una_actividad_sin_texto_propio_no_se_puede_redactar():
     with pytest.raises(ValueError, match="Rafting"):
         redactar_terminos("Rafting", edad_minima=0, requiere_talla=False, cupo_por_turno=5)
+
+
+@pytest.mark.parametrize("nombre", ACTIVIDADES)
+def test_el_texto_no_muestra_la_version(terminos, nombre):
+    texto = terminos[nombre].texto.lower()
+
+    assert "versión" not in texto
+    assert "version" not in texto
+    assert not re.search(r"\bv\d+\b", texto)

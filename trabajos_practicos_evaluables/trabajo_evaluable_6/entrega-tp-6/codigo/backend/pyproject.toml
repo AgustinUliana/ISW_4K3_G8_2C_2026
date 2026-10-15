@@ -1,6 +1,8 @@
 [tool.pytest.ini_options]
 pythonpath = ["src", "tests"]
 testpaths = ["tests"]
+# las pruebas externas (internet) se piden a proposito: pytest -m externa
+addopts = "-m 'not externa'"
 markers = [
     "local: usa recursos locales y gratuitos (libreria qrcode, PostgreSQL local)",
     "db: requiere la base PostgreSQL de pruebas (docker compose up -d)",

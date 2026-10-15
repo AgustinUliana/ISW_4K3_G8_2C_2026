@@ -1,8 +1,10 @@
 import smtplib
 from dataclasses import dataclass
 from email.message import EmailMessage
+from email.utils import formatdate, make_msgid
 
 TIEMPO_LIMITE_EN_SEGUNDOS = 10
+SERVIDOR_DE_GMAIL = "smtp.gmail.com"
 VARIABLES = ("SMTP_SERVIDOR", "SMTP_PUERTO", "SMTP_USUARIO", "SMTP_CLAVE", "EMAIL_REMITENTE")
 
 
@@ -23,11 +25,15 @@ class ConfiguracionSmtp:
         faltantes = [v for v in VARIABLES if not entorno.get(v)]
         if faltantes:
             raise ConfiguracionIncompletaError(f"Falta configurar: {', '.join(faltantes)}")
+        servidor = entorno["SMTP_SERVIDOR"]
+        clave = entorno["SMTP_CLAVE"]
+        if servidor == SERVIDOR_DE_GMAIL:
+            clave = clave.replace(" ", "")  # Google muestra la clave en 4 grupos separados
         return cls(
-            servidor=entorno["SMTP_SERVIDOR"],
+            servidor=servidor,
             puerto=int(entorno["SMTP_PUERTO"]),
             usuario=entorno["SMTP_USUARIO"],
-            clave=entorno["SMTP_CLAVE"],
+            clave=clave,
             remitente=entorno["EMAIL_REMITENTE"],
         )
 
@@ -55,7 +61,17 @@ def a_mime(mensaje, remitente):
     mime["From"] = remitente
     mime["To"] = mensaje.destinatario
     mime["Subject"] = mensaje.asunto
+    mime["Date"] = formatdate(localtime=True)
+    mime["Message-ID"] = make_msgid(domain=remitente.rpartition("@")[2] or None)
     mime.set_content(mensaje.cuerpo)
+    if mensaje.cuerpo_html:
+        mime.add_alternative(mensaje.cuerpo_html, subtype="html")
+        html = mime.get_body(preferencelist=("html",))
+        for imagen in mensaje.imagenes_en_linea:
+            tipo_principal, subtipo = imagen.tipo.split("/")
+            html.add_related(
+                imagen.contenido, maintype=tipo_principal, subtype=subtipo, cid=f"<{imagen.cid}>"
+            )
     for adjunto in mensaje.adjuntos:
         tipo_principal, subtipo = adjunto.tipo.split("/")
         mime.add_attachment(
