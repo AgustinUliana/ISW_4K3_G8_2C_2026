@@ -55,6 +55,20 @@ def test_el_mime_adjunta_cada_qr_como_png():
     assert [a.get_content() for a in adjuntos] == [b"png-1", b"png-2"]
 
 
+def test_el_mime_lleva_fecha_e_identificador_para_no_parecer_correo_basura():
+    mime = a_mime(MENSAJE, remitente="inscripciones@ecoharmony.example")
+
+    assert mime["Date"]
+    assert mime["Message-ID"].startswith("<") and "@" in mime["Message-ID"]
+
+
+def test_cada_mensaje_tiene_su_propio_identificador():
+    uno = a_mime(MENSAJE, remitente="inscripciones@ecoharmony.example")
+    otro = a_mime(MENSAJE, remitente="inscripciones@ecoharmony.example")
+
+    assert uno["Message-ID"] != otro["Message-ID"]
+
+
 class SmtpFalso:
     """Registra lo que se le pide, como el servidor SMTP real, pero sin red."""
 
