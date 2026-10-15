@@ -1,6 +1,6 @@
 <div class="portada" markdown="1">
 
-![Logo de EcoHarmony Park, grupo 8](codigo/frontend/public/logo.svg)
+![Logo de EcoHarmony Park, grupo 8](codigo/frontend/public/logo.png)
 
 **Universidad Tecnológica Nacional – Facultad Regional Córdoba**<br>
 **Ingeniería en Sistemas de Información**<br>
@@ -335,14 +335,23 @@ Una rama por tema (`feature/…`, `docs/…`), integradas a `main` con *pull req
 
 ### D16. Identidad de marca: logo con el número de grupo
 
-**Se decidió:** el grupo diseñó un logo propio, `codigo/frontend/public/logo.svg`: un sello circular verde (#386641) con una
-hoja crema, el sol y las colinas en los verdes del PO, y una insignia roja (#BC4749) con **«G8»**. Se muestra en el
-encabezado de todas las pantallas (también sin sesión), como icono de la pestaña del navegador y en la portada de este
-documento.
-**Por qué:** el PO indicó, en el relevamiento del módulo Comprar Entradas, que el logo debe diseñarlo cada grupo y que el
-**número de grupo es obligatorio**; se aplicó el mismo criterio a este módulo. Es un SVG (vector) de un solo archivo: se ve
-nítido en cualquier tamaño, pesa menos de 2 KB y usa solo la paleta provista.
-**Respaldo:** `LOGO-01` (el encabezado muestra el logo con su descripción «EcoHarmony Park, grupo 8»), `LOGO-02` (sigue con la
+**Se decidió:** usar el logo que eligió el grupo (emblema circular con hojas, ciervo, ave, sol y agua, y el nombre «EcoHarmony
+Park») con una insignia roja (#BC4749) con **«G8»** agregada sobre el emblema. Se entrega como PNG con **fondo transparente**
+(`codigo/frontend/public/logo.png`, versión completa, y `logo-emblema.png`, solo el emblema). El emblema está en el
+encabezado de todas las pantallas (también sin sesión) y como icono de la pestaña; el logo completo, en la portada de este
+documento.  
+**Fondo:** el original tenía un fondo blanco opaco. Se lo quitó (no se recortó a mano: se calculó la transparencia de cada
+píxel y se des-mezcló el color con el fondo, para que los bordes no queden con un halo blanco). Se verificó sobre crema,
+blanco y verde oscuro: sobre claro se ve nítido, **pero el texto y las hojas oscuras no se leen sobre el verde oscuro** de la
+página, por eso el logo solo se usa sobre superficies claras.  
+**Colores en el sistema:** el encabezado es un panel de vidrio translúcido, y debajo asoman los verdes de la página, que
+apagaban las hojas del logo. Por eso el emblema lleva un círculo de fondo claro propio (#f8f9f3) con una sombra suave y los
+colores se ven como en el original.  
+**Por qué G8:** el PO indicó, en el relevamiento del módulo Comprar Entradas, que el logo debe ser diseñado por el grupo y que
+el **número de grupo es obligatorio**; se aplicó el mismo criterio a este módulo.  
+**Límite:** al ser una imagen, no escala sin perder nitidez como un SVG; el emblema se entrega a 360 px (6 veces el tamaño con
+que se muestra) y el logo completo a 760 px.  
+**Respaldo:** `LOGO-01` (el encabezado muestra el emblema con su descripción «EcoHarmony Park, grupo 8»), `LOGO-02` (sigue con la
 sesión iniciada).
 
 ## 5. Estilo de código: PEP 8

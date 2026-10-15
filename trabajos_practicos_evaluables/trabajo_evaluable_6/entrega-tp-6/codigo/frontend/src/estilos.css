@@ -143,8 +143,13 @@ body::after {
 
 .marca-logo {
   flex: none;
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
+  padding: 3px;
+  border-radius: 50%;
+  /* fondo claro propio: asi los verdes del logo no se apagan con el vidrio */
+  background: #f8f9f3;
+  box-shadow: 0 2px 8px rgba(56, 102, 65, 0.3);
 }
 
 .marca-textos {
