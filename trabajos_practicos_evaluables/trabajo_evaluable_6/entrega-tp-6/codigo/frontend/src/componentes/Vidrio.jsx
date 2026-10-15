@@ -40,6 +40,7 @@ export function Vidrio({
         <div className="vidrio-capa" aria-hidden="true">
           <LiquidGlass
             cornerRadius={radio}
+            padding="0px"
             elasticity={elasticidad}
             displacementScale={52}
             blurAmount={0.12}
