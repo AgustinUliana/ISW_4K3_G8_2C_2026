@@ -68,3 +68,63 @@ def test_la_contrasena_se_guarda_como_hash_y_no_en_texto_plano():
     guardado = repositorio.buscar("ana@example.com").contrasena_hash
     assert guardado != "secreto1"
     assert verificar("secreto1", guardado)
+
+
+def un_servicio_con_ana_registrada(**opciones):
+    servicio = un_servicio(**opciones)
+    servicio.registrar("ana@example.com", "secreto1")
+    return servicio
+
+
+def test_el_inicio_de_sesion_con_credenciales_correctas_devuelve_un_token_del_usuario():
+    servicio = un_servicio_con_ana_registrada()
+
+    sesion = servicio.iniciar_sesion("ana@example.com", "secreto1")
+
+    assert sesion.iniciada
+    assert servicio.usuario_de_token(sesion.token).email == "ana@example.com"
+
+
+def test_el_email_del_inicio_de_sesion_no_distingue_mayusculas():
+    servicio = un_servicio_con_ana_registrada()
+
+    assert servicio.iniciar_sesion(" ANA@example.com", "secreto1").iniciada
+
+
+@pytest.mark.parametrize(
+    "email, contrasena",
+    [("ana@example.com", "otra-clave"), ("nadie@example.com", "secreto1")],
+)
+def test_el_inicio_de_sesion_falla_igual_con_contrasena_incorrecta_o_email_inexistente(
+    email, contrasena
+):
+    sesion = un_servicio_con_ana_registrada().iniciar_sesion(email, contrasena)
+
+    assert not sesion.iniciada
+    assert sesion.token is None
+    assert sesion.motivos == [MotivoRechazo.CREDENCIALES_INVALIDAS]
+
+
+def test_un_token_alterado_o_firmado_con_otra_clave_no_identifica_a_nadie():
+    repositorio = RepositorioDeUsuariosEnMemoria()
+    servicio = un_servicio_con_ana_registrada(repositorio=repositorio)
+    token = servicio.iniciar_sesion("ana@example.com", "secreto1").token
+
+    otro_servidor = un_servicio(repositorio, clave_secreta="otra-clave")
+
+    assert servicio.usuario_de_token(token + "x") is None
+    assert servicio.usuario_de_token("basura") is None
+    assert servicio.usuario_de_token(None) is None
+    assert otro_servidor.usuario_de_token(token) is None
+
+
+def test_un_token_vence_a_las_8_horas():
+    repositorio = RepositorioDeUsuariosEnMemoria()
+    servicio = un_servicio_con_ana_registrada(repositorio=repositorio)
+    token = servicio.iniciar_sesion("ana@example.com", "secreto1").token
+
+    antes_de_vencer = un_servicio(repositorio, ahora=AHORA + timedelta(hours=7, minutes=59))
+    vencido = un_servicio(repositorio, ahora=AHORA + timedelta(hours=8, minutes=1))
+
+    assert antes_de_vencer.usuario_de_token(token) is not None
+    assert vencido.usuario_de_token(token) is None
