@@ -7,13 +7,15 @@ ENTRADA (no a spam) y que los QR adjuntos se ven.
 """
 
 import os
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
 
+from datos_de_prueba import una_inscripcion_confirmada
 from ecoharmony.entorno import leer_env
 from ecoharmony.generador_qr_local import GeneradorQRLocal
-from ecoharmony.mensaje_email import Adjunto, MensajeEmail
+from ecoharmony.mensaje_email import armar_mensaje
 from ecoharmony.servicio_email_smtp import (
     ConfiguracionIncompletaError,
     ConfiguracionSmtp,
@@ -39,18 +41,9 @@ def test_se_envia_un_email_real_con_un_qr_por_visitante_a_la_casilla_de_prueba()
     except ConfiguracionIncompletaError as error:
         pytest.skip(str(error))
     generador = GeneradorQRLocal()
-    mensaje = MensajeEmail(
-        destinatario=destinatario,
-        asunto="[PRUEBA] Inscripción confirmada: Tirolesa - EcoHarmony Park",
-        cuerpo=(
-            "Este es un email de prueba del sistema de inscripciones de EcoHarmony Park.\n\n"
-            "Código de reserva: PRUEBA-0001\nPersonas: 2 personas\n"
-            "Si lo ves en tu bandeja de entrada con dos códigos QR adjuntos, el envío funciona."
-        ),
-        adjuntos=(
-            Adjunto("qr-visitante-1.png", "image/png", generador.generar("PRUEBA-0001|V1")),
-            Adjunto("qr-visitante-2.png", "image/png", generador.generar("PRUEBA-0001|V2")),
-        ),
-    )
+    inscripcion = una_inscripcion_confirmada("PRUEBA-0001")
+    qrs = [generador.generar(f"PRUEBA-0001|V{n}") for n in (1, 2)]
+    real = armar_mensaje(inscripcion, qrs)  # el mismo mensaje que arma el sistema al inscribir
+    mensaje = replace(real, destinatario=destinatario, asunto=f"[PRUEBA] {real.asunto}")
 
     ServicioEmailSmtp(configuracion).enviar(mensaje)  # si falla la conexion o el login, lanza error
