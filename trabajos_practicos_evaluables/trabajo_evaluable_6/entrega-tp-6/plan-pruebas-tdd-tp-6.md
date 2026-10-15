@@ -477,7 +477,7 @@ Los contratos de los Grupos 6, 7 y 8 garantizan que reemplazar un doble por la p
 ## 11. Estado de la implementación (2026-10-15)
 
 Rama `tp6-tdd`: cada prueba se hizo con su ciclo visible en `git log` (`test(ID): rojo` → `feat(ID): verde` →
-`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **356 pruebas del backend y 110 del front, todas verdes** (sin base de
+`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **360 pruebas del backend y 110 del front, todas verdes** (sin base de
 datos y contra PostgreSQL real), PEP 8 limpio con `ruff`.
 
 | Grupo | Archivo de pruebas | Estado |
@@ -625,7 +625,8 @@ antes de confirmar. Al volver desde la confirmación los datos cargados se conse
 
 ### 11.4 Lo que falta
 
-1. **Prueba externa** de email real a una casilla del grupo (necesita credenciales de Gmail o Brevo en el `.env`).
+1. **Ejecutar la prueba externa** de email real (`pytest -m externa`): está escrita (`test_email_externo.py`) y usa Gmail por
+   SMTP; falta cargar las credenciales en el `.env` y confirmar a mano que llega a la bandeja de entrada (ver §11.6).
 2. **Revisión del grupo de los T&C** (son un borrador, ver §11.5).
 3. Preguntas de baja prioridad abiertas al PO (ver `preguntas-product-owner-tp-6.md` §3).
 
@@ -651,3 +652,16 @@ del documento de diseño.
 
 **Para que el grupo confirme:** normas propias de cada actividad, límites de peso o altura (no definidos por el PO), si se
 verificará que quien inscribe a un menor sea su representante, y la redacción de datos personales y fotografías.
+
+### 11.6 Email real con Gmail – hecho en la rama `feature/envio-real-de-email`
+
+Proveedor elegido: **Gmail por SMTP** (gratuito, llega a la bandeja de entrada sin verificar dominios; Brevo y similares piden
+verificar remitente o dominio). Pasos de configuración en `codigo/README.md`, sección *Email real*.
+
+| Prueba | Qué verifica | Archivo |
+|---|---|---|
+| SMTP-07, SMTP-08 | el mensaje lleva `Date` y un `Message-ID` único (cabeceras que Gmail espera para no mandarlo a spam) | `test_servicio_email_smtp.py` |
+| SMTP-09, SMTP-10 | la clave de aplicación de Gmail se acepta con los espacios con que la muestra Google; en otros servidores no se toca | `test_servicio_email_smtp.py` |
+| X-01 (externa) | envía un email real con dos QR a `EMAIL_DE_PRUEBA`; se pide con `pytest -m externa` y se saltea sin credenciales | `test_email_externo.py` |
+
+La corrida normal excluye la categoría X (`addopts = -m 'not externa'`).

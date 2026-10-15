@@ -113,6 +113,39 @@ codigo/
 
 ## Email real
 
-`ServicioEmailSmtp` envía por SMTP con STARTTLS, así que sirve para **Gmail** (contraseña de aplicación) o
-**Brevo**: solo cambian las variables `SMTP_*` y `EMAIL_REMITENTE` del `.env`. Nunca subir credenciales al
-repositorio (es público).
+El grupo eligió **Gmail por SMTP**: es gratuito (hasta 500 emails por día), el mensaje sale desde una casilla de Gmail real y
+llega a la bandeja de entrada sin configurar dominios ni registros DNS (con otros proveedores gratuitos, como Brevo, hay
+que verificar un remitente o un dominio, y sin eso suele ir a spam). `ServicioEmailSmtp` envía con STARTTLS y también sirve
+para otros proveedores: solo cambian las variables `SMTP_*` y `EMAIL_REMITENTE` del `.env`.
+
+**Cómo configurarlo (una sola vez):**
+
+1. En la cuenta de Gmail que enviará los emails, activar la **verificación en dos pasos**
+   (<https://myaccount.google.com/security>).
+2. Crear una **contraseña de aplicación** (<https://myaccount.google.com/apppasswords>): Google muestra una clave de 16
+   letras en 4 grupos. Se puede pegar con o sin espacios.
+3. En `codigo/.env` descomentar y completar (el remitente debe ser **la misma casilla** que el usuario):
+
+```
+SMTP_SERVIDOR=smtp.gmail.com
+SMTP_PUERTO=587
+SMTP_USUARIO=casilla-del-parque@gmail.com
+SMTP_CLAVE=abcd efgh ijkl mnop
+EMAIL_REMITENTE=casilla-del-parque@gmail.com
+EMAIL_DE_PRUEBA=casilla-que-recibe-la-prueba@gmail.com
+```
+
+4. Reiniciar la API. Desde ese momento los emails de las inscripciones se envían de verdad (si no se logra enviar tras 3
+   intentos, la inscripción se anula). Sin esas variables, se guardan en `salida_de_emails/`.
+
+**Prueba externa (categoría X):** manda un email real con dos QR a `EMAIL_DE_PRUEBA`. No corre con `pytest` a secas; se pide
+a propósito y se saltea con un aviso si falta configuración:
+
+```bash
+cd backend
+.venv/Scripts/python.exe -m pytest -m externa -v
+```
+
+Después hay que mirar a mano que el mensaje esté en la **bandeja de entrada** (no en spam) y que los QR se vean.
+
+Nunca subir credenciales al repositorio (es público): el `.env` está en el `.gitignore`.

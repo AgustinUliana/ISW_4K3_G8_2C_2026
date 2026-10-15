@@ -146,7 +146,7 @@ def test_la_conexion_smtp_tiene_un_tiempo_limite_para_no_colgar_la_inscripcion()
     assert smtp.timeout == 10
 
 
-def test_la_contrasena_de_aplicacion_de_gmail_se_acepta_con_los_espacios_con_que_la_muestra_google():
+def test_la_clave_de_aplicacion_de_gmail_se_acepta_con_los_espacios_de_google():
     entorno = {
         **ENTORNO,
         "SMTP_SERVIDOR": "smtp.gmail.com",

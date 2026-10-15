@@ -45,7 +45,7 @@ def test_se_envia_un_email_real_con_un_qr_por_visitante_a_la_casilla_de_prueba()
         cuerpo=(
             "Este es un email de prueba del sistema de inscripciones de EcoHarmony Park.\n\n"
             "Código de reserva: PRUEBA-0001\nPersonas: 2 personas\n"
-            "Si lo ves en tu bandeja de entrada con dos códigos QR adjuntos, el envío real funciona."
+            "Si lo ves en tu bandeja de entrada con dos códigos QR adjuntos, el envío funciona."
         ),
         adjuntos=(
             Adjunto("qr-visitante-1.png", "image/png", generador.generar("PRUEBA-0001|V1")),
