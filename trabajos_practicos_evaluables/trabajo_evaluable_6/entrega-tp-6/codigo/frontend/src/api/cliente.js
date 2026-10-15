@@ -31,6 +31,9 @@ export function crearCliente({ baseUrl = URL_POR_DEFECTO, fetchImpl = (...args) 
     actividades: () => pedir("/actividades"),
     horarios: (actividad, fecha) => pedir(`/actividades/${nombre(actividad)}/horarios?fecha=${fecha}`),
     terminos: (actividad) => pedir(`/actividades/${nombre(actividad)}/terminos`),
+    // Revisa los datos sin inscribir: el backend aplica las mismas reglas que al inscribir.
+    validarInscripcion: (datos, token) =>
+      pedir("/inscripciones/validar", { metodo: "POST", cuerpo: datos, token }),
     inscribir: (datos, token) => pedir("/inscripciones", { metodo: "POST", cuerpo: datos, token }),
   };
 }
