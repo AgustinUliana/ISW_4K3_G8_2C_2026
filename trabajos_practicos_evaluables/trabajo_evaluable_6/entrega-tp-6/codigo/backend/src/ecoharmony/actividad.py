@@ -2,11 +2,12 @@ from ecoharmony.errores import CupoInsuficiente
 
 
 class Actividad:
-    def __init__(self, nombre, cupo_por_turno, edad_minima=0, requiere_talla=False):
+    def __init__(self, nombre, cupo_por_turno, edad_minima=0, requiere_talla=False, terminos=None):
         self.nombre = nombre
         self.cupo_por_turno = cupo_por_turno
         self.edad_minima = edad_minima
         self.requiere_talla = requiere_talla
+        self.terminos = terminos
         self._ocupados = {}
 
     def tiene_cupo(self, horario, cantidad):
