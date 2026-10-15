@@ -136,8 +136,20 @@ body::after {
 
 .marca {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 12px;
   line-height: 1.15;
+}
+
+.marca-logo {
+  flex: none;
+  width: 48px;
+  height: 48px;
+}
+
+.marca-textos {
+  display: flex;
+  flex-direction: column;
 }
 
 .marca-nombre {
