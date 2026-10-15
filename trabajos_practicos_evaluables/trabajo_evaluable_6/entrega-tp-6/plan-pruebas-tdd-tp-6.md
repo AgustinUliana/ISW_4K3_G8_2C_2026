@@ -642,11 +642,12 @@ firma del modelo original, la aceptación es la casilla «Acepto los términos y
 | Prueba | Qué verifica | Archivo |
 |---|---|---|
 | TYC-01..31 | sin texto provisorio; versión `v1`; encabezado «TÉRMINOS Y CONDICIONES DE PARTICIPACIÓN» + actividad; los 11 apartados en orden; cuarto apartado propio (equipo, materiales, contacto con animales); normas distintas y marcas propias de cada actividad; equipo en altura (arnés, casco, calzado cerrado); safari (no tocar, sin flash); jardinería (guantes, alergias); salud (avisar antes de comenzar); menores (madre, padre, tutor o representante legal); responsabilidad sin renuncia general; suspensión por clima o seguridad; fotos con autorización específica; aceptación sin firma; edad, talla, cupo y reglas del PO tomadas de los datos | `test_terminos_texto.py` |
-| LOGO-01..02 | el encabezado muestra el logo con «EcoHarmony Park, grupo 8», con y sin sesión | `App.test.jsx` |
+| LOGO-01..02 | el encabezado muestra el logo con «Logo de EcoHarmony Park», con y sin sesión | `App.test.jsx` |
 
-**Logo.** El del grupo (`codigo/frontend/public/logo.png` y `logo-emblema.png`), con fondo transparente y una insignia **G8**
-(el número de grupo es obligatorio según el PO). El emblema está en el encabezado, sobre un círculo claro para que los colores
-no se apaguen con el vidrio, y como icono de la pestaña; el logo completo, en la portada del documento de diseño.
+**Logo.** El del grupo (`codigo/frontend/public/logo.png` y `logo-emblema.png`), con fondo transparente y sin insignia de
+grupo (decisión del grupo; el PO lo había pedido para Comprar Entradas, confirmar). El emblema está en el encabezado, sobre un
+círculo claro para que los colores no se apaguen con el vidrio, y como icono de la pestaña; el logo completo, en la portada
+del documento de diseño.
 
 **Para que el grupo confirme:** normas propias de cada actividad, límites de peso o altura (no definidos por el PO), si se
 verificará que quien inscribe a un menor sea su representante, y la redacción de datos personales y fotografías.

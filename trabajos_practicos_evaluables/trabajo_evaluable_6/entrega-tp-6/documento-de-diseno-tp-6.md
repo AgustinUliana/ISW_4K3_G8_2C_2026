@@ -1,6 +1,6 @@
 <div class="portada" markdown="1">
 
-![Logo de EcoHarmony Park, grupo 8](codigo/frontend/public/logo.png)
+![Logo de EcoHarmony Park](codigo/frontend/public/logo.png)
 
 **Universidad Tecnológica Nacional – Facultad Regional Córdoba**<br>
 **Ingeniería en Sistemas de Información**<br>
@@ -333,13 +333,12 @@ una que se verifica en cada corrida se cumple.
 Una rama por tema (`feature/…`, `docs/…`), integradas a `main` con *pull request* y commit de merge. Los commits siguen
 `tipo(ámbito): rojo|verde|refactor – qué`. El historial se agrupa por tema (§2.1) para que cada ciclo se lea sin ruido.
 
-### D16. Identidad de marca: logo con el número de grupo
+### D16. Identidad de marca: logo del grupo
 
 **Se decidió:** usar el logo que eligió el grupo (emblema circular con hojas, ciervo, ave, sol y agua, y el nombre «EcoHarmony
-Park») con una insignia roja (#BC4749) con **«G8»** agregada sobre el emblema. Se entrega como PNG con **fondo transparente**
-(`codigo/frontend/public/logo.png`, versión completa, y `logo-emblema.png`, solo el emblema). El emblema está en el
-encabezado de todas las pantallas (también sin sesión) y como icono de la pestaña; el logo completo, en la portada de este
-documento.  
+Park»). Se entrega como PNG con **fondo transparente** (`codigo/frontend/public/logo.png`, versión completa, y
+`logo-emblema.png`, solo el emblema). El emblema está en el encabezado de todas las pantallas (también sin sesión) y como
+icono de la pestaña; el logo completo, en la portada de este documento.  
 **Fondo:** el original tenía un fondo blanco opaco. Se lo quitó (no se recortó a mano: se calculó la transparencia de cada
 píxel y se des-mezcló el color con el fondo, para que los bordes no queden con un halo blanco). Se verificó sobre crema,
 blanco y verde oscuro: sobre claro se ve nítido, **pero el texto y las hojas oscuras no se leen sobre el verde oscuro** de la
@@ -347,11 +346,11 @@ página, por eso el logo solo se usa sobre superficies claras.
 **Colores en el sistema:** el encabezado es un panel de vidrio translúcido, y debajo asoman los verdes de la página, que
 apagaban las hojas del logo. Por eso el emblema lleva un círculo de fondo claro propio (#f8f9f3) con una sombra suave y los
 colores se ven como en el original.  
-**Por qué G8:** el PO indicó, en el relevamiento del módulo Comprar Entradas, que el logo debe ser diseñado por el grupo y que
-el **número de grupo es obligatorio**; se aplicó el mismo criterio a este módulo.  
+**Número de grupo:** el PO indicó, en el relevamiento del módulo Comprar Entradas, que el logo debía llevar el número de
+grupo. **El grupo decidió no incluirlo en el logo de este módulo**; queda como punto a confirmar (§12).  
 **Límite:** al ser una imagen, no escala sin perder nitidez como un SVG; el emblema se entrega a 360 px (6 veces el tamaño con
 que se muestra) y el logo completo a 760 px.  
-**Respaldo:** `LOGO-01` (el encabezado muestra el emblema con su descripción «EcoHarmony Park, grupo 8»), `LOGO-02` (sigue con la
+**Respaldo:** `LOGO-01` (el encabezado muestra el emblema con la descripción «Logo de EcoHarmony Park»), `LOGO-02` (sigue con la
 sesión iniciada).
 
 ## 5. Estilo de código: PEP 8
@@ -526,5 +525,6 @@ npm install && npm test                    # 110 pruebas
    redacción de datos personales y de fotografías. Además dos puntos que el PO no definió: si Tirolesa y Palestra tendrán
    **límites de peso o altura** (los parques suelen tenerlos; no se incluyeron) y si se va a **verificar** que quien
    inscribe a un menor sea su representante (hoy es solo una declaración).
-2. **Prueba externa de email real** (§2.4): falta cargar credenciales SMTP en el `.env` y ejecutar la prueba de categoría X.
-3. **Preguntas de baja prioridad al PO** (§9).
+2. **Número de grupo en el logo:** el PO lo pidió para el módulo Comprar Entradas; el grupo decidió no ponerlo. Confirmar que no se exige en este módulo.
+3. **Prueba externa de email real** (§2.4): falta cargar credenciales SMTP en el `.env` y ejecutar la prueba de categoría X.
+4. **Preguntas de baja prioridad al PO** (§9).
