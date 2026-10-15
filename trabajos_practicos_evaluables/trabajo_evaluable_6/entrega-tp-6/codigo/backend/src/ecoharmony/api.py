@@ -2,17 +2,20 @@
 
 import logging
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, time
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from ecoharmony.disponibilidad import resumen_de_actividades, turnos_disponibles
 from ecoharmony.errores import ActividadNoEncontradaError
+from ecoharmony.horario import Horario
+from ecoharmony.inscripcion_service import SolicitudInscripcion
 from ecoharmony.motivos import MotivoRechazo
+from ecoharmony.visitante import Visitante
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +45,34 @@ class Credenciales(BaseModel):
     contrasena: Any = None
 
 
+class VisitanteEntrada(BaseModel):
+    nombre: Any = None
+    dni: Any = None
+    edad: Any = None
+    talla: Any = None
+
+
+class InscripcionEntrada(BaseModel):
+    actividad: Any = None
+    fecha: Any = None
+    hora: Any = None
+    visitantes: list[VisitanteEntrada] = []
+    terminos_aceptados: Any = None
+
+
+def _token_de(encabezado):
+    if encabezado and encabezado.startswith("Bearer "):
+        return encabezado[len("Bearer ") :]
+    return None
+
+
+def _horario(fecha, hora):
+    try:
+        return Horario(date.fromisoformat(fecha), time.fromisoformat(hora))
+    except (TypeError, ValueError):
+        return None
+
+
 def _texto(valor):
     return valor if isinstance(valor, str) else None
 
@@ -67,6 +98,11 @@ def crear_app(servicios, origenes_permitidos=()):
             allow_methods=["*"],
             allow_headers=["*"],
         )
+
+    @app.exception_handler(Exception)
+    async def error_inesperado(solicitud, error):
+        logger.exception("Error inesperado en %s", solicitud.url.path)
+        return JSONResponse(status_code=500, content={"detalle": "Error interno del servidor"})
 
     @app.post("/registro", status_code=201)
     def registrar(datos: Credenciales):
@@ -129,5 +165,23 @@ def crear_app(servicios, origenes_permitidos=()):
         except ActividadNoEncontradaError:
             return _rechazo([MotivoRechazo.ACTIVIDAD_INEXISTENTE])
         return {"actividad": nombre, "version": terminos.version, "texto": terminos.texto}
+
+    @app.post("/inscripciones", status_code=201)
+    def inscribir(datos: InscripcionEntrada, authorization: str | None = Header(default=None)):
+        solicitud = SolicitudInscripcion(
+            actividad=_texto(datos.actividad),
+            horario=_horario(datos.fecha, datos.hora),
+            visitantes=[Visitante(v.nombre, v.dni, v.edad, v.talla) for v in datos.visitantes],
+            titular=servicios.usuarios.usuario_de_token(_token_de(authorization)),
+            terminos_aceptados=_texto(datos.terminos_aceptados),
+        )
+        resultado = servicios.inscripciones.inscribir(solicitud)
+        if not resultado.confirmada:
+            visitantes = {
+                str(posicion): [motivo.value for motivo in motivos]
+                for posicion, motivos in resultado.errores_por_visitante.items()
+            }
+            return _rechazo(resultado.motivos, visitantes=visitantes)
+        return {"codigo": resultado.codigo}
 
     return app
