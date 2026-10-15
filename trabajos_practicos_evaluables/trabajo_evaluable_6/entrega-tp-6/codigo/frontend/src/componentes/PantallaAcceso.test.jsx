@@ -112,3 +112,11 @@ describe("PantallaAcceso", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(/no pudimos conectarnos con el servidor/i);
   });
 });
+
+describe("PantallaAcceso con aviso", () => {
+  it("muestra el aviso que se le pasa, por ejemplo cuando la sesion vencio", () => {
+    render(<PantallaAcceso api={crearApiFalsa()} alEntrar={vi.fn()} aviso="Tu sesión venció." />);
+
+    expect(screen.getByRole("status")).toHaveTextContent("Tu sesión venció.");
+  });
+});
