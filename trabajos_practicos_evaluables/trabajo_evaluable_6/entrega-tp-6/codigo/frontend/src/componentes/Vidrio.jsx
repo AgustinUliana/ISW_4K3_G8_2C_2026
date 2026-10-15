@@ -5,6 +5,8 @@
 // el flujo normal de la pagina y el vidrio se dibuja como una CAPA detras, del mismo tamaño que
 // medimos del contenido. Asi los formularios se comportan como siempre.
 //
+// Su mapa de refraccion es cuadrado: funciona bien en elementos de proporcion parecida (tarjetas) y
+// deja un contorno interior en los muy anchos (paneles, encabezado). Por eso esos usan refractar=false.
 // En Safari y Firefox la refraccion no se ve (lo avisa la libreria): queda el vidrio esmerilado
 // que da el CSS (.vidrio en estilos.css). Si no se puede medir, tambien queda solo el CSS.
 import LiquidGlass from "liquid-glass-react";
@@ -16,6 +18,7 @@ export function Vidrio({
   radio = 28,
   elasticidad = 0, // 0 = no se mueve con el mouse (importante en formularios)
   refraccion = 40, // la libreria esta pensada para elementos chicos: en paneles grandes conviene menos
+  refractar = true, // false = solo vidrio esmerilado (CSS): para paneles anchos, donde la libreria no alinea bien
   alClick,
 }) {
   const contenedor = useRef(null);
@@ -23,12 +26,12 @@ export function Vidrio({
 
   useLayoutEffect(() => {
     const elemento = contenedor.current;
-    if (!elemento || typeof ResizeObserver === "undefined") return undefined;
+    if (!refractar || !elemento || typeof ResizeObserver === "undefined") return undefined;
     const medir = () => setMedida({ ancho: elemento.offsetWidth, alto: elemento.offsetHeight });
     const observador = new ResizeObserver(medir);
     observador.observe(elemento);
     return () => observador.disconnect();
-  }, []);
+  }, [refractar]);
 
   return (
     <div
@@ -37,7 +40,7 @@ export function Vidrio({
       style={{ borderRadius: radio }}
       onClick={alClick}
     >
-      {medida && medida.ancho > 0 && medida.alto > 0 && (
+      {refractar && medida && medida.ancho > 0 && medida.alto > 0 && (
         <div className="vidrio-capa" aria-hidden="true">
           <LiquidGlass
             cornerRadius={radio}
