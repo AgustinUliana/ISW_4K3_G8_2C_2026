@@ -1,9 +1,11 @@
 # TP6 – TDD: Plan de pruebas (Test List)
 
 **User Story:** Inscribirme a actividad (EcoHarmony Park) · **Grupo 8** · ISW 4K3 · 2026
-**Estado:** v0.2 – borrador, previo a las respuestas del Product Owner · 2026-10-11
+**Estado:** v0.3 – con las respuestas del Product Owner · 2026-10-15
 **Documento hermano:** [preguntas-product-owner-tp-6.md](preguntas-product-owner-tp-6.md)
 **Consigna:** [consigna-tp-6.pdf](../consigna-tp-6.pdf)
+
+**Cambios de la v0.3 (respuestas del PO, ver [preguntas-product-owner-tp-6.md](preguntas-product-owner-tp-6.md)):** fixtures reales (horarios, cupos, edades, talles); ventana de inscripción de 24 h a 15 min; **un QR por visitante** en un mismo email; conflicto de horario por DNI en cualquier actividad; máximo 10 personas; sólo DNI (7–8 dígitos).
 
 **Cambios de la v0.2:** base de datos **PostgreSQL** (en lugar de SQLite) para poder abrirla con DBeaver;
 flujo de selección confirmado (**primero la actividad, después el horario**); política de dobles de prueba
@@ -81,21 +83,26 @@ comportamiento y no el método (se lee como una frase). Archivos: `tests/test_ac
 `test_mensaje_email.py`, `test_repositorio.py`, `test_inscripcion_service.py`, `test_api.py`,
 `test_aceptacion.py` (un archivo por grupo, en el orden de este documento).
 
-## 3. Datos base (*fixtures*) – valores provisorios
+## 3. Datos base (*fixtures*)
 
-Todos marcados como **provisorios** hasta que el PO responda (P03–P09).
+Valores confirmados por el PO el 2026-10-15 salvo los marcados *provisorio*.
 
-| Dato | Valor provisorio | Pregunta |
+| Dato | Valor | Origen |
 |---|---|---|
 | Reloj (`Reloj` inyectado, congelado) | miércoles **2026-11-04 08:00** | – |
-| Parque | abre **09:00**, cierra **18:00**, cerrado los **lunes** | P04 |
-| Franja de actividad | 1 hora, inicio en punto (09:00, 10:00 … 17:00) | P04 |
-| Horario base `H1` | 2026-11-04 **10:00–11:00** | P03 |
-| Cupo por actividad y horario | **10 personas** | P06 |
-| Actividades | Tirolesa (talla sí, edad mín. 8), Palestra (talla sí), Safari (no), Jardinería (no) | P09, P10 |
-| Talles válidos | `XS, S, M, L, XL` | P09 |
-| Visitante base | Ana Pérez · DNI `30123456` · 30 años · talla `M` | P11 |
-| Email de contacto base | `ana.perez@example.com` | P01 |
+| Parque | abre **08:30**, cierra **19:00**; cerrado **lunes**, **25/12** y **1/1** | PO #1, #11 |
+| Turnos de actividad | uno por hora en punto, de **09:00 a 17:00** (a las 18:00 no hay turno) | PO #12 |
+| Horario base `H1` | 2026-11-04 **10:00–11:00** | – |
+| Ventana de inscripción | desde **24 h** antes hasta **15 min** antes del turno (ambos límites inclusivos, *supuesto*) | PO #23, #30 |
+| Cupo por turno | Tirolesa **10** · Safari **8** · Palestra **12** · Jardinería **12** | PO #13 |
+| Máximo por inscripción | **10** personas | PO #31 |
+| Requieren talla | **Tirolesa y Palestra** | PO #9 |
+| Talles válidos | `XS, S, M, L, XL, XXL` | PO #14 |
+| Edad mínima | Tirolesa **8** · Palestra **12** · Safari y Jardinería sin mínimo | PO #15 |
+| DNI | **7 u 8 dígitos** numéricos | PO #32 |
+| Edad máxima válida | **100** años (*provisorio*, de la partición de equivalencias del grupo) | – |
+| Visitante base | Ana Pérez · DNI `30123456` · 30 años · talla `M` | – |
+| Email de contacto base | `ana.perez@example.com` | P01 abierta |
 
 ## 4. Cambios al modelo propuesto en el borrador previo
 
@@ -128,14 +135,14 @@ El grupo más simple: sin colaboradores. Se empieza acá.
 | ACT-02 | `test_hay_cupo_si_se_piden_exactamente_las_personas_del_cupo_restante` | cupo 10; piden 10 → `True` (borde) | U | – |
 | ACT-03 | `test_no_hay_cupo_si_se_piden_mas_personas_que_el_cupo_restante` | cupo 10; piden 11 → `False` (borde) | U | – |
 | ACT-04 | `test_no_hay_cupo_si_el_cupo_esta_agotado` | restante 0; piden 1 → `False` | U | – |
-| ACT-05 | `test_no_hay_cupo_en_un_horario_no_habilitado_para_la_actividad` | la actividad no tiene cargado 12:00; consulta 12:00 → `False` | U | P04 |
+| ACT-05 | `test_no_hay_cupo_en_un_horario_que_no_es_turno_de_la_actividad` | turnos de 9:00 a 17:00 en punto; consultas 8:00, 10:30 y 18:00 (cota superior, no hay turno) → `False` | U | P04 |
 | ACT-06 | `test_reservar_descuenta_del_cupo_restante` | cupo 10; reservar 3 → restante 7 | U | – |
 | ACT-07 | `test_reservas_sucesivas_se_acumulan` | cupo 10; reservar 3 y luego 4 → restante 3 (*triangulación* de ACT-06) | U | – |
 | ACT-08 | `test_reservar_mas_que_el_restante_falla_sin_modificar_el_cupo` | restante 2; reservar 3 → `CupoInsuficiente` y restante sigue en 2 | U | – |
 | ACT-09 | `test_el_cupo_de_un_horario_no_afecta_a_otro_horario` | reservar 3 en 10:00 → 11:00 sigue en 10 | U | – |
-| ACT-10 | `test_cada_actividad_declara_si_requiere_talla` | Tirolesa sí · Palestra sí · Safari no · Jardinería no (tabla parametrizada) | U | P09 |
+| ACT-10 | `test_cada_actividad_declara_si_requiere_talla` | Tirolesa sí · Palestra sí · Safari no · Jardinería no (tabla parametrizada) | U | – |
 | ACT-11 | `test_cada_actividad_tiene_sus_propios_terminos_y_condiciones` | los T&C de Tirolesa y de Jardinería son distintos y ninguno está vacío | U | P15 |
-| ACT-12 | `test_actividad_rechaza_visitantes_menores_a_su_edad_minima` | Tirolesa edad mín. 8: visitante de 7 → no admitido; de 8 → admitido (borde) | U | P10 |
+| ACT-12 | `test_actividad_rechaza_visitantes_menores_a_su_edad_minima` | Tirolesa mín. 8: 7 no / 8 sí · Palestra mín. 12: 11 no / 12 sí · Safari y Jardinería: 0 sí (borde) | U | – |
 
 ### Grupo 2 – Catálogo y disponibilidad (CAT)
 
@@ -144,28 +151,31 @@ y después el horario** entre los que tienen cupo.
 
 | ID | Prueba | Dado → Entonces | Cat. | PO |
 |---|---|---|---|---|
-| CAT-01 | `test_el_catalogo_contiene_exactamente_las_cuatro_actividades` | → Tirolesa, Safari, Palestra, Jardinería (ni más ni menos) | U | – |
+| CAT-01 | `test_el_catalogo_contiene_exactamente_las_cuatro_actividades_con_sus_cupos` | → Tirolesa 10, Safari 8, Palestra 12, Jardinería 12 (ni más ni menos) | U | – |
 | CAT-02 | `test_buscar_actividad_por_id_devuelve_la_actividad` | id de Safari → Safari | U | – |
 | CAT-03 | `test_buscar_una_actividad_inexistente_falla` | id "rafting" → `ActividadNoEncontrada` | U | – |
 | CAT-04 | `test_los_horarios_disponibles_de_una_actividad_solo_incluyen_los_que_tienen_cupo` | 10:00 con cupo, 11:00 agotado → solo 10:00 | U | P19 |
 | CAT-05 | `test_los_horarios_disponibles_excluyen_los_que_el_parque_tiene_cerrado` | franja 08:00 y 18:00 cargadas → no aparecen | U | P04 |
-| CAT-06 | `test_los_horarios_disponibles_excluyen_los_que_ya_comenzaron` | reloj 10:00 → no aparece la franja de las 10:00 | U | P05 |
+| CAT-06 | `test_los_horarios_disponibles_solo_incluyen_los_que_estan_en_ventana_de_inscripcion` | reloj miércoles 08:00 → 10:00 de hoy sí; 8:15 no (a menos de 15 min); turno de dentro de 25 h no | U | – |
 | CAT-07 | `test_una_actividad_sin_ningun_horario_con_cupo_figura_como_no_disponible` | Safari con todos sus horarios agotados → en el listado figura `disponible=False`; las demás `True` (cumple "siempre y cuando tengan cupos disponibles") | U | P19 |
+| CAT-08 | `test_los_horarios_disponibles_muestran_el_cupo_restante` | Tirolesa 10:00 con 3 reservadas → muestra `7`; turno agotado → muestra `0` | U | P19b |
 
 ### Grupo 3 – `Parque` y `Horario` (PAR / HOR)
 
 | ID | Prueba | Dado → Entonces | Cat. | PO |
 |---|---|---|---|---|
-| PAR-01 | `test_el_parque_esta_abierto_en_un_horario_dentro_de_su_funcionamiento` | 10:00–11:00 miércoles → abierto | U | P04 |
-| PAR-02 | `test_el_parque_esta_cerrado_si_el_horario_empieza_antes_de_la_apertura` | 08:00–09:00 → cerrado | U | P04 |
-| PAR-03 | `test_el_parque_esta_cerrado_si_el_horario_termina_despues_del_cierre` | 17:30–18:30 → cerrado | U | P04 |
-| PAR-04 | `test_el_parque_esta_abierto_en_el_borde_de_la_apertura` | 09:00–10:00 → abierto | U | P04 |
-| PAR-05 | `test_el_parque_esta_abierto_en_el_borde_del_cierre` | 17:00–18:00 → abierto | U | P04 |
-| PAR-06 | `test_el_parque_esta_cerrado_en_un_dia_de_cierre` | lunes 2026-11-02 10:00 → cerrado | U | P04 |
-| HOR-01 | `test_un_horario_dura_una_hora` | inicio 10:00 → fin 11:00 | U | P04 |
+| PAR-01 | `test_el_parque_esta_abierto_un_dia_comun_dentro_de_su_horario` | miércoles 10:00–11:00 (parque 8:30–19:00) → abierto | U | – |
+| PAR-02 | `test_el_parque_esta_cerrado_si_el_horario_empieza_antes_de_la_apertura` | 08:00–09:00 → cerrado | U | – |
+| PAR-03 | `test_el_parque_esta_cerrado_si_el_horario_termina_despues_del_cierre` | 18:30–19:30 → cerrado | U | – |
+| PAR-04 | `test_el_parque_esta_abierto_en_el_borde_de_la_apertura` | 08:30–09:30 → abierto | U | – |
+| PAR-05 | `test_el_parque_esta_abierto_en_el_borde_del_cierre` | 18:00–19:00 → abierto | U | – |
+| PAR-06 | `test_el_parque_esta_cerrado_los_lunes` | lunes 2026-11-02 10:00 → cerrado | U | – |
+| PAR-07 | `test_el_parque_esta_cerrado_el_25_de_diciembre_y_el_1_de_enero` | 2026-12-25 y 2027-01-01 a las 10:00 → cerrado (feriados fijos) | U | – |
+| HOR-01 | `test_un_horario_dura_una_hora` | inicio 10:00 → fin 11:00 | U | – |
 | HOR-02 | `test_dos_horarios_con_la_misma_fecha_e_inicio_son_iguales` | igualdad por valor | U | – |
-| HOR-03 | `test_un_horario_con_inicio_fuera_de_grilla_es_invalido` | inicio 10:30 → error | U | P04 |
-| HOR-04 | `test_un_horario_ya_comenzo_cuando_el_reloj_alcanza_su_inicio` | reloj 09:59 → no comenzó; reloj 10:00 → comenzó (borde) | U | P05 |
+| HOR-03 | `test_un_horario_es_turno_si_empieza_en_punto_entre_las_9_y_las_17` | 9:00 sí · 17:00 sí · 18:00 no (cota superior) · 8:00 no · 10:30 no (valores límite) | U | – |
+| HOR-04 | `test_se_puede_inscribir_hasta_15_minutos_antes_del_turno` | turno 10:00: reloj 09:45 → sí (borde); 09:46 → no | U | – |
+| HOR-05 | `test_no_se_puede_inscribir_con_mas_de_24_horas_de_anticipacion` | turno jueves 10:00: reloj miércoles 10:00 → sí (borde, 24 h); 09:59 → no | U | – |
 
 ### Grupo 4 – `Visitante`: validación individual (VIS)
 
@@ -197,13 +207,14 @@ Cada rechazo se verifica por su `MotivoRechazo`.
 | INS-03 | `test_se_rechaza_sin_horario` | horario `None` → `HORARIO_REQUERIDO` | U | – |
 | INS-04 | `test_se_rechaza_si_el_horario_no_pertenece_a_la_actividad` | horario no cargado para esa actividad → `HORARIO_NO_DISPONIBLE` | U | P18 |
 | INS-05 | `test_se_rechaza_si_el_parque_esta_cerrado_en_el_horario` | 08:00 o lunes → `PARQUE_CERRADO` | U | P04 |
-| INS-06 | `test_se_rechaza_si_el_horario_ya_comenzo` | reloj 10:00, horario 10:00 → `HORARIO_PASADO` | U | P05 |
+| INS-06 | `test_se_rechaza_si_el_turno_es_dentro_de_menos_de_15_minutos_o_ya_paso` | turno 10:00; reloj 09:46 o 10:30 → `INSCRIPCION_CERRADA` | U | – |
+| INS-06b | `test_se_rechaza_si_el_turno_esta_a_mas_de_24_horas` | turno viernes 10:00, reloj martes → `FUERA_DE_VENTANA` | U | – |
 | INS-07 | `test_se_rechaza_si_no_hay_cupo` | restante 0 → `SIN_CUPO` | U | – |
 | INS-08 | `test_se_rechaza_si_el_cupo_alcanza_solo_para_parte_del_grupo` | restante 3, 4 visitantes → `SIN_CUPO`, no se inscribe a 3 | U | P07 |
 | INS-09 | `test_se_rechaza_sin_visitantes` | lista vacía → `CANTIDAD_INVALIDA` | U | – |
-| INS-10 | `test_se_rechaza_si_supera_el_maximo_de_personas_por_inscripcion` | máx. M (provisorio 10), M+1 visitantes → `CANTIDAD_INVALIDA` | U | P08 |
+| INS-10 | `test_se_rechaza_si_supera_el_maximo_de_10_personas_por_inscripcion` | 10 visitantes → ok · 11 visitantes → `CANTIDAD_INVALIDA` (valores límite) | U | – |
 | INS-11 | `test_se_rechaza_si_algun_visitante_es_invalido` | 3 visitantes, el 2.º sin DNI → `VISITANTE_INVALIDO` con la posición (2) | U | – |
-| INS-12 | `test_se_rechaza_si_hay_un_dni_repetido_dentro_de_la_misma_inscripcion` | dos visitantes con DNI `30123456` → `DNI_DUPLICADO` | U | P16 |
+| INS-12 | `test_se_rechaza_si_hay_un_dni_repetido_dentro_de_la_misma_inscripcion` | dos visitantes con DNI `30123456` → `DNI_DUPLICADO` | U | – |
 | INS-13 | `test_se_rechaza_sin_aceptar_los_terminos_y_condiciones` | sin aceptación → `TERMINOS_NO_ACEPTADOS` | U | P15 |
 | INS-14 | `test_se_rechaza_si_se_aceptan_los_terminos_de_otra_actividad` | Tirolesa con T&C de Jardinería → `TERMINOS_DE_OTRA_ACTIVIDAD` | U | P15 |
 | INS-15 | `test_se_confirma_cuando_se_aceptan_los_terminos_especificos_de_la_actividad` | Jardinería con T&C de Jardinería → confirmada | U | P15 |
@@ -220,9 +231,9 @@ Probar un *fake* de `GeneradorQR` no aporta nada: el fake solo se usa como doble
 
 | ID | Prueba | Dado → Entonces | Cat. | PO |
 |---|---|---|---|---|
-| QR-01 | `test_el_contenido_del_qr_incluye_el_codigo_de_la_inscripcion` | inscripción `INS-0001` → el contenido contiene `INS-0001` | U | P12 |
-| QR-02 | `test_el_contenido_del_qr_es_distinto_para_inscripciones_distintas` | ids A y B → contenidos distintos | U | P12 |
-| QR-03 | `test_el_contenido_del_qr_es_el_mismo_para_la_misma_inscripcion` | dos llamadas → igual (determinista) | U | – |
+| QR-01 | `test_el_contenido_del_qr_incluye_el_codigo_de_la_inscripcion` | inscripción `INS-0001` → el contenido contiene `INS-0001` | U | P12b |
+| QR-02 | `test_el_contenido_del_qr_es_distinto_para_cada_visitante` | mismo `INS-0001`, visitantes 1 y 2 → contenidos distintos (un QR por visitante) | U | – |
+| QR-03 | `test_el_contenido_del_qr_es_el_mismo_para_el_mismo_visitante` | dos llamadas → igual (determinista) | U | – |
 | QR-04 | `test_el_contenido_del_qr_no_expone_datos_personales` | no aparecen DNI, nombre ni email en el contenido | U | P12 |
 | QR-05 | `test_el_contenido_firmado_detecta_adulteraciones` *(opcional)* | cambiar un carácter del código → la verificación de firma falla | U | P12 |
 | QR-06 | `test_no_se_arma_el_qr_de_una_inscripcion_no_confirmada` | inscripción rechazada → `InscripcionNoConfirmada` | U | – |
@@ -230,7 +241,7 @@ Probar un *fake* de `GeneradorQR` no aporta nada: el fake solo se usa como doble
 | QR-08 | `test_el_generador_local_devuelve_imagenes_distintas_para_contenidos_distintos` | A ≠ B → bytes distintos | C | – |
 | QR-09 | `test_la_imagen_generada_se_decodifica_al_contenido_original` *(opcional)* | decodificar el PNG → contenido original (requiere librería de lectura de QR) | C | – |
 
-Si el PO responde "un QR **por persona**" (P12), QR-01..04 pasan a recibir el visitante además de la inscripción.
+El PO confirmó **un QR por visitante**, todos en el mismo email: el contenido se arma con el código de la inscripción y el número de visitante.
 
 ### Grupo 7 – Mensaje de email (EML)
 
@@ -243,7 +254,7 @@ Función pura `armar_mensaje(inscripcion, qr_png) → MensajeEmail`. No manda na
 | EML-03 | `test_el_cuerpo_incluye_actividad_fecha_horario_y_cantidad_de_personas` | → "Tirolesa", "04/11/2026", "10:00", "3 personas" | U | P14 |
 | EML-04 | `test_el_cuerpo_incluye_el_nombre_de_cada_visitante` | 3 visitantes → los 3 nombres | U | P14 |
 | EML-05 | `test_el_cuerpo_incluye_el_codigo_de_reserva_en_texto` | → el código `INS-0001` (por si el cliente de correo bloquea imágenes) | U | P14 |
-| EML-06 | `test_el_mensaje_adjunta_el_qr_como_png` | → un adjunto `image/png` con los bytes recibidos | U | – |
+| EML-06 | `test_el_mensaje_adjunta_un_qr_png_por_visitante` | 3 visitantes → 3 adjuntos `image/png`, cada uno con los bytes de su QR, en el mismo mensaje | U | – |
 | EML-07 | `test_no_se_arma_el_mensaje_de_una_inscripcion_no_confirmada` | → `InscripcionNoConfirmada` | U | – |
 
 ### Grupo 8 – Repositorios (REP)
@@ -262,7 +273,7 @@ El `RepositorioPostgres` usa la base `ecoharmony_test`; cada prueba arranca con 
 | REP-04 | `test_guardar_la_inscripcion_y_reservar_el_cupo_es_atomico` | si falla el guardado, el cupo no cambia | C | – |
 | REP-05 | `test_dos_reservas_simultaneas_del_ultimo_cupo_solo_dejan_pasar_una` *(solo Postgres)* | 2 conexiones en paralelo, restante 1 → una confirma, otra `SIN_CUPO`; restante 0 (actualización atómica del cupo, no "leer y después escribir") | C | – |
 | REP-06 | `test_la_carga_inicial_deja_las_cuatro_actividades_con_sus_horarios_y_cupos` | base vacía + `seed.sql` → 4 actividades configuradas | C | P06 |
-| REP-07 | `test_se_puede_consultar_si_un_dni_ya_esta_inscripto_en_una_actividad_y_horario` | inscribir DNI X en Tirolesa 10:00 → consulta `True`; en 11:00 → `False` | C | P16 |
+| REP-07 | `test_se_puede_consultar_si_un_dni_ya_esta_inscripto_en_una_fecha_y_hora` | inscribir DNI X en Tirolesa 10:00 → consulta (10:00, cualquier actividad) `True`; 11:00 → `False` | C | – |
 | REP-08 | `test_el_esquema_se_crea_desde_cero_en_una_base_vacia` *(solo Postgres)* | ejecutar `schema.sql` en una base vacía → existen las tablas y sus restricciones (cupo ≥ 0, DNI/horario únicos por actividad según P16) | C | P16 |
 
 ### Grupo 9 – `InscripcionService`: orquestación (SRV)
@@ -279,16 +290,16 @@ se haya enviado ningún email ya prueba que ningún QR llegó a destino.
 | SRV-01 | `test_inscripcion_valida_se_confirma_y_devuelve_el_resumen` | caso feliz → resultado con id, actividad, horario y cantidad | U | P21 |
 | SRV-02 | `test_inscripcion_valida_queda_persistida` | → el repositorio la devuelve por id | U | – |
 | SRV-03 | `test_inscripcion_valida_descuenta_el_cupo` | cupo 10, 3 visitantes → restante 7 | U | – |
-| SRV-04 | `test_el_qr_adjunto_al_email_es_el_que_entrego_el_generador` | el stub devuelve `b"QR-FALSO"` → el adjunto del mensaje enviado es `b"QR-FALSO"` (verifica estado, no llamadas) | U | – |
+| SRV-04 | `test_cada_qr_adjunto_al_email_es_el_que_entrego_el_generador` | stub devuelve un QR distinto por visitante → el mensaje enviado lleva esos mismos QR, uno por visitante | U | – |
 | SRV-05 | `test_inscripcion_valida_envia_un_unico_email_al_contacto` | `ServicioEmail` llamado exactamente 1 vez, con destinatario = email de contacto | U | P01 |
 | SRV-06 | `test_sin_cupo_no_confirma_ni_envia_email` | restante 0 → `SIN_CUPO` + `assert_sin_efectos()` | U | – |
 | SRV-07 | `test_parque_cerrado_no_confirma_ni_envia_email` | 08:00 → `PARQUE_CERRADO` + `assert_sin_efectos()` | U | P04 |
-| SRV-08 | `test_horario_ya_comenzado_no_confirma_ni_envia_email` | reloj 10:00 → `HORARIO_PASADO` + `assert_sin_efectos()` | U | P05 |
+| SRV-08 | `test_turno_con_inscripcion_cerrada_no_confirma_ni_envia_email` | reloj a 14 min del turno → `INSCRIPCION_CERRADA` + `assert_sin_efectos()` | U | – |
 | SRV-09 | `test_sin_aceptar_terminos_no_confirma_ni_envia_email` | → `TERMINOS_NO_ACEPTADOS` + `assert_sin_efectos()` | U | P15 |
 | SRV-10 | `test_terminos_de_otra_actividad_no_confirman_ni_envian_email` | Tirolesa con T&C de Jardinería → `assert_sin_efectos()` | U | P15 |
 | SRV-11 | `test_actividad_que_requiere_talla_sin_indicarla_no_confirma_ni_envia_email` | Tirolesa sin talla → `VISITANTE_INVALIDO` + `assert_sin_efectos()` | U | P09 |
 | SRV-12 | `test_actividad_que_no_requiere_talla_sin_indicarla_confirma` | Safari sin talla → confirmada, email enviado | U | P09 |
-| SRV-13 | `test_dni_ya_inscripto_en_el_mismo_horario_no_confirma_ni_envia_email` | DNI X ya inscripto en Tirolesa 10:00 → `DNI_YA_INSCRIPTO` + `assert_sin_efectos()` | U | P16 |
+| SRV-13 | `test_dni_ya_inscripto_en_el_mismo_horario_no_confirma_ni_envia_email` | DNI X ya inscripto en **Tirolesa** 10:00 → inscribirlo en **Safari** 10:00 → `DNI_YA_INSCRIPTO` + `assert_sin_efectos()` | U | – |
 | SRV-14 | `test_el_ultimo_cupo_lo_obtiene_solo_la_primera_inscripcion` | restante 1; dos inscripciones seguidas → 1.ª confirma, 2.ª `SIN_CUPO` | U | – |
 | SRV-15 | `test_si_falla_el_envio_del_email_la_inscripcion_sigue_confirmada` | *Crash Test Dummy*: `ServicioEmail` lanza error → confirmada, cupo descontado, resultado con `email_enviado=False` | U | P13 |
 | SRV-16 | `test_si_falla_la_generacion_del_qr_no_se_confirma_ni_se_descuenta_cupo` | *Crash Test Dummy*: `GeneradorQR` lanza error → cupo intacto, nada guardado, no se envía email | U | P13 |
@@ -460,4 +471,4 @@ Los contratos de los Grupos 6, 7 y 8 garantizan que reemplazar un doble por la p
 
 ---
 
-*Total: 12 + 7 + 10 + 13 + 20 + 9 + 7 + 8 + 17 + 7 + 7 = 117 pruebas (QR-05 y QR-09 son opcionales). Se espera que la lista cambie durante la implementación.*
+*Total: 12 + 8 + 12 + 13 + 21 + 9 + 7 + 8 + 17 + 7 + 7 = 121 pruebas (QR-05 y QR-09 son opcionales). Se espera que la lista cambie durante la implementación.*
