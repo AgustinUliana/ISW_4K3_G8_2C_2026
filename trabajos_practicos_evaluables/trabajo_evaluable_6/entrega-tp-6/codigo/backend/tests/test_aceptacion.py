@@ -1,14 +1,12 @@
 """Pruebas de aceptacion (ACE): las pruebas de usuario de la consigna.
 
-Se escriben primero (ATDD) y quedan en xfail hasta que el sistema este
-construido ciclo a ciclo desde las pruebas unitarias.
+Se escribieron primero (ATDD) y estuvieron en xfail hasta que el sistema se
+construyo ciclo a ciclo desde las pruebas unitarias. ACE-01 paso a verde con
+SRV-04 (dobles en memoria); luego se apunta a Postgres y al QR real.
 """
 from datetime import date, datetime, time
 
-import pytest
 
-
-@pytest.mark.xfail(strict=True, reason="ACE-01: el sistema se construye ciclo a ciclo")
 def test_inscribirse_a_una_actividad_con_cupo_confirma_y_envia_un_email_con_un_qr_por_visitante():
     from dobles import EmailEnMemoria, GeneradorQRFalso, RelojFijo
     from ecoharmony.catalogo import crear_actividades
