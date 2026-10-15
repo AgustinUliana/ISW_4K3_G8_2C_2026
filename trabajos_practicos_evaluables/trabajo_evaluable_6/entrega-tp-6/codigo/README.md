@@ -47,9 +47,30 @@ en `codigo/salida_de_emails/`, solo para desarrollo.
 | `GET /actividades` | las 4 actividades con sus reglas y `disponible` | 200 |
 | `GET /actividades/{nombre}/horarios?fecha=AAAA-MM-DD` | turnos con `cupo_restante` y `agotado` | 200 · 404 · 422 |
 | `GET /actividades/{nombre}/terminos` | T&C específicos de la actividad | 200 · 404 |
+| `POST /inscripciones/validar` (`Authorization: Bearer <token>`) | revisa los datos (visitantes, DNI, cupo) **sin inscribir**; el paso 3 lo usa para mostrar los errores ahí mismo | 200 · 401 · 404 · 409 · 422 |
 | `POST /inscripciones` (`Authorization: Bearer <token>`) | inscribe; envía el email con un QR por visitante | 201 · 401 · 404 · 409 (sin cupo, DNI ya inscripto) · 422 · 503 (email) |
 
 Cualquier error inesperado responde 500 con un mensaje genérico (no filtra detalles internos).
+
+## Ejecutar el front (React)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Abre <http://localhost:5173>. Necesita la API corriendo en `http://localhost:8000` (otra dirección: variable
+`VITE_API_URL`, ver `frontend/.env.example`). Para probarlo completo hace falta la base y la API arriba (pasos de arriba).
+
+```bash
+npm test          # pruebas del front (Vitest + Testing Library)
+npm run build     # build de produccion en frontend/dist
+```
+
+Pantallas: acceso (registro e inicio de sesión), actividades, día y horario (con cupo restante), visitantes,
+términos y condiciones de la actividad con resumen, y confirmación con el código de reserva. Diseño **Liquid Glass**
+con la paleta y la fuente Lato indicadas por el PO. La sesión se recuerda en el navegador (`localStorage`) y vence a las 8 h.
 
 ## Ver la base con DBeaver
 
@@ -82,10 +103,12 @@ Categorías (ver el plan de pruebas): **U** unitarias (sin dependencias), **C** 
 codigo/
 ├── docker-compose.yml          PostgreSQL 16 local
 ├── .env.example                variables (copiar a .env)
-└── backend/
-    ├── sql/schema.sql          esquema (SQL plano, legible en DBeaver)
-    ├── src/ecoharmony/         dominio, servicio y adaptadores
-    └── tests/                  un archivo por grupo del plan de pruebas
+├── backend/
+│   ├── sql/schema.sql          esquema (SQL plano, legible en DBeaver)
+│   ├── src/ecoharmony/         dominio, servicio, adaptadores y API
+│   └── tests/                  un archivo por grupo del plan de pruebas
+└── frontend/
+    └── src/                    React: api/, dominio/ (reglas puras), componentes/ (pantallas) y App
 ```
 
 ## Email real

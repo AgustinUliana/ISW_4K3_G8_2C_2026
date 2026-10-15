@@ -297,3 +297,50 @@ def test_un_error_inesperado_responde_500_sin_detalles_internos():
     assert respuesta.status_code == 500
     assert respuesta.json() == {"detalle": "Error interno del servidor"}
     assert "detalle interno" not in respuesta.text
+
+
+def test_post_validar_con_datos_correctos_responde_200_y_no_inscribe_ni_envia_email(cliente):
+    respuesta = cliente.http.post(
+        "/inscripciones/validar",
+        json=una_inscripcion_json(terminos_aceptados=None),
+        headers=entrar(cliente),
+    )
+
+    assert respuesta.status_code == 200
+    assert respuesta.json() == {"valida": True}
+    assert cliente.repositorio.inscripciones() == []
+    assert cliente.email.enviados == []
+
+
+def test_post_validar_con_un_visitante_invalido_responde_422_indicando_cual(cliente):
+    sin_dni = {"nombre": "Luis Gomez", "dni": "", "edad": 41, "talla": "L"}
+
+    respuesta = cliente.http.post(
+        "/inscripciones/validar",
+        json=una_inscripcion_json(visitantes=[VISITANTES[0], sin_dni]),
+        headers=entrar(cliente),
+    )
+
+    assert respuesta.status_code == 422
+    assert respuesta.json()["motivos"] == ["visitante_invalido"]
+    assert respuesta.json()["visitantes"] == {"2": ["dni_requerido"]}
+
+
+def test_post_validar_sin_sesion_responde_401(cliente):
+    respuesta = cliente.http.post("/inscripciones/validar", json=una_inscripcion_json())
+
+    assert respuesta.status_code == 401
+    assert respuesta.json()["motivos"] == ["usuario_no_registrado"]
+
+
+def test_post_validar_sin_cupo_responde_409(cliente):
+    cliente.repositorio.actividad("Tirolesa").reservar(
+        Horario(date(2026, 11, 4), time(10, 0)), cantidad=10
+    )
+
+    respuesta = cliente.http.post(
+        "/inscripciones/validar", json=una_inscripcion_json(), headers=entrar(cliente)
+    )
+
+    assert respuesta.status_code == 409
+    assert respuesta.json()["motivos"] == ["sin_cupo"]

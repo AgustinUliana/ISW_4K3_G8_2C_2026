@@ -1,0 +1,558 @@
+/* Paleta y fuente indicadas por el PO:
+   https://coolors.co/palette/386641-6a994e-a7c957-f2e8cf-bc4749  ·  fuente Lato */
+:root {
+  --verde-oscuro: #386641;
+  --verde: #6a994e;
+  --lima: #a7c957;
+  --crema: #f2e8cf;
+  --rojo: #bc4749;
+  --tinta: #386641;
+  --radio-boton: 999px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Lato", system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--tinta);
+  background-color: var(--verde-oscuro);
+  /* Fondo con manchas de color: el vidrio necesita algo detras para refractar */
+  background-image:
+    radial-gradient(circle at 10% 15%, rgba(167, 201, 87, 0.95) 0, transparent 34%),
+    radial-gradient(circle at 92% 10%, rgba(242, 232, 207, 0.6) 0, transparent 28%),
+    radial-gradient(circle at 85% 88%, rgba(106, 153, 78, 1) 0, transparent 42%),
+    radial-gradient(circle at 12% 92%, rgba(188, 71, 73, 0.4) 0, transparent 26%),
+    linear-gradient(160deg, #386641 0%, #6a994e 55%, #386641 100%);
+  background-attachment: fixed;
+}
+
+/* Hojas decorativas: bordes nitidos para que se note la refraccion del vidrio */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  border-radius: 0 100% 0 100%;
+  pointer-events: none;
+}
+
+body::before {
+  width: 46vmax;
+  height: 46vmax;
+  top: -14vmax;
+  right: -10vmax;
+  background: linear-gradient(135deg, rgba(167, 201, 87, 0.75), rgba(106, 153, 78, 0.2));
+  transform: rotate(18deg);
+}
+
+body::after {
+  width: 38vmax;
+  height: 38vmax;
+  bottom: -12vmax;
+  left: -9vmax;
+  background: linear-gradient(135deg, rgba(242, 232, 207, 0.5), rgba(167, 201, 87, 0.15));
+  transform: rotate(-24deg);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.aplicacion {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* ---------- Vidrio ---------- */
+.vidrio {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(145deg, rgba(242, 232, 207, 0.72), rgba(242, 232, 207, 0.5));
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 14px 40px rgba(56, 102, 65, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.vidrio-capa {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit; /* recorta el efecto con las mismas esquinas redondeadas */
+  pointer-events: none;
+}
+
+.vidrio-contenido {
+  position: relative;
+  z-index: 1;
+}
+
+.panel .vidrio-contenido {
+  padding: clamp(18px, 4vw, 34px);
+}
+
+.encabezado-vidrio .vidrio-contenido {
+  padding: 10px 20px;
+}
+
+/* Quien prefiere menos transparencia ve un panel solido */
+@media (prefers-reduced-transparency: reduce) {
+  .vidrio {
+    background: var(--crema);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .vidrio-capa {
+    display: none;
+  }
+}
+
+/* ---------- Encabezado ---------- */
+.encabezado {
+  margin-bottom: 14px;
+}
+
+.encabezado-contenido {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.marca {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.marca-nombre {
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+
+.marca-detalle {
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.usuario {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  min-width: 0;
+}
+
+.usuario span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 36vw;
+}
+
+/* ---------- Pasos ---------- */
+.pasos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+  counter-reset: paso;
+}
+
+.pasos li {
+  counter-increment: paso;
+  padding: 5px 12px;
+  border-radius: var(--radio-boton);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--crema);
+  background: rgba(56, 102, 65, 0.55);
+}
+
+.pasos li::before {
+  content: counter(paso) ". ";
+}
+
+.pasos li[aria-current="step"] {
+  color: var(--verde-oscuro);
+  background: var(--lima);
+}
+
+/* ---------- Texto y formularios ---------- */
+.pantalla h2 {
+  margin: 0 0 6px;
+  font-size: clamp(1.35rem, 3.6vw, 1.75rem);
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.pantalla h3 {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.ayuda {
+  margin: 4px 0 12px;
+  font-size: 0.9rem;
+}
+
+.cargando {
+  margin: 0;
+  font-weight: 700;
+}
+
+label {
+  display: block;
+  margin: 12px 0 4px;
+  font-weight: 700;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input:not([type]),
+select {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 14px;
+  font: inherit;
+  color: var(--tinta);
+  background: rgba(255, 255, 255, 0.75);
+  border: 2px solid rgba(56, 102, 65, 0.4);
+  border-radius: 14px;
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"] {
+  border-color: var(--rojo);
+  background: rgba(188, 71, 73, 0.1);
+}
+
+input:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--verde-oscuro);
+  outline-offset: 2px;
+}
+
+.casilla {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 4px;
+  cursor: pointer;
+}
+
+.casilla input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--verde-oscuro);
+}
+
+/* ---------- Botones ---------- */
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.boton-principal,
+.boton-secundario {
+  min-height: 46px;
+  padding: 10px 22px;
+  font-weight: 700;
+  border-radius: var(--radio-boton);
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.boton-principal {
+  color: var(--crema);
+  background: var(--verde-oscuro);
+  border: 2px solid var(--verde-oscuro);
+}
+
+.boton-principal:hover:not(:disabled) {
+  background: var(--verde);
+  border-color: var(--verde);
+}
+
+.boton-principal:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.boton-secundario {
+  color: var(--verde-oscuro);
+  background: rgba(242, 232, 207, 0.55);
+  border: 2px solid var(--verde-oscuro);
+}
+
+.boton-secundario:hover:not(:disabled) {
+  background: var(--lima);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+form .boton-principal {
+  margin-top: 16px;
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.acciones .boton-principal {
+  margin-top: 0;
+}
+
+/* ---------- Pestañas de acceso ---------- */
+.pestanas {
+  display: inline-flex;
+  gap: 4px;
+  margin: 6px 0 4px;
+  padding: 4px;
+  background: rgba(56, 102, 65, 0.18);
+  border-radius: var(--radio-boton);
+}
+
+.pestanas [role="tab"] {
+  min-height: 40px;
+  padding: 6px 18px;
+  font-weight: 700;
+  color: var(--verde-oscuro);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radio-boton);
+}
+
+.pestanas [role="tab"][aria-selected="true"] {
+  color: var(--crema);
+  background: var(--verde-oscuro);
+}
+
+/* ---------- Avisos ---------- */
+.aviso {
+  margin: 14px 0 0;
+  padding: 10px 14px;
+  border-left: 6px solid var(--verde);
+  border-radius: 12px;
+  background: rgba(167, 201, 87, 0.4);
+}
+
+.aviso p {
+  margin: 2px 0;
+}
+
+.aviso-error {
+  border-left-color: var(--rojo);
+  background: rgba(188, 71, 73, 0.14);
+  font-weight: 700;
+}
+
+/* ---------- Actividades ---------- */
+.grilla-actividades {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.vidrio.tarjeta {
+  height: 100%;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.55), rgba(242, 232, 207, 0.4));
+}
+
+.tarjeta .vidrio-contenido {
+  height: 100%;
+  padding: 16px;
+}
+
+.tarjeta article {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.tarjeta .boton-principal {
+  margin-top: auto;
+}
+
+.requisitos {
+  margin: 0 0 12px;
+  padding-left: 18px;
+  font-size: 0.92rem;
+}
+
+.sin-turnos {
+  margin: 0 0 10px;
+  font-weight: 900;
+  color: var(--rojo);
+}
+
+/* ---------- Dias y turnos ---------- */
+.dias,
+.turnos {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.dias {
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+}
+
+.turnos {
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+}
+
+.dia,
+.turno {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 56px;
+  padding: 8px 10px;
+  font-weight: 700;
+  color: var(--verde-oscuro);
+  background: rgba(255, 255, 255, 0.6);
+  border: 2px solid rgba(56, 102, 65, 0.4);
+  border-radius: 16px;
+}
+
+.dia small,
+.turno small {
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+.dia:hover:not(:disabled),
+.turno:hover:not(:disabled) {
+  background: var(--lima);
+}
+
+.dia[aria-pressed="true"] {
+  color: var(--crema);
+  background: var(--verde-oscuro);
+  border-color: var(--verde-oscuro);
+}
+
+.turno .hora {
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+/* ---------- Visitantes ---------- */
+.visitante {
+  margin: 14px 0 0;
+  padding: 6px 16px 16px;
+  background: rgba(255, 255, 255, 0.35);
+  border: 2px dashed rgba(56, 102, 65, 0.5);
+  border-radius: 18px;
+}
+
+.visitante legend {
+  padding: 0 8px;
+  font-weight: 900;
+}
+
+/* ---------- Confirmacion ---------- */
+.resumen dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 14px;
+  margin: 8px 0;
+}
+
+.resumen dt {
+  font-weight: 700;
+}
+
+.resumen dd {
+  margin: 0;
+}
+
+.terminos {
+  margin-top: 14px;
+}
+
+.texto-terminos {
+  max-height: 160px;
+  padding: 10px 14px;
+  overflow-y: auto;
+  font-size: 0.92rem;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 14px;
+}
+
+/* ---------- Pantalla final ---------- */
+.pantalla-final {
+  text-align: center;
+}
+
+.codigo {
+  display: inline-block;
+  margin: 4px 0 14px;
+  padding: 8px 22px;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: var(--crema);
+  background: var(--verde-oscuro);
+  border-radius: 18px;
+}
+
+/* ---------- Celulares ---------- */
+@media (max-width: 560px) {
+  .aplicacion {
+    padding: 10px;
+  }
+
+  .usuario span {
+    max-width: 44vw;
+  }
+
+  .acciones {
+    flex-direction: column-reverse;
+  }
+
+  .acciones button {
+    width: 100%;
+  }
+
+  .resumen dl {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

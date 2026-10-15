@@ -168,22 +168,37 @@ def crear_app(servicios, origenes_permitidos=()):
             return _rechazo([MotivoRechazo.ACTIVIDAD_INEXISTENTE])
         return {"actividad": nombre, "version": terminos.version, "texto": terminos.texto}
 
-    @app.post("/inscripciones", status_code=201)
-    def inscribir(datos: InscripcionEntrada, authorization: str | None = Header(default=None)):
-        solicitud = SolicitudInscripcion(
+    def _solicitud(datos, authorization):
+        return SolicitudInscripcion(
             actividad=_texto(datos.actividad),
             horario=_horario(datos.fecha, datos.hora),
             visitantes=[Visitante(v.nombre, v.dni, v.edad, v.talla) for v in datos.visitantes],
             titular=servicios.usuarios.usuario_de_token(_token_de(authorization)),
             terminos_aceptados=_texto(datos.terminos_aceptados),
         )
-        resultado = servicios.inscripciones.inscribir(solicitud)
+
+    def _rechazo_de(resultado):
+        visitantes = {
+            str(posicion): [motivo.value for motivo in motivos]
+            for posicion, motivos in resultado.errores_por_visitante.items()
+        }
+        return _rechazo(resultado.motivos, visitantes=visitantes)
+
+    @app.post("/inscripciones/validar")
+    def validar_inscripcion(
+        datos: InscripcionEntrada, authorization: str | None = Header(default=None)
+    ):
+        """Revisa los datos (visitantes, cupo, DNI) sin inscribir ni enviar nada."""
+        resultado = servicios.inscripciones.validar(_solicitud(datos, authorization))
+        if not resultado.valida:
+            return _rechazo_de(resultado)
+        return {"valida": True}
+
+    @app.post("/inscripciones", status_code=201)
+    def inscribir(datos: InscripcionEntrada, authorization: str | None = Header(default=None)):
+        resultado = servicios.inscripciones.inscribir(_solicitud(datos, authorization))
         if not resultado.confirmada:
-            visitantes = {
-                str(posicion): [motivo.value for motivo in motivos]
-                for posicion, motivos in resultado.errores_por_visitante.items()
-            }
-            return _rechazo(resultado.motivos, visitantes=visitantes)
+            return _rechazo_de(resultado)
         return {"codigo": resultado.codigo}
 
     return app
