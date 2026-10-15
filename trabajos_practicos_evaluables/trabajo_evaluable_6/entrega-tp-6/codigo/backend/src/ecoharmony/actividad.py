@@ -23,3 +23,7 @@ class Actividad:
 
     def admite_edad(self, edad):
         return edad >= self.edad_minima
+
+    def registrar_ocupacion(self, horario, personas):
+        """Carga el cupo ya ocupado de un turno (el repositorio la usa al reconstruir)."""
+        self._ocupados[horario] = personas

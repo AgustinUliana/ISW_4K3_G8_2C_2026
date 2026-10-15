@@ -8,3 +8,7 @@ class InscripcionNoConfirmadaError(Exception):
 
 class ActividadNoEncontradaError(Exception):
     """No existe una actividad con ese nombre."""
+
+
+class DniYaInscriptoError(Exception):
+    """Algun DNI ya tiene un turno en esa fecha y hora."""

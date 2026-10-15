@@ -1,4 +1,4 @@
-from ecoharmony.errores import ActividadNoEncontradaError
+from ecoharmony.errores import ActividadNoEncontradaError, DniYaInscriptoError
 
 
 class RepositorioEnMemoria:
@@ -16,6 +16,9 @@ class RepositorioEnMemoria:
 
     def guardar(self, inscripcion):
         """Reserva el cupo y guarda la inscripcion (en Postgres sera una sola transaccion)."""
+        for visitante in inscripcion.visitantes:
+            if self.dni_inscripto_en(visitante.dni, inscripcion.horario):
+                raise DniYaInscriptoError(visitante.dni)
         actividad = self._actividades[inscripcion.actividad.nombre]
         actividad.reservar(inscripcion.horario, len(inscripcion.visitantes))
         self._inscripciones[inscripcion.codigo] = inscripcion

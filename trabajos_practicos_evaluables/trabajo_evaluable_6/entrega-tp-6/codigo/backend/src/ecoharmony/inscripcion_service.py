@@ -1,7 +1,11 @@
 import logging
 from dataclasses import dataclass, field
 
-from ecoharmony.errores import ActividadNoEncontradaError, CupoInsuficienteError
+from ecoharmony.errores import (
+    ActividadNoEncontradaError,
+    CupoInsuficienteError,
+    DniYaInscriptoError,
+)
 from ecoharmony.inscripcion import Inscripcion
 from ecoharmony.mensaje_email import armar_mensaje
 from ecoharmony.motivos import MotivoRechazo
@@ -60,6 +64,8 @@ class InscripcionService:
             self._repositorio.guardar(inscripcion)
         except CupoInsuficienteError:
             return ResultadoInscripcion(confirmada=False, motivos=[MotivoRechazo.SIN_CUPO])
+        except DniYaInscriptoError:
+            return ResultadoInscripcion(confirmada=False, motivos=[MotivoRechazo.DNI_YA_INSCRIPTO])
         email_enviado = self._enviar_email(armar_mensaje(inscripcion, qrs))
         return ResultadoInscripcion(
             confirmada=True, codigo=inscripcion.codigo, email_enviado=email_enviado
