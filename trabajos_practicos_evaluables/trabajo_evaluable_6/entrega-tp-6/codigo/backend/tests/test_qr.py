@@ -1,32 +1,8 @@
-from datetime import date, datetime, time
-
 import pytest
+from datos_de_prueba import una_inscripcion_confirmada
 
-from ecoharmony.catalogo import crear_actividades
 from ecoharmony.errores import InscripcionNoConfirmada
-from ecoharmony.horario import Horario
-from ecoharmony.inscripcion import Inscripcion
 from ecoharmony.qr import contenido_del_qr
-from ecoharmony.visitante import Visitante
-
-AHORA = datetime(2026, 11, 4, 8, 0)
-
-
-def una_inscripcion_confirmada(codigo="INS-0001"):
-    tirolesa = crear_actividades()["Tirolesa"]
-    inscripcion = Inscripcion(
-        actividad=tirolesa,
-        horario=Horario(date(2026, 11, 4), time(10, 0)),
-        visitantes=[
-            Visitante("Ana Perez", "30123456", 30, talla="M"),
-            Visitante("Luis Gomez", "28123456", 41, talla="L"),
-        ],
-        email_de_contacto="ana.perez@example.com",
-        terminos_aceptados=tirolesa.terminos,
-    )
-    inscripcion.confirmar(codigo=codigo, ahora=AHORA)
-    return inscripcion
-
 
 def test_el_contenido_del_qr_incluye_el_codigo_de_la_inscripcion():
     inscripcion = una_inscripcion_confirmada("INS-0001")
