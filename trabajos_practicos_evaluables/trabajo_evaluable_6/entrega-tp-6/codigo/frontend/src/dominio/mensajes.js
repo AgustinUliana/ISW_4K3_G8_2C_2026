@@ -2,6 +2,7 @@
 const GENERICO = "No se pudo completar la operación. Probá de nuevo.";
 
 const MENSAJES = {
+  sin_conexion: "No pudimos conectarnos con el servidor. Revisá tu conexión y probá de nuevo.",
   // sesion y registro
   email_invalido: "El email no es válido.",
   contrasena_invalida: "La contraseña debe tener al menos 6 caracteres.",
