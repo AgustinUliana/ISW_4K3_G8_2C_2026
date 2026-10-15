@@ -1,2 +1,4 @@
 qrcode[pil]>=7.4
 psycopg[binary]>=3.2
+fastapi>=0.110
+uvicorn>=0.29
