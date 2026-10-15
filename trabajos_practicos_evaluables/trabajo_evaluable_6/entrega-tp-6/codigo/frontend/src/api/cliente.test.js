@@ -97,4 +97,18 @@ describe("cliente de la API", () => {
 
     expect(resultado).toEqual({ ok: false, estado: 502, datos: {} });
   });
+
+  it("validarInscripcion hace POST /inscripciones/validar con el token y el cuerpo, sin inscribir", async () => {
+    const fetchFalso = vi.fn().mockResolvedValue(respuesta(200, { valida: true }));
+    const datos = { actividad: "Tirolesa", fecha: "2026-11-04", hora: "10:00", visitantes: [] };
+
+    const resultado = await clienteCon(fetchFalso).validarInscripcion(datos, "mi-token");
+
+    const [url, opciones] = fetchFalso.mock.calls[0];
+    expect(url).toBe("http://api.test/inscripciones/validar");
+    expect(opciones.method).toBe("POST");
+    expect(opciones.headers.Authorization).toBe("Bearer mi-token");
+    expect(opciones.body).toBe(JSON.stringify(datos));
+    expect(resultado).toEqual({ ok: true, estado: 200, datos: { valida: true } });
+  });
 });
