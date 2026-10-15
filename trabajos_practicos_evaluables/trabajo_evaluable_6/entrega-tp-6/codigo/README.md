@@ -29,6 +29,28 @@ python -m venv .venv
 PYTHONPATH=src .venv/Scripts/python.exe -m ecoharmony.preparar_base
 ```
 
+## Ejecutar la API
+
+```bash
+cd backend
+PYTHONPATH=src .venv/Scripts/python.exe -m uvicorn --factory ecoharmony.main:crear_aplicacion --port 8000
+```
+
+Documentación interactiva (Swagger): <http://localhost:8000/docs>. La API lee el `.env` (base de datos,
+secreto de sesiones y SMTP). Si el SMTP **no** está configurado, los emails no se envían: se guardan (texto y QR)
+en `codigo/salida_de_emails/`, solo para desarrollo.
+
+| Método y ruta | Qué hace | Respuestas |
+|---|---|---|
+| `POST /registro` | alta con `email` y `contrasena` | 201 · 422 (datos inválidos) · 409 (email repetido) |
+| `POST /sesion` | inicio de sesión; devuelve un `token` (vence a las 8 h) | 200 · 401 |
+| `GET /actividades` | las 4 actividades con sus reglas y `disponible` | 200 |
+| `GET /actividades/{nombre}/horarios?fecha=AAAA-MM-DD` | turnos con `cupo_restante` y `agotado` | 200 · 404 · 422 |
+| `GET /actividades/{nombre}/terminos` | T&C específicos de la actividad | 200 · 404 |
+| `POST /inscripciones` (`Authorization: Bearer <token>`) | inscribe; envía el email con un QR por visitante | 201 · 401 · 404 · 409 (sin cupo, DNI ya inscripto) · 422 · 503 (email) |
+
+Cualquier error inesperado responde 500 con un mensaje genérico (no filtra detalles internos).
+
 ## Ver la base con DBeaver
 
 Nueva conexión → **PostgreSQL**:

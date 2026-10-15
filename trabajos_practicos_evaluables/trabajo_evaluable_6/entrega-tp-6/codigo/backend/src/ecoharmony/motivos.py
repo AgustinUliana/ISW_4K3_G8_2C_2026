@@ -31,3 +31,4 @@ class MotivoRechazo(Enum):
     EMAIL_YA_REGISTRADO = "email_ya_registrado"
     CREDENCIALES_INVALIDAS = "credenciales_invalidas"
     USUARIO_NO_REGISTRADO = "usuario_no_registrado"
+    FECHA_INVALIDA = "fecha_invalida"

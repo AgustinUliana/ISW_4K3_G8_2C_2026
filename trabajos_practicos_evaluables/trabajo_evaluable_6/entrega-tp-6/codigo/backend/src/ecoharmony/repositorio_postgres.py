@@ -89,6 +89,13 @@ class RepositorioPostgres:
                 actividad.registrar_ocupacion(Horario(fecha, hora), personas)
             return actividad
 
+    def actividades(self):
+        with self._conectar() as conexion:
+            nombres = [
+                f[0] for f in conexion.execute("SELECT nombre FROM actividad ORDER BY nombre")
+            ]
+        return [self.actividad(nombre) for nombre in nombres]
+
     def siguiente_codigo(self):
         with self._conectar() as conexion:
             numero = conexion.execute("SELECT nextval('inscripcion_codigo_seq')").fetchone()[0]

@@ -11,3 +11,6 @@ dist/
 
 # Datos locales de PostgreSQL
 pgdata/
+
+# Emails de desarrollo (sin SMTP)
+salida_de_emails/

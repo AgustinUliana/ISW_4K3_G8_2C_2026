@@ -29,6 +29,7 @@ class ResultadoInscripcion:
     confirmada: bool
     codigo: str = None
     motivos: list = field(default_factory=list)
+    errores_por_visitante: dict = field(default_factory=dict)  # posicion -> motivos
 
 
 class InscripcionService:
@@ -53,6 +54,11 @@ class InscripcionService:
         self._dormir = dormir
 
     def inscribir(self, solicitud):
+        if solicitud.titular is None:
+            # Sin sesion no se informa nada mas (por ejemplo, si un DNI ya esta inscripto).
+            return ResultadoInscripcion(
+                confirmada=False, motivos=[MotivoRechazo.USUARIO_NO_REGISTRADO]
+            )
         try:
             actividad = self._repositorio.actividad(solicitud.actividad)
         except ActividadNoEncontradaError:
@@ -70,7 +76,11 @@ class InscripcionService:
         if self._hay_dni_ya_inscripto(inscripcion):
             motivos.append(MotivoRechazo.DNI_YA_INSCRIPTO)
         if motivos:
-            return ResultadoInscripcion(confirmada=False, motivos=motivos)
+            return ResultadoInscripcion(
+                confirmada=False,
+                motivos=motivos,
+                errores_por_visitante=inscripcion.errores_por_visitante(),
+            )
         inscripcion.confirmar(self._repositorio.siguiente_codigo(), self._reloj.ahora())
         qrs = self._generar_qrs(inscripcion)
         try:

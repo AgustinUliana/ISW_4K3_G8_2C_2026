@@ -103,3 +103,12 @@ def test_el_nombre_tiene_como_maximo_30_caracteres(nombre, es_valido):
 )
 def test_el_nombre_solo_admite_letras_espacios_apostrofe_y_guion(nombre, es_valido):
     assert (un_visitante(nombre=nombre).errores(safari) == []) is es_valido
+
+
+@pytest.mark.parametrize("nombre", [None, 123])
+def test_visitante_con_nombre_nulo_o_que_no_es_texto_es_invalido(nombre):
+    assert un_visitante(nombre=nombre).errores(safari) == [MotivoRechazo.NOMBRE_REQUERIDO]
+
+
+def test_visitante_con_dni_que_no_es_texto_es_invalido():
+    assert un_visitante(dni=30123456).errores(safari) == [MotivoRechazo.DNI_INVALIDO]

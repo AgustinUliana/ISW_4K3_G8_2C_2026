@@ -41,3 +41,8 @@ class Horario:
 
     def admite_inscripcion(self, ahora):
         return self.estado_de_inscripcion(ahora) is EstadoDeInscripcion.ABIERTA
+
+
+def turnos_del_dia(fecha):
+    """Los turnos de un dia: uno por hora en punto, del primero al ultimo."""
+    return [Horario(fecha, time(hora)) for hora in range(PRIMER_TURNO.hour, ULTIMO_TURNO.hour + 1)]
