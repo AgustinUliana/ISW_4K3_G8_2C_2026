@@ -477,7 +477,7 @@ Los contratos de los Grupos 6, 7 y 8 garantizan que reemplazar un doble por la p
 ## 11. Estado de la implementación (2026-10-15)
 
 Rama `tp6-tdd`: cada prueba se hizo con su ciclo visible en `git log` (`test(ID): rojo` → `feat(ID): verde` →
-`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **360 pruebas del backend y 110 del front, todas verdes** (sin base de
+`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **371 pruebas del backend y 110 del front, todas verdes** (sin base de
 datos y contra PostgreSQL real), PEP 8 limpio con `ruff`.
 
 | Grupo | Archivo de pruebas | Estado |
@@ -665,3 +665,8 @@ verificar remitente o dominio). Pasos de configuración en `codigo/README.md`, s
 | X-01 (externa) | envía un email real con dos QR a `EMAIL_DE_PRUEBA`; se pide con `pytest -m externa` y se saltea sin credenciales | `test_email_externo.py` |
 
 La corrida normal excluye la categoría X (`addopts = -m 'not externa'`).
+| EML-08..15 | el mensaje trae una versión HTML con la paleta del PO, Lato, el logo en línea, el código, la actividad, la fecha, el horario, el QR de cada visitante junto a su nombre y el recordatorio de DNI y QR; escapa los datos del usuario | `test_mensaje_email.py` |
+| SMTP-11..13 | el mime ofrece texto plano y HTML, incluye las imágenes en línea con su `Content-ID` y conserva los QR como adjuntos | `test_servicio_email_smtp.py` |
+
+La prueba externa envía el mismo mensaje que arma el sistema (con el HTML de la marca). El primer correo de prueba (texto plano)
+llegó a spam; ver D11 del documento de diseño.

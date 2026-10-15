@@ -146,6 +146,8 @@ cd backend
 .venv/Scripts/python.exe -m pytest -m externa -v
 ```
 
-Después hay que mirar a mano que el mensaje esté en la **bandeja de entrada** (no en spam) y que los QR se vean.
+El mensaje es HTML con los colores y el logo de EcoHarmony Park y un QR por visitante. Después hay que mirar a mano que esté
+en la **bandeja de entrada** (no en spam) y que los QR se vean. Si la primera vez cae en spam, marcarlo «No es spam»: la
+reputación de una casilla nueva mejora con el uso.
 
 Nunca subir credenciales al repositorio (es público): el `.env` está en el `.gitignore`.
