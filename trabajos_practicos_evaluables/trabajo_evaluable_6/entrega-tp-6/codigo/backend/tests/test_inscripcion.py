@@ -4,7 +4,7 @@ import pytest
 
 from ecoharmony.catalogo import crear_actividades
 from ecoharmony.horario import Horario
-from ecoharmony.inscripcion import Inscripcion
+from ecoharmony.inscripcion import EstadoDeLaInscripcion, Inscripcion
 from ecoharmony.motivos import MotivoRechazo
 from ecoharmony.parque import Parque
 from ecoharmony.visitante import Visitante
@@ -154,3 +154,22 @@ def test_se_acumulan_todos_los_motivos_de_rechazo():
     motivos = motivos_de_una_inscripcion(horario=None, terminos_aceptados=None)
 
     assert set(motivos) == {MotivoRechazo.HORARIO_REQUERIDO, MotivoRechazo.TERMINOS_NO_ACEPTADOS}
+
+
+def test_la_inscripcion_confirmada_tiene_su_codigo_y_estado_confirmada():
+    inscripcion = una_inscripcion()
+    assert inscripcion.estado is EstadoDeLaInscripcion.PENDIENTE
+
+    inscripcion.confirmar(codigo="INS-0001", ahora=AHORA)
+
+    assert inscripcion.estado is EstadoDeLaInscripcion.CONFIRMADA
+    assert inscripcion.codigo == "INS-0001"
+
+
+def test_la_inscripcion_confirmada_registra_la_version_de_los_terminos_y_cuando_se_acepto():
+    inscripcion = una_inscripcion()
+
+    inscripcion.confirmar(codigo="INS-0001", ahora=AHORA)
+
+    assert inscripcion.terminos_aceptados.version == "v1"
+    assert inscripcion.confirmada_el == AHORA
