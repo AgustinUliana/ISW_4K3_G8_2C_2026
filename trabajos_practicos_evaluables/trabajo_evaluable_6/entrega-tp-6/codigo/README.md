@@ -14,7 +14,7 @@ Desde esta carpeta (`codigo/`):
 
 ```bash
 # 1. Variables de entorno (el .env NO se sube al repositorio)
-cp .env.example .env            # y cambiar POSTGRES_PASSWORD en las tres lineas que la repiten
+cp .env.example .env            # cambiar POSTGRES_PASSWORD (3 lineas) y SECRETO_DE_SESIONES (clave larga al azar)
 
 # 2. Base de datos PostgreSQL
 docker compose up -d
