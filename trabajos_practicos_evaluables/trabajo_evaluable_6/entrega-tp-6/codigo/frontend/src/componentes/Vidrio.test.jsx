@@ -145,4 +145,16 @@ describe("Vidrio", () => {
 
     expect(screen.getByTestId("liquid-glass")).toHaveAttribute("data-refraccion", "40");
   });
+
+  it("con refractar=false queda solo el vidrio esmerilado del CSS, sin usar la libreria", () => {
+    simularNavegadorConMedicion({ ancho: 800, alto: 400 });
+    render(
+      <Vidrio refractar={false}>
+        <p>contenido</p>
+      </Vidrio>,
+    );
+
+    expect(screen.queryByTestId("liquid-glass")).toBeNull();
+    expect(screen.getByText("contenido")).toBeInTheDocument();
+  });
 });
