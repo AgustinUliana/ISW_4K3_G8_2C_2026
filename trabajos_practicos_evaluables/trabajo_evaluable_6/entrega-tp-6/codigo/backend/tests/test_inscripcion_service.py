@@ -347,3 +347,63 @@ def test_sin_usuario_registrado_el_rechazo_no_revela_si_un_dni_ya_esta_inscripto
     anonimo = armar_servicio(repositorio).inscribir(una_solicitud(titular=None, visitantes=[ANA]))
 
     assert anonimo.motivos == [MotivoRechazo.USUARIO_NO_REGISTRADO]
+
+
+def test_validar_una_solicitud_correcta_no_guarda_ni_envia_nada_ni_pide_los_terminos():
+    repositorio, email = RepositorioEnMemoria(crear_actividades()), EmailEnMemoria()
+
+    resultado = armar_servicio(repositorio, email).validar(una_solicitud(terminos_aceptados=None))
+
+    assert resultado.valida
+    assert resultado.motivos == []
+    assert_sin_efectos(repositorio, email)
+
+
+def test_validar_indica_cual_visitante_es_invalido_y_por_que():
+    sin_dni = Visitante("Luis Gomez", "", 41, talla="L")
+
+    resultado = armar_servicio().validar(una_solicitud(visitantes=[ANA, sin_dni]))
+
+    assert not resultado.valida
+    assert resultado.motivos == [MotivoRechazo.VISITANTE_INVALIDO]
+    assert resultado.errores_por_visitante == {2: [MotivoRechazo.DNI_REQUERIDO]}
+
+
+def test_validar_avisa_enseguida_si_un_dni_ya_esta_inscripto_en_ese_horario():
+    repositorio = RepositorioEnMemoria(crear_actividades())
+    servicio = armar_servicio(repositorio)
+    servicio.inscribir(una_solicitud(visitantes=[ANA]))
+
+    resultado = servicio.validar(
+        una_solicitud(actividad="Safari", terminos_aceptados="Safari", visitantes=[ANA])
+    )
+
+    assert resultado.motivos == [MotivoRechazo.DNI_YA_INSCRIPTO]
+
+
+def test_validar_avisa_enseguida_si_no_hay_cupo_para_todo_el_grupo():
+    repositorio = RepositorioEnMemoria(crear_actividades())
+    repositorio.actividad("Tirolesa").reservar(H1, cantidad=9)  # queda 1
+
+    resultado = armar_servicio(repositorio).validar(una_solicitud())  # Ana y Luis: 2 personas
+
+    assert resultado.motivos == [MotivoRechazo.SIN_CUPO]
+
+
+def test_validar_sin_usuario_registrado_se_rechaza_sin_revelar_nada_mas():
+    resultado = armar_servicio().validar(una_solicitud(titular=None))
+
+    assert resultado.motivos == [MotivoRechazo.USUARIO_NO_REGISTRADO]
+
+
+def test_validar_una_actividad_inexistente_se_rechaza():
+    resultado = armar_servicio().validar(una_solicitud(actividad="Rafting"))
+
+    assert resultado.motivos == [MotivoRechazo.ACTIVIDAD_INEXISTENTE]
+
+
+def test_terminos_de_una_actividad_que_no_existe_se_rechazan_sin_romper():
+    resultado = armar_servicio().inscribir(una_solicitud(terminos_aceptados="Rafting"))
+
+    assert not resultado.confirmada
+    assert resultado.motivos == [MotivoRechazo.TERMINOS_DE_OTRA_ACTIVIDAD]
