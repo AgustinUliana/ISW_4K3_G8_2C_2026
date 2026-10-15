@@ -4,6 +4,7 @@ import logging
 
 import pytest
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 from ecoharmony.generador_qr_local import GeneradorQRLocal
 from ecoharmony.main import crear_aplicacion, crear_servicios
@@ -54,3 +55,31 @@ def test_crear_aplicacion_devuelve_la_api_con_sus_rutas():
     rutas = {ruta.path for ruta in app.routes}
     assert isinstance(app, FastAPI)
     assert {"/registro", "/sesion", "/actividades", "/inscripciones"} <= rutas
+
+
+def _origenes_aceptados(app, origenes):
+    cliente = TestClient(app)
+    aceptados = []
+    for origen in origenes:
+        respuesta = cliente.options(
+            "/sesion", headers={"Origin": origen, "Access-Control-Request-Method": "POST"}
+        )
+        if respuesta.headers.get("access-control-allow-origin") == origen:
+            aceptados.append(origen)
+    return aceptados
+
+
+def test_por_defecto_la_api_acepta_al_front_en_localhost_y_en_127_0_0_1():
+    app = crear_aplicacion({**BASE, **SMTP})
+
+    origenes = ["http://localhost:5173", "http://127.0.0.1:5173", "https://otro-sitio.example"]
+
+    assert _origenes_aceptados(app, origenes) == ["http://localhost:5173", "http://127.0.0.1:5173"]
+
+
+def test_los_origenes_permitidos_se_pueden_configurar_con_una_variable():
+    app = crear_aplicacion({**BASE, **SMTP, "ORIGENES_PERMITIDOS": "https://parque.example"})
+
+    origenes = ["https://parque.example", "http://localhost:5173"]
+
+    assert _origenes_aceptados(app, origenes) == ["https://parque.example"]
