@@ -7,15 +7,29 @@ del comportamiento real (Beck, patron Mock Object).
 
 import pytest
 
-from datos_de_prueba import ANA, H1, LUIS, una_inscripcion_confirmada
+from datos_de_prueba import ANA, H1, LUIS, n_visitantes, una_inscripcion_confirmada
 from ecoharmony.catalogo import crear_actividades
-from ecoharmony.errores import ActividadNoEncontradaError, CupoInsuficienteError
+from ecoharmony.errores import (
+    ActividadNoEncontradaError,
+    CupoInsuficienteError,
+    DniYaInscriptoError,
+)
 from ecoharmony.repositorio_memoria import RepositorioEnMemoria
+from ecoharmony.repositorio_postgres import RepositorioPostgres
 
 
-@pytest.fixture(params=["memoria"])
+@pytest.fixture(
+    params=[
+        "memoria",
+        pytest.param("postgres", marks=[pytest.mark.local, pytest.mark.db]),
+    ]
+)
 def repositorio(request):
-    return RepositorioEnMemoria(crear_actividades())
+    if request.param == "memoria":
+        return RepositorioEnMemoria(crear_actividades())
+    repositorio = RepositorioPostgres(request.getfixturevalue("base_con_esquema"))
+    repositorio.cargar_actividades(crear_actividades())
+    return repositorio
 
 
 def test_buscar_una_actividad_por_nombre_devuelve_la_actividad(repositorio):
@@ -53,7 +67,8 @@ def test_el_cupo_reservado_se_conserva_al_volver_a_pedir_la_actividad(repositori
 
 
 def test_guardar_la_inscripcion_y_reservar_el_cupo_es_todo_o_nada(repositorio):
-    repositorio.actividad("Tirolesa").reservar(H1, cantidad=9)  # queda 1
+    nueve = una_inscripcion_confirmada(repositorio.siguiente_codigo(), visitantes=n_visitantes(9))
+    repositorio.guardar(nueve)  # queda 1 lugar
     inscripcion = una_inscripcion_confirmada(repositorio.siguiente_codigo())  # pide 2
 
     with pytest.raises(CupoInsuficienteError):
@@ -74,3 +89,61 @@ def test_se_puede_consultar_si_un_dni_ya_esta_inscripto_en_una_fecha_y_hora(repo
     assert repositorio.dni_inscripto_en(ANA.dni, H1)
     assert not repositorio.dni_inscripto_en(ANA.dni, a_las_11)
     assert not repositorio.dni_inscripto_en("99999999", H1)
+
+
+@pytest.mark.parametrize("nombre", ["Tirolesa", "Safari", "Palestra", "Jardinería"])
+def test_la_carga_inicial_deja_cada_actividad_con_sus_reglas_y_terminos(repositorio, nombre):
+    esperada = crear_actividades()[nombre]
+
+    cargada = repositorio.actividad(nombre)
+
+    assert cargada.cupo_por_turno == esperada.cupo_por_turno
+    assert cargada.edad_minima == esperada.edad_minima
+    assert cargada.requiere_talla == esperada.requiere_talla
+    assert cargada.terminos == esperada.terminos
+
+
+def test_guardar_con_un_dni_ya_inscripto_en_ese_horario_falla_sin_dejar_rastro(repositorio):
+    repositorio.guardar(una_inscripcion_confirmada(repositorio.siguiente_codigo(), [ANA]))
+    de_ana_otra_vez = una_inscripcion_confirmada(repositorio.siguiente_codigo(), [ANA, LUIS])
+
+    with pytest.raises(DniYaInscriptoError):
+        repositorio.guardar(de_ana_otra_vez)
+
+    assert repositorio.obtener(de_ana_otra_vez.codigo) is None
+    assert repositorio.actividad("Tirolesa").cupo_restante(H1) == 9  # solo cuenta la 1ra
+
+
+@pytest.mark.local
+@pytest.mark.db
+def test_dos_reservas_simultaneas_del_ultimo_cupo_solo_dejan_pasar_una(base_con_esquema):
+    import threading
+
+    repositorio = RepositorioPostgres(base_con_esquema)
+    repositorio.cargar_actividades(crear_actividades())
+    repositorio.guardar(
+        una_inscripcion_confirmada(repositorio.siguiente_codigo(), n_visitantes(9))
+    )  # queda 1 lugar
+    pedidos = [
+        una_inscripcion_confirmada(repositorio.siguiente_codigo(), [ANA]),
+        una_inscripcion_confirmada(repositorio.siguiente_codigo(), [LUIS]),
+    ]
+    arrancan_juntos = threading.Barrier(2)
+    resultados = []
+
+    def intentar(inscripcion):
+        arrancan_juntos.wait()
+        try:
+            repositorio.guardar(inscripcion)
+            resultados.append("guardada")
+        except CupoInsuficienteError:
+            resultados.append("sin cupo")
+
+    hilos = [threading.Thread(target=intentar, args=(pedido,)) for pedido in pedidos]
+    for hilo in hilos:
+        hilo.start()
+    for hilo in hilos:
+        hilo.join()
+
+    assert sorted(resultados) == ["guardada", "sin cupo"]
+    assert repositorio.actividad("Tirolesa").cupo_restante(H1) == 0

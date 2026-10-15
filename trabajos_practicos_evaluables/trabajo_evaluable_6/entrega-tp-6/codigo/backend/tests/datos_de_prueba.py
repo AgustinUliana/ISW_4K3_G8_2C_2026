@@ -26,3 +26,11 @@ def una_inscripcion_confirmada(codigo="INS-0001", visitantes=None):
     )
     inscripcion.confirmar(codigo=codigo, ahora=AHORA)
     return inscripcion
+
+
+def n_visitantes(cantidad, primer_dni=30000001):
+    """`cantidad` visitantes validos para Tirolesa, con DNIs distintos."""
+    return [
+        Visitante(f"Persona {chr(65 + i)}", str(primer_dni + i), 30, talla="M")
+        for i in range(cantidad)
+    ]

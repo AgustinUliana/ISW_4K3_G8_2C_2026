@@ -5,7 +5,7 @@ import pytest
 from datos_de_prueba import AHORA, ANA, EMAIL_DE_ANA, H1, LUIS
 from dobles import EmailEnMemoria, EmailQueFalla, GeneradorQRFalso, GeneradorQRQueFalla, RelojFijo
 from ecoharmony.catalogo import crear_actividades
-from ecoharmony.errores import CupoInsuficienteError
+from ecoharmony.errores import CupoInsuficienteError, DniYaInscriptoError
 from ecoharmony.horario import Horario
 from ecoharmony.inscripcion_service import InscripcionService, SolicitudInscripcion
 from ecoharmony.motivos import MotivoRechazo
@@ -266,3 +266,20 @@ def test_inscribirse_a_una_actividad_inexistente_no_confirma_ni_envia_email():
     assert not resultado.confirmada
     assert resultado.motivos == [MotivoRechazo.ACTIVIDAD_INEXISTENTE]
     assert_sin_efectos(repositorio, email)
+
+
+class RepositorioQuePierdeLaCarreraDelDni(RepositorioEnMemoria):
+    """Otro pedido inscribio al mismo DNI entre la validacion y el guardado."""
+
+    def guardar(self, inscripcion):
+        raise DniYaInscriptoError(inscripcion.visitantes[0].dni)
+
+
+def test_si_el_dni_se_inscribe_en_paralelo_se_rechaza_por_dni_ya_inscripto():
+    repositorio, email = RepositorioQuePierdeLaCarreraDelDni(crear_actividades()), EmailEnMemoria()
+
+    resultado = armar_servicio(repositorio, email).inscribir(una_solicitud())
+
+    assert not resultado.confirmada
+    assert resultado.motivos == [MotivoRechazo.DNI_YA_INSCRIPTO]
+    assert email.enviados == []
