@@ -257,7 +257,7 @@ describe("App: los datos de los visitantes se validan en su propio paso", () => 
     const logo = within(screen.getByRole("banner")).getByRole("img", {
       name: /EcoHarmony Park.*grupo 8/i,
     });
-    expect(logo).toHaveAttribute("src", "/logo.svg");
+    expect(logo).toHaveAttribute("src", "/logo-emblema.png");
   });
 
   it("el logo sigue en el encabezado con la sesion iniciada", () => {
