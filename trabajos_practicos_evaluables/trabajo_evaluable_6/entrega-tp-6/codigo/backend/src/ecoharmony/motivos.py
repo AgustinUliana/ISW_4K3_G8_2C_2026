@@ -26,3 +26,4 @@ class MotivoRechazo(Enum):
     EMAIL_INVALIDO = "email_invalido"
     DNI_YA_INSCRIPTO = "dni_ya_inscripto"
     ACTIVIDAD_INEXISTENTE = "actividad_inexistente"
+    EMAIL_NO_ENVIADO = "email_no_enviado"

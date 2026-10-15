@@ -1,4 +1,5 @@
 import logging
+import time
 from dataclasses import dataclass, field
 
 from ecoharmony.errores import (
@@ -28,16 +29,28 @@ class ResultadoInscripcion:
     confirmada: bool
     codigo: str = None
     motivos: list = field(default_factory=list)
-    email_enviado: bool = False
 
 
 class InscripcionService:
-    def __init__(self, repositorio, parque, reloj, generador_qr, servicio_email):
+    def __init__(
+        self,
+        repositorio,
+        parque,
+        reloj,
+        generador_qr,
+        servicio_email,
+        intentos_de_email=3,
+        pausa_entre_intentos=1.0,
+        dormir=time.sleep,
+    ):
         self._repositorio = repositorio
         self._parque = parque
         self._reloj = reloj
         self._generador_qr = generador_qr
         self._servicio_email = servicio_email
+        self._intentos_de_email = intentos_de_email
+        self._pausa_entre_intentos = pausa_entre_intentos
+        self._dormir = dormir
 
     def inscribir(self, solicitud):
         try:
@@ -66,10 +79,11 @@ class InscripcionService:
             return ResultadoInscripcion(confirmada=False, motivos=[MotivoRechazo.SIN_CUPO])
         except DniYaInscriptoError:
             return ResultadoInscripcion(confirmada=False, motivos=[MotivoRechazo.DNI_YA_INSCRIPTO])
-        email_enviado = self._enviar_email(armar_mensaje(inscripcion, qrs))
-        return ResultadoInscripcion(
-            confirmada=True, codigo=inscripcion.codigo, email_enviado=email_enviado
-        )
+        if not self._enviar_email_con_reintentos(armar_mensaje(inscripcion, qrs)):
+            # Sin email no hay confirmacion: se deshace la reserva (cupo y DNI quedan libres).
+            self._repositorio.anular(inscripcion.codigo)
+            return ResultadoInscripcion(confirmada=False, motivos=[MotivoRechazo.EMAIL_NO_ENVIADO])
+        return ResultadoInscripcion(confirmada=True, codigo=inscripcion.codigo)
 
     def _terminos_aceptados(self, nombre_de_la_actividad):
         if nombre_de_la_actividad is None:
@@ -89,10 +103,15 @@ class InscripcionService:
             for visitante in inscripcion.visitantes
         )
 
-    def _enviar_email(self, mensaje):
-        try:
-            self._servicio_email.enviar(mensaje)
-        except Exception:  # la inscripcion ya esta confirmada: un fallo de correo no la deshace
-            logger.exception("No se pudo enviar el email de confirmacion")
-            return False
-        return True
+    def _enviar_email_con_reintentos(self, mensaje):
+        for intento in range(1, self._intentos_de_email + 1):
+            try:
+                self._servicio_email.enviar(mensaje)
+                return True
+            except Exception:  # cualquier falla del correo se reintenta
+                logger.exception(
+                    "Fallo el envio del email (intento %s de %s)", intento, self._intentos_de_email
+                )
+                if intento < self._intentos_de_email:
+                    self._dormir(self._pausa_entre_intentos)
+        return False
