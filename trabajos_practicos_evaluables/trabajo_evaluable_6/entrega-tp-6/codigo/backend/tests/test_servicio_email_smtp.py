@@ -91,7 +91,12 @@ def test_el_servicio_smtp_se_conecta_cifrado_se_autentica_y_envia_el_mensaje():
 
     (smtp,) = SmtpFalso.instancias
     assert smtp.conexion == ("smtp.ejemplo.com", 587)
-    assert smtp.llamadas == ["starttls", ("login", "usuario", "clave-de-prueba"), "send_message", "quit"]
+    assert smtp.llamadas == [
+        "starttls",
+        ("login", "usuario", "clave-de-prueba"),
+        "send_message",
+        "quit",
+    ]
     assert smtp.enviado["To"] == "ana.perez@example.com"
     assert smtp.enviado["From"] == "inscripciones@ecoharmony.example"
 
