@@ -3,7 +3,7 @@
 from datetime import date, datetime, time
 
 from ecoharmony.catalogo import crear_actividades
-from ecoharmony.disponibilidad import turnos_disponibles
+from ecoharmony.disponibilidad import resumen_de_actividades, turnos_disponibles
 from ecoharmony.horario import Horario
 from ecoharmony.parque import Parque
 
@@ -66,3 +66,36 @@ def test_un_turno_sin_cupo_figura_como_agotado_con_cero_lugares():
     assert turnos[0].cupo_restante == 0
     assert turnos[0].agotado
     assert not turnos[1].agotado
+
+
+def test_todas_las_actividades_figuran_disponibles_si_tienen_turnos_con_cupo():
+    resumen = resumen_de_actividades(crear_actividades().values(), Parque(), MIERCOLES_12)
+
+    assert {r.actividad.nombre: r.disponible for r in resumen} == {
+        "Tirolesa": True,
+        "Safari": True,
+        "Palestra": True,
+        "Jardinería": True,
+    }
+
+
+def test_una_actividad_con_todos_sus_turnos_agotados_figura_no_disponible():
+    actividades = crear_actividades()
+    safari = actividades["Safari"]
+    for fecha in (MIERCOLES, JUEVES):
+        for turno in turnos_disponibles(safari, fecha, Parque(), MIERCOLES_12):
+            safari.reservar(turno.horario, cantidad=safari.cupo_por_turno)
+
+    resumen = resumen_de_actividades(actividades.values(), Parque(), MIERCOLES_12)
+
+    disponibles = {r.actividad.nombre: r.disponible for r in resumen}
+    assert disponibles["Safari"] is False
+    assert disponibles["Tirolesa"] is True
+
+
+def test_un_domingo_a_la_noche_ninguna_actividad_tiene_turnos_porque_el_lunes_cierra():
+    domingo_a_las_18 = datetime(2026, 11, 1, 18, 0)
+
+    resumen = resumen_de_actividades(crear_actividades().values(), Parque(), domingo_a_las_18)
+
+    assert not any(r.disponible for r in resumen)

@@ -162,3 +162,9 @@ def test_anular_una_inscripcion_libera_el_cupo_y_el_dni(repositorio):
 
 def test_anular_un_codigo_inexistente_no_falla(repositorio):
     repositorio.anular("INS-9999")
+
+
+def test_se_listan_todas_las_actividades_del_catalogo(repositorio):
+    nombres = {actividad.nombre for actividad in repositorio.actividades()}
+
+    assert nombres == {"Tirolesa", "Safari", "Palestra", "Jardinería"}
