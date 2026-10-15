@@ -56,7 +56,7 @@ def armar_mensaje(inscripcion, qrs):
 
 def _lista_de_visitantes(inscripcion):
     lineas = [
-        f"{numero}. {visitante.nombre}"
+        f"{numero}. {visitante.nombre} (DNI {visitante.dni})"
         for numero, visitante in enumerate(inscripcion.visitantes, start=1)
     ]
     return "\n".join(lineas)

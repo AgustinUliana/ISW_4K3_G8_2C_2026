@@ -26,7 +26,7 @@ def armar_html(inscripcion, cantidad_de_qrs):
         ("Personas", f"{len(inscripcion.visitantes)} personas"),
     ]
     visitantes = "".join(
-        _visitante(numero, visitante.nombre, con_qr=numero <= cantidad_de_qrs)
+        _visitante(numero, visitante, con_qr=numero <= cantidad_de_qrs)
         for numero, visitante in enumerate(inscripcion.visitantes, start=1)
     )
     return f"""<!doctype html>
@@ -83,7 +83,8 @@ def _fila(nombre, valor):
     )
 
 
-def _visitante(numero, nombre, con_qr):
+def _visitante(numero, visitante, con_qr):
+    nombre = visitante.nombre
     qr = (
         f'<img src="cid:qr-visitante-{numero}" alt="Código QR de {escape(nombre)}" width="150" '
         'style="display:block;border:0;height:auto;">'
@@ -94,6 +95,7 @@ def _visitante(numero, nombre, con_qr):
         f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
         f'style="margin:8px 0;border:1px solid {LIMA};border-radius:10px;">'
         f'<tr><td style="padding:12px 14px;font-family: {FUENTE};font-size:15px;">'
-        f"<strong>Visitante {numero}</strong><br>{escape(nombre)}</td>"
+        f"<strong>Visitante {numero}</strong><br>{escape(nombre)}<br>"
+        f'<span style="color:{VERDE};">DNI {escape(str(visitante.dni))}</span></td>'
         f'<td align="right" style="padding:10px 14px;">{qr}</td></tr></table>'
     )
