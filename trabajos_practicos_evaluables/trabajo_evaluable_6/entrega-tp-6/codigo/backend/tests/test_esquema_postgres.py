@@ -20,6 +20,7 @@ def test_el_esquema_se_crea_desde_cero_en_una_base_vacia(base_vacia, base_con_es
         "ocupacion",
         "inscripcion",
         "visitante_inscripto",
+        "usuario",
     }
 
 
