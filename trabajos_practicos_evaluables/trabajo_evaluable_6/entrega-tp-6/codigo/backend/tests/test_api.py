@@ -1,6 +1,7 @@
 """API HTTP (FastAPI) probada con TestClient sobre los servicios reales y dobles en memoria."""
 
 from collections import namedtuple
+from datetime import date, time
 
 import pytest
 from fastapi.testclient import TestClient
@@ -9,6 +10,7 @@ from datos_de_prueba import AHORA
 from dobles import EmailEnMemoria, GeneradorQRFalso, RelojFijo
 from ecoharmony.api import Servicios, crear_app
 from ecoharmony.catalogo import crear_actividades
+from ecoharmony.horario import Horario
 from ecoharmony.inscripcion_service import InscripcionService
 from ecoharmony.parque import Parque
 from ecoharmony.repositorio_memoria import RepositorioEnMemoria
@@ -108,3 +110,58 @@ def test_el_front_react_puede_llamar_a_la_api_desde_su_origen(cliente):
     )
 
     assert respuesta.headers["access-control-allow-origin"] == ORIGEN_DEL_FRONT
+
+
+def test_get_actividades_devuelve_las_cuatro_con_sus_reglas_y_su_disponibilidad(cliente):
+    respuesta = cliente.http.get("/actividades")
+
+    assert respuesta.status_code == 200
+    por_nombre = {actividad["nombre"]: actividad for actividad in respuesta.json()}
+    assert set(por_nombre) == {"Tirolesa", "Safari", "Palestra", "Jardinería"}
+    assert por_nombre["Tirolesa"] == {
+        "nombre": "Tirolesa",
+        "requiere_talla": True,
+        "edad_minima": 8,
+        "cupo_por_turno": 10,
+        "disponible": True,
+    }
+
+
+def test_get_horarios_de_una_actividad_devuelve_los_turnos_con_su_cupo_restante(cliente):
+    a_las_10 = Horario(date(2026, 11, 4), time(10, 0))
+    cliente.repositorio.actividad("Tirolesa").reservar(a_las_10, cantidad=3)
+
+    respuesta = cliente.http.get("/actividades/Tirolesa/horarios", params={"fecha": "2026-11-04"})
+
+    assert respuesta.status_code == 200
+    turnos = respuesta.json()["turnos"]
+    assert [turno["hora"] for turno in turnos] == [f"{hora:02d}:00" for hora in range(9, 18)]
+    assert {"hora": "10:00", "cupo_restante": 7, "agotado": False} in turnos
+
+
+def test_get_horarios_con_una_fecha_invalida_o_ausente_responde_422(cliente):
+    assert (
+        cliente.http.get("/actividades/Tirolesa/horarios", params={"fecha": "ayer"}).status_code
+        == 422
+    )
+    assert cliente.http.get("/actividades/Tirolesa/horarios").status_code == 422
+
+
+def test_get_horarios_de_una_actividad_inexistente_responde_404(cliente):
+    respuesta = cliente.http.get("/actividades/Rafting/horarios", params={"fecha": "2026-11-04"})
+
+    assert respuesta.status_code == 404
+    assert respuesta.json()["motivos"] == ["actividad_inexistente"]
+
+
+def test_get_terminos_de_una_actividad_devuelve_los_de_esa_actividad(cliente):
+    respuesta = cliente.http.get("/actividades/Safari/terminos")
+
+    assert respuesta.status_code == 200
+    assert respuesta.json()["actividad"] == "Safari"
+    assert respuesta.json()["version"] == "v1"
+    assert respuesta.json()["texto"]
+
+
+def test_get_terminos_de_una_actividad_inexistente_responde_404(cliente):
+    assert cliente.http.get("/actividades/Rafting/terminos").status_code == 404
