@@ -11,6 +11,7 @@ from ecoharmony.inscripcion import Inscripcion
 from ecoharmony.mensaje_email import armar_mensaje
 from ecoharmony.motivos import MotivoRechazo
 from ecoharmony.qr import contenido_del_qr
+from ecoharmony.terminos import TerminosYCondiciones
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,13 @@ class SolicitudInscripcion:
 class ResultadoInscripcion:
     confirmada: bool
     codigo: str = None
+    motivos: list = field(default_factory=list)
+    errores_por_visitante: dict = field(default_factory=dict)  # posicion -> motivos
+
+
+@dataclass
+class ResultadoValidacion:
+    valida: bool
     motivos: list = field(default_factory=list)
     errores_por_visitante: dict = field(default_factory=dict)  # posicion -> motivos
 
@@ -53,34 +61,24 @@ class InscripcionService:
         self._pausa_entre_intentos = pausa_entre_intentos
         self._dormir = dormir
 
-    def inscribir(self, solicitud):
-        if solicitud.titular is None:
-            # Sin sesion no se informa nada mas (por ejemplo, si un DNI ya esta inscripto).
-            return ResultadoInscripcion(
-                confirmada=False, motivos=[MotivoRechazo.USUARIO_NO_REGISTRADO]
-            )
-        try:
-            actividad = self._repositorio.actividad(solicitud.actividad)
-        except ActividadNoEncontradaError:
-            return ResultadoInscripcion(
-                confirmada=False, motivos=[MotivoRechazo.ACTIVIDAD_INEXISTENTE]
-            )
-        inscripcion = Inscripcion(
-            actividad=actividad,
-            horario=solicitud.horario,
-            visitantes=solicitud.visitantes,
-            titular=solicitud.titular,
-            terminos_aceptados=self._terminos_aceptados(solicitud.terminos_aceptados),
+    def validar(self, solicitud):
+        """Revisa los datos sin inscribir: no guarda, no reserva cupo ni envia nada.
+
+        Los terminos y condiciones se dan por aceptados: se aceptan en el paso siguiente.
+        """
+        _, rechazo = self._evaluar(solicitud, asumir_terminos_aceptados=True)
+        if rechazo is None:
+            return ResultadoValidacion(valida=True)
+        return ResultadoValidacion(
+            valida=False,
+            motivos=rechazo.motivos,
+            errores_por_visitante=rechazo.errores_por_visitante,
         )
-        motivos = inscripcion.motivos_de_rechazo(self._parque, self._reloj.ahora())
-        if self._hay_dni_ya_inscripto(inscripcion):
-            motivos.append(MotivoRechazo.DNI_YA_INSCRIPTO)
-        if motivos:
-            return ResultadoInscripcion(
-                confirmada=False,
-                motivos=motivos,
-                errores_por_visitante=inscripcion.errores_por_visitante(),
-            )
+
+    def inscribir(self, solicitud):
+        inscripcion, rechazo = self._evaluar(solicitud, asumir_terminos_aceptados=False)
+        if rechazo is not None:
+            return rechazo
         inscripcion.confirmar(self._repositorio.siguiente_codigo(), self._reloj.ahora())
         qrs = self._generar_qrs(inscripcion)
         try:
@@ -95,10 +93,49 @@ class InscripcionService:
             return ResultadoInscripcion(confirmada=False, motivos=[MotivoRechazo.EMAIL_NO_ENVIADO])
         return ResultadoInscripcion(confirmada=True, codigo=inscripcion.codigo)
 
+    def _evaluar(self, solicitud, asumir_terminos_aceptados):
+        """Devuelve (inscripcion, None) si se puede inscribir, o (None/inscripcion, rechazo)."""
+        if solicitud.titular is None:
+            # Sin sesion no se informa nada mas (por ejemplo, si un DNI ya esta inscripto).
+            return None, ResultadoInscripcion(
+                confirmada=False, motivos=[MotivoRechazo.USUARIO_NO_REGISTRADO]
+            )
+        try:
+            actividad = self._repositorio.actividad(solicitud.actividad)
+        except ActividadNoEncontradaError:
+            return None, ResultadoInscripcion(
+                confirmada=False, motivos=[MotivoRechazo.ACTIVIDAD_INEXISTENTE]
+            )
+        if asumir_terminos_aceptados:
+            terminos = actividad.terminos
+        else:
+            terminos = self._terminos_aceptados(solicitud.terminos_aceptados)
+        inscripcion = Inscripcion(
+            actividad=actividad,
+            horario=solicitud.horario,
+            visitantes=solicitud.visitantes,
+            titular=solicitud.titular,
+            terminos_aceptados=terminos,
+        )
+        motivos = inscripcion.motivos_de_rechazo(self._parque, self._reloj.ahora())
+        if self._hay_dni_ya_inscripto(inscripcion):
+            motivos.append(MotivoRechazo.DNI_YA_INSCRIPTO)
+        if motivos:
+            return inscripcion, ResultadoInscripcion(
+                confirmada=False,
+                motivos=motivos,
+                errores_por_visitante=inscripcion.errores_por_visitante(),
+            )
+        return inscripcion, None
+
     def _terminos_aceptados(self, nombre_de_la_actividad):
         if nombre_de_la_actividad is None:
             return None
-        return self._repositorio.actividad(nombre_de_la_actividad).terminos
+        try:
+            return self._repositorio.actividad(nombre_de_la_actividad).terminos
+        except ActividadNoEncontradaError:
+            # Una actividad que no existe no tiene terminos: nunca coinciden con los de la elegida.
+            return TerminosYCondiciones(nombre_de_la_actividad, "?", "")
 
     def _generar_qrs(self, inscripcion):
         cantidad = len(inscripcion.visitantes)
