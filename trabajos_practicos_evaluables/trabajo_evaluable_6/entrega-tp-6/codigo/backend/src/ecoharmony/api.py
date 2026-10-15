@@ -2,6 +2,7 @@
 
 import logging
 from dataclasses import dataclass
+from datetime import date
 from typing import Any
 
 from fastapi import FastAPI
@@ -9,6 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from ecoharmony.disponibilidad import resumen_de_actividades, turnos_disponibles
+from ecoharmony.errores import ActividadNoEncontradaError
 from ecoharmony.motivos import MotivoRechazo
 
 logger = logging.getLogger(__name__)
@@ -78,5 +81,53 @@ def crear_app(servicios, origenes_permitidos=()):
         if not sesion.iniciada:
             return _rechazo(sesion.motivos)
         return {"token": sesion.token}
+
+    @app.get("/actividades")
+    def listar_actividades():
+        resumen = resumen_de_actividades(
+            servicios.repositorio.actividades(), servicios.parque, servicios.reloj.ahora()
+        )
+        return [
+            {
+                "nombre": item.actividad.nombre,
+                "requiere_talla": item.actividad.requiere_talla,
+                "edad_minima": item.actividad.edad_minima,
+                "cupo_por_turno": item.actividad.cupo_por_turno,
+                "disponible": item.disponible,
+            }
+            for item in sorted(resumen, key=lambda item: item.actividad.nombre)
+        ]
+
+    @app.get("/actividades/{nombre}/horarios")
+    def horarios_de_una_actividad(nombre: str, fecha: str | None = None):
+        try:
+            actividad = servicios.repositorio.actividad(nombre)
+        except ActividadNoEncontradaError:
+            return _rechazo([MotivoRechazo.ACTIVIDAD_INEXISTENTE])
+        try:
+            dia = date.fromisoformat(fecha)
+        except (TypeError, ValueError):
+            return _rechazo([MotivoRechazo.FECHA_INVALIDA])
+        turnos = turnos_disponibles(actividad, dia, servicios.parque, servicios.reloj.ahora())
+        return {
+            "actividad": nombre,
+            "fecha": dia.isoformat(),
+            "turnos": [
+                {
+                    "hora": turno.horario.hora_inicio.strftime("%H:%M"),
+                    "cupo_restante": turno.cupo_restante,
+                    "agotado": turno.agotado,
+                }
+                for turno in turnos
+            ],
+        }
+
+    @app.get("/actividades/{nombre}/terminos")
+    def terminos_de_una_actividad(nombre: str):
+        try:
+            terminos = servicios.repositorio.actividad(nombre).terminos
+        except ActividadNoEncontradaError:
+            return _rechazo([MotivoRechazo.ACTIVIDAD_INEXISTENTE])
+        return {"actividad": nombre, "version": terminos.version, "texto": terminos.texto}
 
     return app
