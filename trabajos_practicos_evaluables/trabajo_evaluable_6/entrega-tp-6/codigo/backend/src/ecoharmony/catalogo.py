@@ -1,31 +1,29 @@
 from ecoharmony.actividad import Actividad
 from ecoharmony.terminos import TerminosYCondiciones
-
-# TODO: reemplazar por los T&C reales que redacta el grupo (el PO no los valida).
-_TEXTO_PROVISORIO = "Terminos y condiciones de {}: texto provisorio a redactar por el grupo."
+from ecoharmony.terminos_texto import VERSION_DE_LOS_TERMINOS, redactar_terminos
 
 
-def _terminos(nombre):
-    return TerminosYCondiciones(nombre, "v1", _TEXTO_PROVISORIO.format(nombre))
+def _actividad(nombre, cupo_por_turno, edad_minima=0, requiere_talla=False):
+    """Una actividad con sus reglas (las del PO) y sus propios terminos y condiciones."""
+    terminos = TerminosYCondiciones(
+        nombre,
+        VERSION_DE_LOS_TERMINOS,
+        redactar_terminos(nombre, edad_minima, requiere_talla, cupo_por_turno),
+    )
+    return Actividad(
+        nombre,
+        cupo_por_turno=cupo_por_turno,
+        edad_minima=edad_minima,
+        requiere_talla=requiere_talla,
+        terminos=terminos,
+    )
 
 
 def crear_actividades():
     actividades = [
-        Actividad(
-            "Tirolesa",
-            cupo_por_turno=10,
-            edad_minima=8,
-            requiere_talla=True,
-            terminos=_terminos("Tirolesa"),
-        ),
-        Actividad("Safari", cupo_por_turno=8, terminos=_terminos("Safari")),
-        Actividad(
-            "Palestra",
-            cupo_por_turno=12,
-            edad_minima=12,
-            requiere_talla=True,
-            terminos=_terminos("Palestra"),
-        ),
-        Actividad("Jardinería", cupo_por_turno=12, terminos=_terminos("Jardinería")),
+        _actividad("Tirolesa", cupo_por_turno=10, edad_minima=8, requiere_talla=True),
+        _actividad("Safari", cupo_por_turno=8),
+        _actividad("Palestra", cupo_por_turno=12, edad_minima=12, requiere_talla=True),
+        _actividad("Jardinería", cupo_por_turno=12),
     ]
     return {actividad.nombre: actividad for actividad in actividades}

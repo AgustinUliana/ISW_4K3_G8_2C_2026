@@ -145,8 +145,17 @@ export default function App({
         <Vidrio radio={22} refractar={false} className="encabezado-vidrio">
           <div className="encabezado-contenido">
             <div className="marca">
-              <span className="marca-nombre">EcoHarmony Park</span>
-              <span className="marca-detalle">Inscripción a actividades</span>
+              <img
+                className="marca-logo"
+                src="/logo-emblema.png"
+                alt="Logo de EcoHarmony Park"
+                width="60"
+                height="60"
+              />
+              <div className="marca-textos">
+                <span className="marca-nombre">EcoHarmony Park</span>
+                <span className="marca-detalle">Inscripción a actividades</span>
+              </div>
             </div>
             {sesion && (
               <div className="usuario">

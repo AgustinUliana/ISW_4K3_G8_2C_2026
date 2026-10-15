@@ -136,8 +136,25 @@ body::after {
 
 .marca {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 12px;
   line-height: 1.15;
+}
+
+.marca-logo {
+  flex: none;
+  width: 60px;
+  height: 60px;
+  padding: 3px;
+  border-radius: 50%;
+  /* fondo claro propio: asi los verdes del logo no se apagan con el vidrio */
+  background: #f8f9f3;
+  box-shadow: 0 2px 8px rgba(56, 102, 65, 0.3);
+}
+
+.marca-textos {
+  display: flex;
+  flex-direction: column;
 }
 
 .marca-nombre {
@@ -502,7 +519,8 @@ form .boton-principal {
 }
 
 .texto-terminos {
-  max-height: 160px;
+  max-height: 320px;
+  white-space: pre-line;
   padding: 10px 14px;
   overflow-y: auto;
   font-size: 0.92rem;
