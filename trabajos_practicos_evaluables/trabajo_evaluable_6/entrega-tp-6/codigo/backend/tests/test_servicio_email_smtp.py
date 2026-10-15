@@ -144,3 +144,19 @@ def test_la_conexion_smtp_tiene_un_tiempo_limite_para_no_colgar_la_inscripcion()
 
     (smtp,) = SmtpFalso.instancias
     assert smtp.timeout == 10
+
+
+def test_la_contrasena_de_aplicacion_de_gmail_se_acepta_con_los_espacios_con_que_la_muestra_google():
+    entorno = {
+        **ENTORNO,
+        "SMTP_SERVIDOR": "smtp.gmail.com",
+        "SMTP_CLAVE": "abcd efgh ijkl mnop",
+    }
+
+    assert ConfiguracionSmtp.desde_entorno(entorno).clave == "abcdefghijklmnop"
+
+
+def test_en_otros_servidores_la_clave_no_se_modifica():
+    entorno = {**ENTORNO, "SMTP_CLAVE": "clave con espacios"}
+
+    assert ConfiguracionSmtp.desde_entorno(entorno).clave == "clave con espacios"
