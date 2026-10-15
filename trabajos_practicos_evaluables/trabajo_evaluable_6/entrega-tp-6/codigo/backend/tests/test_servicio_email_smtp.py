@@ -60,8 +60,9 @@ class SmtpFalso:
 
     instancias = []
 
-    def __init__(self, servidor, puerto):
+    def __init__(self, servidor, puerto, timeout=None):
         self.conexion = (servidor, puerto)
+        self.timeout = timeout
         self.llamadas = []
         self.enviado = None
         SmtpFalso.instancias.append(self)
@@ -120,3 +121,12 @@ def test_falta_una_variable_de_entorno_falla_indicando_cual(falta):
 
     with pytest.raises(ConfiguracionIncompletaError, match=falta):
         ConfiguracionSmtp.desde_entorno(incompleto)
+
+
+def test_la_conexion_smtp_tiene_un_tiempo_limite_para_no_colgar_la_inscripcion():
+    SmtpFalso.instancias.clear()
+
+    ServicioEmailSmtp(CONFIGURACION, smtp_factory=SmtpFalso).enviar(MENSAJE)
+
+    (smtp,) = SmtpFalso.instancias
+    assert smtp.timeout == 10
