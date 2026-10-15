@@ -144,3 +144,10 @@ def test_el_texto_plano_tambien_incluye_el_dni_de_cada_visitante():
 
     assert "1. Ana Perez (DNI 30123456)" in cuerpo
     assert "2. Luis Gomez (DNI 28123456)" in cuerpo
+
+
+def test_el_email_nunca_dice_prueba():
+    mensaje = armar_mensaje(una_inscripcion_confirmada(), QRS)
+
+    for texto in (mensaje.asunto, mensaje.cuerpo, mensaje.cuerpo_html):
+        assert "prueba" not in texto.lower()
