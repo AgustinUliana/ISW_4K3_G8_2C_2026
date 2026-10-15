@@ -38,6 +38,8 @@ class Servicios:
     repositorio: Any
     parque: Any
     reloj: Any
+    generador_qr: Any = None  # solo informativo: lo usa el servicio de inscripcion
+    servicio_email: Any = None  # solo informativo: lo usa el servicio de inscripcion
 
 
 class Credenciales(BaseModel):
