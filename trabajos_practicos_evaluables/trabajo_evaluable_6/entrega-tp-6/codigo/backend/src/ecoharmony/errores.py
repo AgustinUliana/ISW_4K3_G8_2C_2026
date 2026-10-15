@@ -12,3 +12,7 @@ class ActividadNoEncontradaError(Exception):
 
 class DniYaInscriptoError(Exception):
     """Algun DNI ya tiene un turno en esa fecha y hora."""
+
+
+class EmailYaRegistradoError(Exception):
+    """Ya existe un usuario con ese email."""

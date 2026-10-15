@@ -27,3 +27,7 @@ class MotivoRechazo(Enum):
     DNI_YA_INSCRIPTO = "dni_ya_inscripto"
     ACTIVIDAD_INEXISTENTE = "actividad_inexistente"
     EMAIL_NO_ENVIADO = "email_no_enviado"
+    CONTRASENA_INVALIDA = "contrasena_invalida"
+    EMAIL_YA_REGISTRADO = "email_ya_registrado"
+    CREDENCIALES_INVALIDAS = "credenciales_invalidas"
+    USUARIO_NO_REGISTRADO = "usuario_no_registrado"
