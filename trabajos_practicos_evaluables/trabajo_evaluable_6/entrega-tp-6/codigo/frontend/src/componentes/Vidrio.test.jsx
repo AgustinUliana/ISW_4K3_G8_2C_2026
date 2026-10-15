@@ -5,8 +5,14 @@ import { Vidrio } from "./Vidrio";
 
 // La libreria se reemplaza por un doble que deja ver con que props la usamos.
 vi.mock("liquid-glass-react", () => ({
-  default: ({ children, cornerRadius, elasticity, style }) => (
-    <div data-testid="liquid-glass" data-radio={cornerRadius} data-elasticidad={elasticity} data-style={JSON.stringify(style)}>
+  default: ({ children, cornerRadius, elasticity, padding, style }) => (
+    <div
+      data-testid="liquid-glass"
+      data-radio={cornerRadius}
+      data-elasticidad={elasticity}
+      data-relleno={padding}
+      data-style={JSON.stringify(style)}
+    >
       {children}
     </div>
   ),
@@ -104,5 +110,16 @@ describe("Vidrio", () => {
     );
 
     expect(screen.getByTestId("liquid-glass")).toHaveAttribute("data-elasticidad", "0");
+  });
+
+  it("no le suma relleno propio a la libreria: si no, el vidrio quedaria mas grande que el panel", () => {
+    simularNavegadorConMedicion({ ancho: 300, alto: 120 });
+    render(
+      <Vidrio>
+        <p>contenido</p>
+      </Vidrio>,
+    );
+
+    expect(screen.getByTestId("liquid-glass")).toHaveAttribute("data-relleno", "0px");
   });
 });

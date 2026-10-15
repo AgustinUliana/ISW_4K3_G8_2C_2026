@@ -138,7 +138,7 @@ export default function App({
   return (
     <div className="aplicacion">
       <header className="encabezado">
-        <Vidrio radio={22} relleno="10px 20px" className="encabezado-vidrio">
+        <Vidrio radio={22} className="encabezado-vidrio">
           <div className="encabezado-contenido">
             <div className="marca">
               <span className="marca-nombre">EcoHarmony Park</span>
@@ -165,7 +165,7 @@ export default function App({
             ))}
           </ol>
         )}
-        <Vidrio radio={32} relleno="28px" className="panel">
+        <Vidrio radio={32} className="panel">
           {pantalla}
         </Vidrio>
       </main>
