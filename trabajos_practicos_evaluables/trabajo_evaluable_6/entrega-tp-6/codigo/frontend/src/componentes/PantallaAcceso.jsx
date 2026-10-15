@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { mensajesDeRechazo } from "../dominio/mensajes";
 
-export function PantallaAcceso({ api, alEntrar }) {
+export function PantallaAcceso({ api, alEntrar, aviso = null }) {
   const [modo, setModo] = useState("ingresar"); // "ingresar" | "registrar"
   const [email, setEmail] = useState("");
   const [contrasena, setContrasena] = useState("");
@@ -35,6 +35,11 @@ export function PantallaAcceso({ api, alEntrar }) {
   return (
     <section className="pantalla" aria-labelledby="titulo-acceso">
       <h2 id="titulo-acceso">{registrando ? "Creá tu cuenta" : "Ingresá para inscribirte"}</h2>
+      {aviso && (
+        <p role="status" className="aviso aviso-info">
+          {aviso}
+        </p>
+      )}
       <p className="ayuda">Solo necesitás un email y una contraseña.</p>
       <div role="tablist" className="pestanas">
         <button type="button" role="tab" aria-selected={!registrando} onClick={() => cambiarModo("ingresar")}>
