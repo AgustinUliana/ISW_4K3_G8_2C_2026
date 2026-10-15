@@ -135,8 +135,8 @@ class RepositorioPostgres:
             for posicion, visitante in enumerate(inscripcion.visitantes, start=1):
                 conexion.execute(
                     """
-                    INSERT INTO visitante_inscripto (inscripcion, posicion, nombre, dni, edad, talla,
-                                                     fecha, hora)
+                    INSERT INTO visitante_inscripto
+                        (inscripcion, posicion, nombre, dni, edad, talla, fecha, hora)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
