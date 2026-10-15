@@ -88,7 +88,7 @@ describe("Vidrio", () => {
   });
 
   it("dibuja la capa de vidrio del mismo tamaño que el contenido, detras de el", () => {
-    simularNavegadorConMedicion({ ancho: 300, alto: 120 });
+    simularNavegadorConMedicion({ ancho: 300, alto: 240 });
     const { container } = render(
       <Vidrio radio={28}>
         <p>contenido</p>
@@ -96,14 +96,14 @@ describe("Vidrio", () => {
     );
 
     const vidrio = screen.getByTestId("liquid-glass");
-    expect(vidrio.firstChild).toHaveStyle({ width: "300px", height: "120px" });
+    expect(vidrio.firstChild).toHaveStyle({ width: "300px", height: "240px" });
     expect(vidrio).toHaveAttribute("data-radio", "28");
     expect(JSON.parse(vidrio.dataset.style)).toMatchObject({ position: "absolute", top: "50%", left: "50%" });
     expect(container.querySelector(".vidrio-capa")).toHaveAttribute("aria-hidden", "true");
   });
 
   it("la capa no se mueve con el mouse: la elasticidad es 0 salvo que se pida", () => {
-    simularNavegadorConMedicion({ ancho: 200, alto: 80 });
+    simularNavegadorConMedicion({ ancho: 200, alto: 160 });
     render(
       <Vidrio>
         <p>contenido</p>
@@ -114,7 +114,7 @@ describe("Vidrio", () => {
   });
 
   it("no le suma relleno propio a la libreria: si no, el vidrio quedaria mas grande que el panel", () => {
-    simularNavegadorConMedicion({ ancho: 300, alto: 120 });
+    simularNavegadorConMedicion({ ancho: 300, alto: 240 });
     render(
       <Vidrio>
         <p>contenido</p>
@@ -125,7 +125,7 @@ describe("Vidrio", () => {
   });
 
   it("la intensidad de la refraccion es configurable: los paneles grandes la piden mas suave", () => {
-    simularNavegadorConMedicion({ ancho: 800, alto: 400 });
+    simularNavegadorConMedicion({ ancho: 320, alto: 260 });
     render(
       <Vidrio refraccion={24}>
         <p>contenido</p>
@@ -136,7 +136,7 @@ describe("Vidrio", () => {
   });
 
   it("sin indicarla usa una refraccion moderada por defecto", () => {
-    simularNavegadorConMedicion({ ancho: 200, alto: 80 });
+    simularNavegadorConMedicion({ ancho: 200, alto: 160 });
     render(
       <Vidrio>
         <p>contenido</p>
@@ -156,5 +156,28 @@ describe("Vidrio", () => {
 
     expect(screen.queryByTestId("liquid-glass")).toBeNull();
     expect(screen.getByText("contenido")).toBeInTheDocument();
+  });
+
+  it("si el elemento es muy ancho (proporcion mayor a 1,6) no usa la libreria: su mapa de refraccion es cuadrado", () => {
+    simularNavegadorConMedicion({ ancho: 800, alto: 400 });
+    render(
+      <Vidrio>
+        <p>contenido</p>
+      </Vidrio>,
+    );
+
+    expect(screen.queryByTestId("liquid-glass")).toBeNull();
+    expect(screen.getByText("contenido")).toBeInTheDocument();
+  });
+
+  it("en el limite de la proporcion (1,6) todavia la usa", () => {
+    simularNavegadorConMedicion({ ancho: 320, alto: 200 });
+    render(
+      <Vidrio>
+        <p>contenido</p>
+      </Vidrio>,
+    );
+
+    expect(screen.getByTestId("liquid-glass")).toBeInTheDocument();
   });
 });
