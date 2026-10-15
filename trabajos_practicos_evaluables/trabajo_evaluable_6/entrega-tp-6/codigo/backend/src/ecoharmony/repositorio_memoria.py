@@ -11,6 +11,9 @@ class RepositorioEnMemoria:
             raise ActividadNoEncontradaError(nombre)
         return self._actividades[nombre]
 
+    def actividades(self):
+        return list(self._actividades.values())
+
     def siguiente_codigo(self):
         return f"INS-{len(self._inscripciones) + 1:04d}"
 
