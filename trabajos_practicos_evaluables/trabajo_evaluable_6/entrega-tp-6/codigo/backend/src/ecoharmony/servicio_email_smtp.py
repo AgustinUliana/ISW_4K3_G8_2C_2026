@@ -1,6 +1,7 @@
 import smtplib
 from dataclasses import dataclass
 from email.message import EmailMessage
+from email.utils import formatdate, make_msgid
 
 TIEMPO_LIMITE_EN_SEGUNDOS = 10
 VARIABLES = ("SMTP_SERVIDOR", "SMTP_PUERTO", "SMTP_USUARIO", "SMTP_CLAVE", "EMAIL_REMITENTE")
@@ -55,6 +56,8 @@ def a_mime(mensaje, remitente):
     mime["From"] = remitente
     mime["To"] = mensaje.destinatario
     mime["Subject"] = mensaje.asunto
+    mime["Date"] = formatdate(localtime=True)
+    mime["Message-ID"] = make_msgid(domain=remitente.rpartition("@")[2] or None)
     mime.set_content(mensaje.cuerpo)
     for adjunto in mensaje.adjuntos:
         tipo_principal, subtipo = adjunto.tipo.split("/")
