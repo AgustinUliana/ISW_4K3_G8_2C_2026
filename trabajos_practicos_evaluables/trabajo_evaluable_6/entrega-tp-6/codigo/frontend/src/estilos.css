@@ -92,6 +92,7 @@ body::after {
   inset: 0;
   z-index: 0;
   overflow: hidden;
+  border-radius: inherit; /* recorta el efecto con las mismas esquinas redondeadas */
   pointer-events: none;
 }
 

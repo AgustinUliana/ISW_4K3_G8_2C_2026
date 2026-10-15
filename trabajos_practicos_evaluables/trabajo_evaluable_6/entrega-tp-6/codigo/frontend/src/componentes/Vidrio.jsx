@@ -15,6 +15,7 @@ export function Vidrio({
   className = "",
   radio = 28,
   elasticidad = 0, // 0 = no se mueve con el mouse (importante en formularios)
+  refraccion = 40, // la libreria esta pensada para elementos chicos: en paneles grandes conviene menos
   alClick,
 }) {
   const contenedor = useRef(null);
@@ -42,7 +43,7 @@ export function Vidrio({
             cornerRadius={radio}
             padding="0px"
             elasticity={elasticidad}
-            displacementScale={52}
+            displacementScale={refraccion}
             blurAmount={0.12}
             saturation={125}
             aberrationIntensity={1.2}
