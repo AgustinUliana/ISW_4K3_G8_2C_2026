@@ -625,8 +625,7 @@ antes de confirmar. Al volver desde la confirmación los datos cargados se conse
 
 ### 11.4 Lo que falta
 
-1. **Ejecutar la prueba externa** de email real (`pytest -m externa`): está escrita (`test_email_externo.py`) y usa Gmail por
-   SMTP; falta cargar las credenciales en el `.env` y confirmar a mano que llega a la bandeja de entrada (ver §11.6).
+1. ~~Ejecutar la prueba externa de email real~~ → hecha (llegó con los dos QR; ver §11.6). Verificar la bandeja de entrada antes de la exposición.
 2. **Revisión del grupo de los T&C** (son un borrador, ver §11.5).
 3. Preguntas de baja prioridad abiertas al PO (ver `preguntas-product-owner-tp-6.md` §3).
 
