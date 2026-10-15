@@ -27,3 +27,7 @@ class Actividad:
     def registrar_ocupacion(self, horario, personas):
         """Carga el cupo ya ocupado de un turno (el repositorio la usa al reconstruir)."""
         self._ocupados[horario] = personas
+
+    def liberar(self, horario, cantidad):
+        """Devuelve lugares al turno (por ejemplo, al anular una inscripcion)."""
+        self._ocupados[horario] = max(self._ocupados.get(horario, 0) - cantidad, 0)

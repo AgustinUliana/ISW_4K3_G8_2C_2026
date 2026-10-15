@@ -23,6 +23,13 @@ class RepositorioEnMemoria:
         actividad.reservar(inscripcion.horario, len(inscripcion.visitantes))
         self._inscripciones[inscripcion.codigo] = inscripcion
 
+    def anular(self, codigo):
+        """Deshace una inscripcion guardada: libera el cupo y el DNI. Si no existe, no hace nada."""
+        inscripcion = self._inscripciones.pop(codigo, None)
+        if inscripcion is not None:
+            actividad = self._actividades[inscripcion.actividad.nombre]
+            actividad.liberar(inscripcion.horario, len(inscripcion.visitantes))
+
     def obtener(self, codigo):
         return self._inscripciones.get(codigo)
 

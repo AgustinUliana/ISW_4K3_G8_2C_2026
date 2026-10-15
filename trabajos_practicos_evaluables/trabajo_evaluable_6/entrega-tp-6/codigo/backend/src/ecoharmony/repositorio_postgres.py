@@ -151,6 +151,25 @@ class RepositorioPostgres:
                     ),
                 )
 
+    def anular(self, codigo):
+        """Deshace una inscripcion guardada: libera el cupo y el DNI (una sola transaccion)."""
+        with self._conectar() as conexion:
+            personas = conexion.execute(
+                "DELETE FROM visitante_inscripto WHERE inscripcion = %s", (codigo,)
+            ).rowcount
+            fila = conexion.execute(
+                "DELETE FROM inscripcion WHERE codigo = %s RETURNING actividad, fecha, hora",
+                (codigo,),
+            ).fetchone()
+            if fila is not None:
+                conexion.execute(
+                    """
+                    UPDATE ocupacion SET personas = GREATEST(personas - %s, 0)
+                     WHERE actividad = %s AND fecha = %s AND hora = %s
+                    """,
+                    (personas, *fila),
+                )
+
     def obtener(self, codigo):
         with self._conectar() as conexion:
             fila = conexion.execute(
