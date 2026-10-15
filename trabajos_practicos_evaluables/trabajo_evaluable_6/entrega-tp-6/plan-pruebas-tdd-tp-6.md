@@ -477,7 +477,7 @@ Los contratos de los Grupos 6, 7 y 8 garantizan que reemplazar un doble por la p
 ## 11. Estado de la implementación (2026-10-15)
 
 Rama `tp6-tdd`: cada prueba se hizo con su ciclo visible en `git log` (`test(ID): rojo` → `feat(ID): verde` →
-`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **373 pruebas del backend y 110 del front, todas verdes** (sin base de
+`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **378 pruebas del backend y 110 del front, todas verdes** (sin base de
 datos y contra PostgreSQL real), PEP 8 limpio con `ruff`.
 
 | Grupo | Archivo de pruebas | Estado |
@@ -642,7 +642,7 @@ firma del modelo original, la aceptación es la casilla «Acepto los términos y
 
 | Prueba | Qué verifica | Archivo |
 |---|---|---|
-| TYC-01..31 | sin texto provisorio; versión `v1`; encabezado «TÉRMINOS Y CONDICIONES DE PARTICIPACIÓN» + actividad; los 11 apartados en orden; cuarto apartado propio (equipo, materiales, contacto con animales); normas distintas y marcas propias de cada actividad; equipo en altura (arnés, casco, calzado cerrado); safari (no tocar, sin flash); jardinería (guantes, alergias); salud (avisar antes de comenzar); menores (madre, padre, tutor o representante legal); responsabilidad sin renuncia general; suspensión por clima o seguridad; fotos con autorización específica; aceptación sin firma; edad, talla, cupo y reglas del PO tomadas de los datos | `test_terminos_texto.py` |
+| TYC-01..31 | sin texto provisorio; la versión no se muestra en el texto; encabezado «TÉRMINOS Y CONDICIONES DE PARTICIPACIÓN» + actividad; los 11 apartados en orden; cuarto apartado propio (equipo, materiales, contacto con animales); normas distintas y marcas propias de cada actividad; equipo en altura (arnés, casco, calzado cerrado); safari (no tocar, sin flash); jardinería (guantes, alergias); salud (avisar antes de comenzar); menores (madre, padre, tutor o representante legal); responsabilidad sin renuncia general; suspensión por clima o seguridad; fotos con autorización específica; aceptación sin firma; edad, talla, cupo y reglas del PO tomadas de los datos | `test_terminos_texto.py` |
 | LOGO-01..02 | el encabezado muestra el logo con «Logo de EcoHarmony Park», con y sin sesión | `App.test.jsx` |
 
 **Logo.** El del grupo (`codigo/frontend/public/logo.png` y `logo-emblema.png`), con fondo transparente y sin número de
