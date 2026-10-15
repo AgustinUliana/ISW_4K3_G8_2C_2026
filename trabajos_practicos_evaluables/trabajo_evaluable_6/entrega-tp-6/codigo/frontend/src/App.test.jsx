@@ -250,4 +250,19 @@ describe("App: los datos de los visitantes se validan en su propio paso", () => 
     expect(await screen.findByRole("heading", { name: "Ingresá para inscribirte" })).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent(/tu sesión venció/i);
   });
+
+  it("muestra el logo de EcoHarmony Park con el numero de grupo, tambien sin sesion", () => {
+    montar();
+
+    const logo = within(screen.getByRole("banner")).getByRole("img", {
+      name: /EcoHarmony Park.*grupo 8/i,
+    });
+    expect(logo).toHaveAttribute("src", "/logo.svg");
+  });
+
+  it("el logo sigue en el encabezado con la sesion iniciada", () => {
+    montar({ almacenamiento: almacenamientoEnMemoria(SESION_GUARDADA) });
+
+    expect(screen.getByRole("img", { name: /grupo 8/i })).toBeInTheDocument();
+  });
 });
