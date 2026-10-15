@@ -54,6 +54,11 @@ class InscripcionService:
         self._dormir = dormir
 
     def inscribir(self, solicitud):
+        if solicitud.titular is None:
+            # Sin sesion no se informa nada mas (por ejemplo, si un DNI ya esta inscripto).
+            return ResultadoInscripcion(
+                confirmada=False, motivos=[MotivoRechazo.USUARIO_NO_REGISTRADO]
+            )
         try:
             actividad = self._repositorio.actividad(solicitud.actividad)
         except ActividadNoEncontradaError:
