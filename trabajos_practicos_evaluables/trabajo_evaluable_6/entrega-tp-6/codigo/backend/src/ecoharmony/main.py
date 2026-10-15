@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 CODIGO = Path(__file__).resolve().parents[3]
 VARIABLES_OBLIGATORIAS = ("DATABASE_URL", "SECRETO_DE_SESIONES")
-ORIGEN_POR_DEFECTO_DEL_FRONT = "http://localhost:5173"
+ORIGENES_POR_DEFECTO_DEL_FRONT = "http://localhost:5173,http://127.0.0.1:5173"
 
 
 def _servicio_email(entorno):
@@ -64,7 +64,7 @@ def crear_servicios(entorno):
 
 def crear_aplicacion(entorno=None):
     entorno = entorno if entorno is not None else {**leer_env(CODIGO / ".env"), **os.environ}
-    origenes = entorno.get("ORIGENES_PERMITIDOS", ORIGEN_POR_DEFECTO_DEL_FRONT)
+    origenes = entorno.get("ORIGENES_PERMITIDOS", ORIGENES_POR_DEFECTO_DEL_FRONT)
     return crear_app(
         crear_servicios(entorno),
         origenes_permitidos=[origen.strip() for origen in origenes.split(",") if origen.strip()],
