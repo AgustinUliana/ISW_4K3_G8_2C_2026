@@ -119,4 +119,73 @@ describe("PantallaAcceso con aviso", () => {
 
     expect(screen.getByRole("status")).toHaveTextContent("Tu sesión venció.");
   });
+
+  it("marca el campo con problema y explica el formato debajo", async () => {
+    const usuario = userEvent.setup();
+    const api = crearApiFalsa({
+      registrar: vi.fn(async () => falla(422, { motivos: ["email_invalido", "contrasena_invalida"] })),
+    });
+    render(<PantallaAcceso api={api} alEntrar={vi.fn()} />);
+    await usuario.click(screen.getByRole("tab", { name: "Crear cuenta" }));
+    await completar(usuario, "ana", "123");
+
+    await usuario.click(screen.getByRole("button", { name: "Crear cuenta" }));
+    await screen.findByRole("alert");
+
+    const email = screen.getByLabelText("Email");
+    const contrasena = screen.getByLabelText("Contraseña");
+    expect(email).toHaveAttribute("aria-invalid", "true");
+    expect(email).toHaveAccessibleDescription("El email no es válido. Escribilo con el formato nombre@dominio.com.");
+    expect(contrasena).toHaveAttribute("aria-invalid", "true");
+    expect(contrasena).toHaveAccessibleDescription(
+      "La contraseña es demasiado corta: tiene que tener al menos 6 caracteres.",
+    );
+  });
+
+  it("al corregir un campo se le quita la marca y el otro la conserva", async () => {
+    const usuario = userEvent.setup();
+    const api = crearApiFalsa({
+      registrar: vi.fn(async () => falla(422, { motivos: ["email_invalido", "contrasena_invalida"] })),
+    });
+    render(<PantallaAcceso api={api} alEntrar={vi.fn()} />);
+    await usuario.click(screen.getByRole("tab", { name: "Crear cuenta" }));
+    await completar(usuario, "ana", "123");
+    await usuario.click(screen.getByRole("button", { name: "Crear cuenta" }));
+    await screen.findByRole("alert");
+
+    await usuario.type(screen.getByLabelText("Email"), "@example.com");
+
+    expect(screen.getByLabelText("Email")).not.toHaveAttribute("aria-invalid");
+    expect(screen.getByLabelText("Contraseña")).toHaveAttribute("aria-invalid", "true");
+  });
+
+  it("si las credenciales no coinciden no marca ningun campo", async () => {
+    const usuario = userEvent.setup();
+    const api = crearApiFalsa({
+      iniciarSesion: vi.fn(async () => falla(401, { motivos: ["credenciales_invalidas"] })),
+    });
+    render(<PantallaAcceso api={api} alEntrar={vi.fn()} />);
+    await completar(usuario, "ana@example.com", "equivocada");
+
+    await usuario.click(screen.getByRole("button", { name: "Iniciar sesión" }));
+    await screen.findByRole("alert");
+
+    expect(screen.getByLabelText("Email")).not.toHaveAttribute("aria-invalid");
+    expect(screen.getByLabelText("Contraseña")).not.toHaveAttribute("aria-invalid");
+  });
+
+  it("si el email ya esta registrado lo marca en el campo del email", async () => {
+    const usuario = userEvent.setup();
+    const api = crearApiFalsa({
+      registrar: vi.fn(async () => falla(409, { motivos: ["email_ya_registrado"] })),
+    });
+    render(<PantallaAcceso api={api} alEntrar={vi.fn()} />);
+    await usuario.click(screen.getByRole("tab", { name: "Crear cuenta" }));
+    await completar(usuario, "ana@example.com", "secreto1");
+
+    await usuario.click(screen.getByRole("button", { name: "Crear cuenta" }));
+    await screen.findByRole("alert");
+
+    expect(screen.getByLabelText("Email")).toHaveAccessibleDescription("Ese email ya está registrado. Iniciá sesión.");
+  });
 });
