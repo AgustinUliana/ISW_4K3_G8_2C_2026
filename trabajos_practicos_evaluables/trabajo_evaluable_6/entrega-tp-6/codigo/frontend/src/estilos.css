@@ -635,6 +635,7 @@ form .boton-principal {
 }
 
 .acceso-formulario {
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -677,6 +678,15 @@ form .boton-principal {
   border-color: var(--crema);
 }
 
+.acceso-formulario input {
+  background: #f8f9f3;
+}
+
+.acceso-formulario input[aria-invalid="true"] {
+  background: #fbe9e7;
+  border-color: #e0777a;
+}
+
 .acceso-formulario input:focus-visible,
 .acceso-formulario button:focus-visible {
   outline: 3px solid var(--crema);
@@ -698,7 +708,7 @@ form .boton-principal {
 
 @media (max-width: 760px) {
   .acceso {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     min-height: 0;
   }
 
