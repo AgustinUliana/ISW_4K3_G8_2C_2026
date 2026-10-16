@@ -111,7 +111,7 @@ describe("PantallaConfirmacion", () => {
     await usuario.click(screen.getByLabelText("Acepto los términos y condiciones de Tirolesa"));
     await usuario.click(botonConfirmar());
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Visitante 2: el DNI debe tener 7 u 8 dígitos.");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Visitante 2: el DNI debe tener 7 u 8 números sin puntos ni espacios (por ejemplo 30123456).");
   });
 
   it("si el email no se pudo enviar explica que la inscripcion no se confirmo", async () => {

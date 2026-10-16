@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" role="img" aria-label="Jardinería">
+  <rect width="240" height="160" rx="18" fill="#F2E8CF"/>
+  <circle cx="44" cy="36" r="16" fill="#F2B63D"/>
+  <rect x="0" y="128" width="240" height="32" fill="#7A5A3A"/>
+  <rect x="0" y="128" width="240" height="6" fill="#5E4329"/>
+  <g stroke="#386641" stroke-width="4" stroke-linecap="round" fill="none"><path d="M90 128 L90 78"/><path d="M130 128 L130 56"/><path d="M168 128 L168 92"/></g>
+  <g fill="#6A994E"><ellipse cx="78" cy="86" rx="14" ry="7" transform="rotate(-30 78 86)"/><ellipse cx="102" cy="72" rx="14" ry="7" transform="rotate(30 102 72)"/>
+    <ellipse cx="116" cy="70" rx="16" ry="8" transform="rotate(-30 116 70)"/><ellipse cx="144" cy="60" rx="16" ry="8" transform="rotate(30 144 60)"/><ellipse cx="156" cy="98" rx="12" ry="6" transform="rotate(-30 156 98)"/><ellipse cx="180" cy="98" rx="12" ry="6" transform="rotate(30 180 98)"/></g>
+  <circle cx="130" cy="50" r="9" fill="#BC4749"/><circle cx="130" cy="50" r="3.5" fill="#F2B63D"/>
+  <circle cx="90" cy="74" r="7" fill="#F2B63D"/><circle cx="90" cy="74" r="2.8" fill="#BC4749"/>
+  <circle cx="168" cy="88" r="6.5" fill="#F2E8CF" stroke="#BC4749" stroke-width="2"/>
+  <g transform="translate(184 26)">
+    <path d="M0 14 L34 14 L30 44 L4 44 Z" fill="#A7C957" stroke="#386641" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M-2 22 L-22 8 L-18 4 L2 14" fill="#A7C957" stroke="#386641" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M30 20 C46 20 46 36 32 38" fill="none" stroke="#386641" stroke-width="3"/>
+    <g fill="#6AB0DE"><circle cx="-26" cy="20" r="2.5"/><circle cx="-30" cy="30" r="2.5"/><circle cx="-24" cy="38" r="2.5"/></g>
+  </g>
+</svg>

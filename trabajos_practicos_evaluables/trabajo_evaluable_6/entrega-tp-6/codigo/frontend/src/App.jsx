@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { crearCliente } from "./api/cliente";
+import { Salir } from "./componentes/Iconos";
 import { PantallaAcceso } from "./componentes/PantallaAcceso";
 import { PantallaActividades } from "./componentes/PantallaActividades";
 import { PantallaConfirmacion } from "./componentes/PantallaConfirmacion";
@@ -139,6 +140,18 @@ export default function App({
     pantalla = <PantallaListo codigo={codigo} email={sesion.email} alOtra={empezarDeNuevo} />;
   }
 
+  if (!sesion) {
+    return (
+      <div className="acceso">
+        <section className="acceso-escenario" aria-label="EcoHarmony Park">
+          <img className="acceso-logo" src="/logo.png" alt="Logo de EcoHarmony Park" width="760" height="574" />
+          <p className="acceso-lema">Reservá tu lugar en las actividades del parque</p>
+        </section>
+        <main className="acceso-formulario">{pantalla}</main>
+      </div>
+    );
+  }
+
   return (
     <div className="aplicacion">
       <header className="encabezado">
@@ -160,8 +173,14 @@ export default function App({
             {sesion && (
               <div className="usuario">
                 <span>{sesion.email}</span>
-                <button type="button" className="boton-secundario" onClick={() => salir()}>
-                  Cerrar sesión
+                <button
+                  type="button"
+                  className="boton-icono"
+                  aria-label="Cerrar sesión"
+                  title="Cerrar sesión"
+                  onClick={() => salir()}
+                >
+                  <Salir />
                 </button>
               </div>
             )}

@@ -114,7 +114,7 @@ describe("PantallaVisitantes", () => {
 
     await continuar(usuario);
 
-    expect(screen.getByRole("alert")).toHaveTextContent("Completá todos los datos del visitante 2.");
+    expect(screen.getByRole("alert")).toHaveTextContent("Visitante 2: falta el DNI (7 u 8 números), falta la edad.");
     expect(alContinuar).not.toHaveBeenCalled();
     expect(api.validarInscripcion).not.toHaveBeenCalled();
   });
@@ -126,7 +126,7 @@ describe("PantallaVisitantes", () => {
 
     await continuar(usuario);
 
-    expect(screen.getByRole("alert")).toHaveTextContent("Completá todos los datos del visitante 1.");
+    expect(screen.getByRole("alert")).toHaveTextContent("Visitante 1: falta elegir la talla (XS, S, M, L, XL o XXL).");
     expect(alContinuar).not.toHaveBeenCalled();
   });
 
@@ -177,7 +177,7 @@ describe("PantallaVisitantes: validacion en este mismo paso", () => {
     await continuar(usuario);
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Visitante 1: el DNI debe tener 7 u 8 dígitos, la edad debe estar entre 0 y 100.",
+      "Visitante 1: el DNI debe tener 7 u 8 números sin puntos ni espacios (por ejemplo 30123456), la edad debe ser un número entero entre 0 y 100.",
     );
     expect(alContinuar).not.toHaveBeenCalled();
   });
@@ -295,5 +295,71 @@ describe("PantallaVisitantes: validacion en este mismo paso", () => {
     });
 
     expect(screen.getAllByRole("group", { name: /^Visitante/ })).toHaveLength(1);
+  });
+
+  it("debajo de cada campo con problema explica el formato esperado", async () => {
+    const usuario = userEvent.setup();
+    const api = crearApiFalsa({ validarInscripcion: vi.fn(async () => rechazoDeDniYEdad()) });
+    mostrar(SAFARI, 5, { api });
+    await completar(usuario, 1, { nombre: "Eva Soto", dni: "123", edad: 150 });
+
+    await continuar(usuario);
+    await screen.findByRole("alert");
+
+    const grupo = visitante(1);
+    const mensajeDni = "El DNI debe tener 7 u 8 números sin puntos ni espacios (por ejemplo 30123456).";
+    expect(grupo.getByText(mensajeDni)).toBeInTheDocument();
+    expect(grupo.getByLabelText("DNI")).toHaveAccessibleDescription(mensajeDni);
+    expect(grupo.getByLabelText("Edad")).toHaveAccessibleDescription("La edad debe ser un número entero entre 0 y 100.");
+    expect(grupo.queryByText(/falta el nombre|el nombre solo/i)).toBeNull();
+  });
+
+  it("al corregir un campo desaparece su mensaje y quedan los demas", async () => {
+    const usuario = userEvent.setup();
+    const api = crearApiFalsa({ validarInscripcion: vi.fn(async () => rechazoDeDniYEdad()) });
+    mostrar(SAFARI, 5, { api });
+    await completar(usuario, 1, { nombre: "Eva Soto", dni: "123", edad: 150 });
+    await continuar(usuario);
+    await screen.findByRole("alert");
+
+    await usuario.type(visitante(1).getByLabelText("DNI"), "45678");
+
+    expect(visitante(1).queryByText(/El DNI debe tener/)).toBeNull();
+    expect(visitante(1).getByText(/La edad debe ser un número entero/)).toBeInTheDocument();
+  });
+
+  it("si no alcanza la edad minima dice cual es, en el campo y en el resumen", async () => {
+    const usuario = userEvent.setup();
+    const api = crearApiFalsa({
+      validarInscripcion: vi.fn(async () =>
+        falla(422, { motivos: ["visitante_invalido"], visitantes: { 1: ["edad_no_permitida"] } }),
+      ),
+    });
+    mostrar(TIROLESA, 5, { api });
+    await completar(usuario, 1, { nombre: "Eva Soto", dni: "40123456", edad: 5, talla: "M" });
+
+    await continuar(usuario);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Visitante 1: no alcanza la edad mínima: la actividad es desde los 8 años.",
+    );
+    expect(visitante(1).getByText("No alcanza la edad mínima: la actividad es desde los 8 años.")).toBeInTheDocument();
+  });
+
+  it("si faltan datos lo dice de cada visitante incompleto y marca cada campo vacio", async () => {
+    const usuario = userEvent.setup();
+    mostrar(SAFARI, 5);
+    await usuario.selectOptions(screen.getByLabelText("Cantidad de personas"), "2");
+    await usuario.type(visitante(2).getByLabelText("Nombre"), "Eva Soto");
+
+    await continuar(usuario);
+
+    const aviso = screen.getByRole("alert");
+    expect(aviso).toHaveTextContent("Visitante 1: falta el nombre y apellido, falta el DNI (7 u 8 números), falta la edad.");
+    expect(aviso).toHaveTextContent("Visitante 2: falta el DNI (7 u 8 números), falta la edad.");
+    expect(visitante(1).getByLabelText("Nombre")).toHaveAttribute("aria-invalid", "true");
+    expect(visitante(1).getByText("Falta el nombre y apellido.")).toBeInTheDocument();
+    expect(visitante(2).getByLabelText("Nombre")).not.toHaveAttribute("aria-invalid");
+    expect(visitante(2).getByLabelText("DNI")).toHaveAccessibleDescription("Falta el DNI (7 u 8 números).");
   });
 });

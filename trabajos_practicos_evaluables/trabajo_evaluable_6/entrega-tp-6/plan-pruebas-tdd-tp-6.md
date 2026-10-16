@@ -477,7 +477,7 @@ Los contratos de los Grupos 6, 7 y 8 garantizan que reemplazar un doble por la p
 ## 11. Estado de la implementación (2026-10-15)
 
 Rama `tp6-tdd`: cada prueba se hizo con su ciclo visible en `git log` (`test(ID): rojo` → `feat(ID): verde` →
-`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **378 pruebas del backend y 110 del front, todas verdes** (sin base de
+`refactor`); las pruebas que pasaron de entrada figuran como `ya verde`. **378 pruebas del backend y 141 del front, todas verdes** (sin base de
 datos y contra PostgreSQL real), PEP 8 limpio con `ruff`.
 
 | Grupo | Archivo de pruebas | Estado |
@@ -676,3 +676,19 @@ estaba corriendo se había iniciado **antes** de cargar el SMTP en el `.env` (la
 seguía guardando los mensajes en `salida_de_emails/`. Reiniciada la API, una inscripción real (registro, sesión e inscripción
 con la API y PostgreSQL reales) envió el email por Gmail y no escribió nada en la carpeta. Hay que **reiniciar la API cada
 vez que se cambia el `.env`**.
+
+### 11.7 Mejoras de la interfaz – rama `feature/mejoras-de-interfaz`
+
+| Cambio | Pruebas | Archivo |
+|---|---|---|
+| Mensajes de error que explican el formato esperado (email, contraseña, nombre, DNI, edad, talla) y la edad mínima de la actividad | MSJ-08..16, CAM-05..09 | `mensajes.test.js`, `campos.test.js` |
+| Mensaje de formato **debajo de cada campo** con problema (`aria-describedby`), todos los visitantes incompletos indicados a la vez | VIS-F12..15 | `PantallaVisitantes.test.jsx` |
+| Lo mismo en el acceso (email y contraseña); las credenciales incorrectas no marcan ningún campo | ACC-09..12 | `PantallaAcceso.test.jsx` |
+| Ilustración de cada actividad en su tarjeta (con descripción para lectores de pantalla); una actividad sin ilustración se muestra igual | IMG-01..05 | `imagenes.test.js`, `PantallaActividades.test.jsx` |
+| Acceso con formato propio: logo grande y lema, formulario sobre el fondo, sin el encabezado; con sesión el logo pasa al encabezado | ACC-13, ACC-14 | `App.test.jsx` |
+
+Las cuatro ilustraciones (`public/actividades/*.svg`) son vectoriales, dibujadas por el grupo con la paleta del PO. | Ojo para ver u ocultar la contraseña (iniciar sesión y crear cuenta; se oculta de nuevo al cambiar de pestaña; no envía el formulario) | ACC-15..17 | `PantallaAcceso.test.jsx` |
+| Cerrar sesión como botón redondo con icono (nombre accesible y tooltip, sin texto visible) | APP-13 | `App.test.jsx` |
+
+Los cambios solo
+visuales (colores de los campos del acceso, columna que no desborda en celular) van como `refactor(estilo)`.

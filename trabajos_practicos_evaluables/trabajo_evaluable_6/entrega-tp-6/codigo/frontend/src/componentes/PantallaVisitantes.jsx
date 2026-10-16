@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { camposConError } from "../dominio/campos";
+import { mensajesPorCampo } from "../dominio/campos";
 import { textoDeCupo } from "../dominio/formato";
 import { mensajesDeRechazo } from "../dominio/mensajes";
 
@@ -27,7 +27,7 @@ export function PantallaVisitantes({
       : [visitanteVacio()],
   );
   const [errores, setErrores] = useState([]);
-  const [marcas, setMarcas] = useState({}); // posicion -> campos con error segun la API
+  const [problemas, setProblemas] = useState({}); // posicion -> { campo: mensaje }
   const [validando, setValidando] = useState(false);
 
   function cambiarCantidad(cantidad) {
@@ -36,24 +36,49 @@ export function PantallaVisitantes({
 
   function cambiar(indice, campo, valor) {
     setVisitantes((actuales) => actuales.map((v, i) => (i === indice ? { ...v, [campo]: valor } : v)));
-    // al corregir un campo se le quita la marca de error
-    setMarcas((actuales) => {
+    // al corregir un campo se le quita su mensaje de error
+    setProblemas((actuales) => {
       const posicion = String(indice + 1);
-      if (!actuales[posicion]?.includes(campo)) return actuales;
-      return { ...actuales, [posicion]: actuales[posicion].filter((c) => c !== campo) };
+      if (!actuales[posicion]?.[campo]) return actuales;
+      const { [campo]: _corregido, ...resto } = actuales[posicion];
+      return { ...actuales, [posicion]: resto };
     });
   }
 
-  const marcado = (n, campo) => (marcas[String(n)]?.includes(campo) ? true : undefined);
+  const contexto = { edadMinima: actividad.edad_minima };
+  const marcado = (n, campo) => (problemas[String(n)]?.[campo] ? true : undefined);
+  const descrito = (n, campo) => (problemas[String(n)]?.[campo] ? `error-${campo}-${n}` : undefined);
+
+  function mostrarRechazo(cuerpo) {
+    setErrores(mensajesDeRechazo(cuerpo, contexto));
+    setProblemas(
+      Object.fromEntries(
+        Object.entries(cuerpo.visitantes ?? {}).map(([posicion, motivos]) => [
+          posicion,
+          mensajesPorCampo(motivos, contexto),
+        ]),
+      ),
+    );
+  }
+
+  // Lo que le falta completar a un visitante, con los mismos motivos que usa la API.
+  function motivosFaltantes(v) {
+    return [
+      !v.nombre.trim() && "nombre_requerido",
+      !v.dni.trim() && "dni_requerido",
+      v.edad === "" && "edad_requerida",
+      actividad.requiere_talla && !v.talla && "talla_requerida",
+    ].filter(Boolean);
+  }
 
   async function continuar(evento) {
     evento.preventDefault();
-    setMarcas({});
-    const incompleto = visitantes.findIndex(
-      (v) => !v.nombre.trim() || !v.dni.trim() || v.edad === "" || (actividad.requiere_talla && !v.talla),
+    setProblemas({});
+    const incompletos = Object.fromEntries(
+      visitantes.map((v, i) => [String(i + 1), motivosFaltantes(v)]).filter(([, motivos]) => motivos.length > 0),
     );
-    if (incompleto >= 0) {
-      setErrores([`Completá todos los datos del visitante ${incompleto + 1}.`]);
+    if (Object.keys(incompletos).length > 0) {
+      mostrarRechazo({ motivos: ["visitante_invalido"], visitantes: incompletos });
       return;
     }
     setErrores([]);
@@ -76,15 +101,7 @@ export function PantallaVisitantes({
       setErrores([SESION_VENCIDA]);
       alSesionVencida();
     } else {
-      setErrores(mensajesDeRechazo(respuesta.datos));
-      setMarcas(
-        Object.fromEntries(
-          Object.entries(respuesta.datos.visitantes ?? {}).map(([posicion, motivos]) => [
-            posicion,
-            camposConError(motivos),
-          ]),
-        ),
-      );
+      mostrarRechazo(respuesta.datos);
     }
   }
 
@@ -116,16 +133,20 @@ export function PantallaVisitantes({
                 autoComplete="name"
                 value={visitante.nombre}
                 aria-invalid={marcado(n, "nombre")}
+                aria-describedby={descrito(n, "nombre")}
                 onChange={(e) => cambiar(indice, "nombre", e.target.value)}
               />
+              <ErrorDeCampo id={`error-nombre-${n}`} texto={problemas[String(n)]?.nombre} />
               <label htmlFor={`dni-${n}`}>DNI</label>
               <input
                 id={`dni-${n}`}
                 inputMode="numeric"
                 value={visitante.dni}
                 aria-invalid={marcado(n, "dni")}
+                aria-describedby={descrito(n, "dni")}
                 onChange={(e) => cambiar(indice, "dni", e.target.value)}
               />
+              <ErrorDeCampo id={`error-dni-${n}`} texto={problemas[String(n)]?.dni} />
               <label htmlFor={`edad-${n}`}>Edad</label>
               <input
                 id={`edad-${n}`}
@@ -134,8 +155,10 @@ export function PantallaVisitantes({
                 min="0"
                 value={visitante.edad}
                 aria-invalid={marcado(n, "edad")}
+                aria-describedby={descrito(n, "edad")}
                 onChange={(e) => cambiar(indice, "edad", e.target.value)}
               />
+              <ErrorDeCampo id={`error-edad-${n}`} texto={problemas[String(n)]?.edad} />
               {actividad.requiere_talla && (
                 <>
                   <label htmlFor={`talla-${n}`}>Talla</label>
@@ -143,6 +166,7 @@ export function PantallaVisitantes({
                     id={`talla-${n}`}
                     value={visitante.talla}
                     aria-invalid={marcado(n, "talla")}
+                aria-describedby={descrito(n, "talla")}
                     onChange={(e) => cambiar(indice, "talla", e.target.value)}
                   >
                     <option value="">Elegí la talla</option>
@@ -152,6 +176,7 @@ export function PantallaVisitantes({
                       </option>
                     ))}
                   </select>
+                  <ErrorDeCampo id={`error-talla-${n}`} texto={problemas[String(n)]?.talla} />
                 </>
               )}
             </fieldset>
@@ -175,4 +200,12 @@ export function PantallaVisitantes({
       </form>
     </section>
   );
+}
+
+function ErrorDeCampo({ id, texto }) {
+  return texto ? (
+    <p id={id} className="error-campo">
+      {texto}
+    </p>
+  ) : null;
 }

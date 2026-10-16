@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" role="img" aria-label="Palestra">
+  <rect width="240" height="160" rx="18" fill="#F2E8CF"/>
+  <rect x="58" y="14" width="124" height="132" rx="8" fill="#6A994E"/>
+  <rect x="58" y="14" width="124" height="132" rx="8" fill="none" stroke="#386641" stroke-width="4"/>
+  <g fill="#BC4749"><circle cx="82" cy="40" r="7"/><circle cx="150" cy="58" r="7"/><circle cx="96" cy="112" r="7"/><circle cx="160" cy="124" r="7"/></g>
+  <g fill="#F2E8CF"><circle cx="126" cy="36" r="6"/><circle cx="76" cy="78" r="6"/><circle cx="166" cy="96" r="6"/><circle cx="120" cy="130" r="6"/></g>
+  <g fill="#A7C957"><circle cx="104" cy="66" r="6"/><circle cx="140" cy="82" r="6"/><circle cx="84" cy="136" r="6"/></g>
+  <path d="M122 14 C122 30 112 40 112 50" stroke="#F2B63D" stroke-width="3" fill="none"/>
+  <g transform="translate(112 70)">
+    <circle cx="0" cy="-12" r="8" fill="#F2C9A0"/>
+    <path d="M-9 -15 A9 9 0 0 1 9 -15 Z" fill="#BC4749"/>
+    <path d="M-8 -2 L8 -2 L6 26 L-6 26 Z" fill="#386641"/>
+    <path d="M-6 26 L-14 40 M6 26 L12 38" stroke="#386641" stroke-width="5" stroke-linecap="round"/>
+    <path d="M-8 0 L-16 -18 M8 0 L14 -22" stroke="#F2C9A0" stroke-width="4.5" stroke-linecap="round"/>
+  </g>
+  <rect x="0" y="146" width="240" height="14" fill="#A7C957"/>
+</svg>

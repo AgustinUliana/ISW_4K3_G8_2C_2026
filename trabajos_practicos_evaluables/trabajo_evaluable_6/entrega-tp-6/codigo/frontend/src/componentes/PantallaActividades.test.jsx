@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { ACTIVIDADES, crearApiFalsa, falla } from "../test/apiFalsa";
+import { ACTIVIDADES, crearApiFalsa, falla, ok } from "../test/apiFalsa";
 import { PantallaActividades } from "./PantallaActividades";
 
 const tarjeta = (nombre) => screen.getByRole("article", { name: nombre });
@@ -56,5 +56,30 @@ describe("PantallaActividades", () => {
     await usuario.click(screen.getByRole("button", { name: "Reintentar" }));
 
     expect(await screen.findByRole("heading", { name: "Tirolesa" })).toBeInTheDocument();
+  });
+
+  it("cada tarjeta muestra la ilustracion de su actividad", async () => {
+    render(<PantallaActividades api={crearApiFalsa()} alElegir={vi.fn()} />);
+
+    await screen.findByRole("heading", { name: "Tirolesa" });
+
+    for (const [nombre, archivo] of [
+      ["Tirolesa", "tirolesa"],
+      ["Safari", "safari"],
+      ["Palestra", "palestra"],
+      ["Jardinería", "jardineria"],
+    ]) {
+      const imagen = within(tarjeta(nombre)).getByRole("img", { name: `Ilustración de la actividad ${nombre}` });
+      expect(imagen).toHaveAttribute("src", `/actividades/${archivo}.svg`);
+    }
+  });
+
+  it("una actividad sin ilustracion se muestra igual, sin imagen", async () => {
+    const nueva = { nombre: "Rafting", requiere_talla: false, edad_minima: 0, cupo_por_turno: 6, disponible: true };
+    render(<PantallaActividades api={crearApiFalsa({ actividades: async () => ok([nueva]) })} alElegir={vi.fn()} />);
+
+    await screen.findByRole("heading", { name: "Rafting" });
+
+    expect(within(tarjeta("Rafting")).queryByRole("img")).toBeNull();
   });
 });
