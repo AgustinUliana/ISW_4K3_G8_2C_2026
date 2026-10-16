@@ -251,18 +251,21 @@ describe("App: los datos de los visitantes se validan en su propio paso", () => 
     expect(screen.getByRole("status")).toHaveTextContent(/tu sesión venció/i);
   });
 
-  it("muestra el logo de EcoHarmony Park tambien sin sesion", () => {
+  it("sin sesion el acceso muestra el logo grande y el lema, sin el encabezado de la aplicacion", () => {
     montar();
 
-    const logo = within(screen.getByRole("banner")).getByRole("img", {
-      name: /^Logo de EcoHarmony Park$/i,
-    });
-    expect(logo).toHaveAttribute("src", "/logo-emblema.png");
+    const logo = screen.getByRole("img", { name: /^Logo de EcoHarmony Park$/i });
+    expect(logo).toHaveAttribute("src", "/logo.png");
+    expect(screen.getByText("Reservá tu lugar en las actividades del parque")).toBeInTheDocument();
+    expect(screen.queryByRole("banner")).toBeNull();
+    expect(screen.getByRole("heading", { name: "Ingresá para inscribirte" })).toBeInTheDocument();
   });
 
-  it("el logo sigue en el encabezado con la sesion iniciada", () => {
+  it("con la sesion iniciada el logo pasa al encabezado, en su version chica", () => {
     montar({ almacenamiento: almacenamientoEnMemoria(SESION_GUARDADA) });
 
-    expect(screen.getByRole("img", { name: /^Logo de EcoHarmony Park$/i })).toBeInTheDocument();
+    const logo = within(screen.getByRole("banner")).getByRole("img", { name: /^Logo de EcoHarmony Park$/i });
+    expect(logo).toHaveAttribute("src", "/logo-emblema.png");
+    expect(screen.queryByText("Reservá tu lugar en las actividades del parque")).toBeNull();
   });
 });
