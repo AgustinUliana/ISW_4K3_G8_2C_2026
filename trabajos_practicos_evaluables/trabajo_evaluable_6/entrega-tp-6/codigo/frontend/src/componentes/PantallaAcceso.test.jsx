@@ -188,4 +188,47 @@ describe("PantallaAcceso con aviso", () => {
 
     expect(screen.getByLabelText("Email")).toHaveAccessibleDescription("Ese email ya está registrado. Iniciá sesión.");
   });
+
+  it("la contraseña empieza oculta y el ojo la muestra y la vuelve a ocultar", async () => {
+    const usuario = userEvent.setup();
+    render(<PantallaAcceso api={crearApiFalsa()} alEntrar={vi.fn()} />);
+    await usuario.type(screen.getByLabelText("Contraseña"), "secreto1");
+
+    expect(screen.getByLabelText("Contraseña")).toHaveAttribute("type", "password");
+
+    await usuario.click(screen.getByRole("button", { name: "Mostrar la contraseña" }));
+
+    expect(screen.getByLabelText("Contraseña")).toHaveAttribute("type", "text");
+    expect(screen.getByLabelText("Contraseña")).toHaveValue("secreto1");
+    const ocultar = screen.getByRole("button", { name: "Ocultar la contraseña" });
+    expect(ocultar).toHaveAttribute("aria-pressed", "true");
+
+    await usuario.click(ocultar);
+
+    expect(screen.getByLabelText("Contraseña")).toHaveAttribute("type", "password");
+  });
+
+  it("el ojo tambien esta al crear la cuenta y vuelve a ocultar la contraseña al cambiar de pestaña", async () => {
+    const usuario = userEvent.setup();
+    render(<PantallaAcceso api={crearApiFalsa()} alEntrar={vi.fn()} />);
+
+    await usuario.click(screen.getByRole("tab", { name: "Crear cuenta" }));
+    await usuario.click(screen.getByRole("button", { name: "Mostrar la contraseña" }));
+    expect(screen.getByLabelText("Contraseña")).toHaveAttribute("type", "text");
+
+    await usuario.click(screen.getByRole("tab", { name: "Iniciar sesión" }));
+
+    expect(screen.getByLabelText("Contraseña")).toHaveAttribute("type", "password");
+  });
+
+  it("tocar el ojo no envia el formulario", async () => {
+    const usuario = userEvent.setup();
+    const api = crearApiFalsa();
+    render(<PantallaAcceso api={api} alEntrar={vi.fn()} />);
+    await completar(usuario, "ana@example.com", "secreto1");
+
+    await usuario.click(screen.getByRole("button", { name: "Mostrar la contraseña" }));
+
+    expect(api.iniciarSesion).not.toHaveBeenCalled();
+  });
 });
