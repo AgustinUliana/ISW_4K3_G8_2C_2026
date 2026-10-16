@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { crearCliente } from "./api/cliente";
+import { Salir } from "./componentes/Iconos";
 import { PantallaAcceso } from "./componentes/PantallaAcceso";
 import { PantallaActividades } from "./componentes/PantallaActividades";
 import { PantallaConfirmacion } from "./componentes/PantallaConfirmacion";
@@ -172,8 +173,14 @@ export default function App({
             {sesion && (
               <div className="usuario">
                 <span>{sesion.email}</span>
-                <button type="button" className="boton-secundario" onClick={() => salir()}>
-                  Cerrar sesión
+                <button
+                  type="button"
+                  className="boton-icono"
+                  aria-label="Cerrar sesión"
+                  title="Cerrar sesión"
+                  onClick={() => salir()}
+                >
+                  <Salir />
                 </button>
               </div>
             )}

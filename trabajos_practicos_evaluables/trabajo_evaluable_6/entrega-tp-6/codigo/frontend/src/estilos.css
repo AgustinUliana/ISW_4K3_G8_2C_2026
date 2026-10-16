@@ -755,3 +755,23 @@ form .boton-principal {
 .boton-ojo[aria-pressed="true"] {
   color: var(--rojo);
 }
+
+/* ---------- Boton redondo con icono (cerrar sesion) ---------- */
+.boton-icono {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  color: var(--verde-oscuro);
+  background: rgba(242, 232, 207, 0.55);
+  border: 2px solid var(--verde-oscuro);
+  border-radius: 50%;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.boton-icono:hover {
+  color: var(--crema);
+  background: var(--rojo);
+  border-color: var(--rojo);
+}
