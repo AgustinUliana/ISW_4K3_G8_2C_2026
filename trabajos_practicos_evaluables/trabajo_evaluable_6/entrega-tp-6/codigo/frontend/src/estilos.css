@@ -722,3 +722,36 @@ form .boton-principal {
     width: min(64%, 260px);
   }
 }
+
+/* ---------- Ojo para ver la contraseña ---------- */
+.campo-clave {
+  position: relative;
+}
+
+.campo-clave input {
+  padding-right: 52px;
+}
+
+.boton-ojo {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  color: var(--verde-oscuro);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.boton-ojo:hover {
+  background: rgba(56, 102, 65, 0.15);
+}
+
+.boton-ojo[aria-pressed="true"] {
+  color: var(--rojo);
+}

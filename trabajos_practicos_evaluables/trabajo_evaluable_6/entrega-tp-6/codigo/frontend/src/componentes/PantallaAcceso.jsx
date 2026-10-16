@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { mensajesPorCampo } from "../dominio/campos";
 import { mensajesDeRechazo } from "../dominio/mensajes";
+import { OjoAbierto, OjoTachado } from "./Iconos";
 
 export function PantallaAcceso({ api, alEntrar, aviso = null }) {
   const [modo, setModo] = useState("ingresar"); // "ingresar" | "registrar"
@@ -9,12 +10,14 @@ export function PantallaAcceso({ api, alEntrar, aviso = null }) {
   const [errores, setErrores] = useState([]);
   const [problemas, setProblemas] = useState({}); // campo -> mensaje
   const [enviando, setEnviando] = useState(false);
+  const [verContrasena, setVerContrasena] = useState(false);
   const registrando = modo === "registrar";
 
   function cambiarModo(nuevo) {
     setModo(nuevo);
     setErrores([]);
     setProblemas({});
+    setVerContrasena(false);
   }
 
   function rechazar(datos) {
@@ -77,15 +80,27 @@ export function PantallaAcceso({ api, alEntrar, aviso = null }) {
         />
         <ErrorDeCampo id="error-email" texto={problemas.email} />
         <label htmlFor="contrasena">Contraseña</label>
-        <input
-          id="contrasena"
-          type="password"
-          autoComplete={registrando ? "new-password" : "current-password"}
-          value={contrasena}
-          aria-invalid={problemas.contrasena ? true : undefined}
-          aria-describedby={problemas.contrasena ? "error-contrasena" : undefined}
-          onChange={(e) => escribir("contrasena", e.target.value, setContrasena)}
-        />
+        <div className="campo-clave">
+          <input
+            id="contrasena"
+            type={verContrasena ? "text" : "password"}
+            autoComplete={registrando ? "new-password" : "current-password"}
+            value={contrasena}
+            aria-invalid={problemas.contrasena ? true : undefined}
+            aria-describedby={problemas.contrasena ? "error-contrasena" : undefined}
+            onChange={(e) => escribir("contrasena", e.target.value, setContrasena)}
+          />
+          <button
+            type="button"
+            className="boton-ojo"
+            aria-label={verContrasena ? "Ocultar la contraseña" : "Mostrar la contraseña"}
+            aria-pressed={verContrasena}
+            title={verContrasena ? "Ocultar la contraseña" : "Mostrar la contraseña"}
+            onClick={() => setVerContrasena((visible) => !visible)}
+          >
+            {verContrasena ? <OjoTachado /> : <OjoAbierto />}
+          </button>
+        </div>
         <ErrorDeCampo id="error-contrasena" texto={problemas.contrasena} />
         {errores.length > 0 && (
           <div role="alert" className="aviso aviso-error">
