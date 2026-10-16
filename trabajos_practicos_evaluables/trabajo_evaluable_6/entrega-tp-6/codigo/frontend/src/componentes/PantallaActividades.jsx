@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { imagenDeActividad } from "../dominio/imagenes";
 import { mensajesDeRechazo } from "../dominio/mensajes";
 import { Vidrio } from "./Vidrio";
 
@@ -42,6 +43,16 @@ export function PantallaActividades({ api, alElegir }) {
         {actividades.map((actividad) => (
           <Vidrio key={actividad.nombre} radio={24} refraccion={36} elasticidad={0.12} className="tarjeta">
             <article aria-labelledby={`actividad-${actividad.nombre}`}>
+              {imagenDeActividad(actividad.nombre) && (
+                <img
+                  className="tarjeta-imagen"
+                  src={imagenDeActividad(actividad.nombre)}
+                  alt={`Ilustración de la actividad ${actividad.nombre}`}
+                  width="240"
+                  height="160"
+                  loading="lazy"
+                />
+              )}
               <h3 id={`actividad-${actividad.nombre}`}>{actividad.nombre}</h3>
               <ul className="requisitos">
                 <li>{actividad.edad_minima > 0 ? `Desde ${actividad.edad_minima} años` : "Todas las edades"}</li>
