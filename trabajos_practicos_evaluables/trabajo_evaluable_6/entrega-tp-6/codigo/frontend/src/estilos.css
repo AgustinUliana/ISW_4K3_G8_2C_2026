@@ -371,6 +371,15 @@ form .boton-principal {
   background: var(--verde-oscuro);
 }
 
+/* ---------- Mensaje de error debajo de un campo ---------- */
+.error-campo {
+  margin: 4px 2px 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #9c2f31;
+}
+
 /* ---------- Avisos ---------- */
 .aviso {
   margin: 14px 0 0;
