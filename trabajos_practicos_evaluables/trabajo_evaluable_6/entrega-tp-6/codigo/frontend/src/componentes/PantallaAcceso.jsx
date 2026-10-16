@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { mensajesPorCampo } from "../dominio/campos";
 import { mensajesDeRechazo } from "../dominio/mensajes";
 
 export function PantallaAcceso({ api, alEntrar, aviso = null }) {
@@ -6,25 +7,39 @@ export function PantallaAcceso({ api, alEntrar, aviso = null }) {
   const [email, setEmail] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [errores, setErrores] = useState([]);
+  const [problemas, setProblemas] = useState({}); // campo -> mensaje
   const [enviando, setEnviando] = useState(false);
   const registrando = modo === "registrar";
 
   function cambiarModo(nuevo) {
     setModo(nuevo);
     setErrores([]);
+    setProblemas({});
+  }
+
+  function rechazar(datos) {
+    setErrores(mensajesDeRechazo(datos));
+    setProblemas(mensajesPorCampo(datos.motivos ?? []));
+  }
+
+  // al corregir un campo se le quita su mensaje de error
+  function escribir(campo, valor, guardar) {
+    guardar(valor);
+    setProblemas(({ [campo]: _corregido, ...resto }) => resto);
   }
 
   async function enviar(evento) {
     evento.preventDefault();
     setEnviando(true);
     setErrores([]);
+    setProblemas({});
     try {
       if (registrando) {
         const alta = await api.registrar(email, contrasena);
-        if (!alta.ok) return setErrores(mensajesDeRechazo(alta.datos));
+        if (!alta.ok) return rechazar(alta.datos);
       }
       const sesion = await api.iniciarSesion(email, contrasena);
-      if (!sesion.ok) return setErrores(mensajesDeRechazo(sesion.datos));
+      if (!sesion.ok) return rechazar(sesion.datos);
       alEntrar({ token: sesion.datos.token, email: email.trim().toLowerCase() });
     } finally {
       setEnviando(false);
@@ -56,16 +71,22 @@ export function PantallaAcceso({ api, alEntrar, aviso = null }) {
           type="email"
           autoComplete="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          aria-invalid={problemas.email ? true : undefined}
+          aria-describedby={problemas.email ? "error-email" : undefined}
+          onChange={(e) => escribir("email", e.target.value, setEmail)}
         />
+        <ErrorDeCampo id="error-email" texto={problemas.email} />
         <label htmlFor="contrasena">Contraseña</label>
         <input
           id="contrasena"
           type="password"
           autoComplete={registrando ? "new-password" : "current-password"}
           value={contrasena}
-          onChange={(e) => setContrasena(e.target.value)}
+          aria-invalid={problemas.contrasena ? true : undefined}
+          aria-describedby={problemas.contrasena ? "error-contrasena" : undefined}
+          onChange={(e) => escribir("contrasena", e.target.value, setContrasena)}
         />
+        <ErrorDeCampo id="error-contrasena" texto={problemas.contrasena} />
         {errores.length > 0 && (
           <div role="alert" className="aviso aviso-error">
             {errores.map((mensaje) => (
@@ -79,4 +100,12 @@ export function PantallaAcceso({ api, alEntrar, aviso = null }) {
       </form>
     </section>
   );
+}
+
+function ErrorDeCampo({ id, texto }) {
+  return texto ? (
+    <p id={id} className="error-campo">
+      {texto}
+    </p>
+  ) : null;
 }
