@@ -177,7 +177,7 @@ describe("PantallaVisitantes: validacion en este mismo paso", () => {
     await continuar(usuario);
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Visitante 1: el DNI debe tener 7 u 8 dígitos, la edad debe estar entre 0 y 100.",
+      "Visitante 1: el DNI debe tener 7 u 8 números sin puntos ni espacios (por ejemplo 30123456), la edad debe ser un número entero entre 0 y 100.",
     );
     expect(alContinuar).not.toHaveBeenCalled();
   });

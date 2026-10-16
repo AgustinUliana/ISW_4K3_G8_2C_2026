@@ -203,7 +203,7 @@ describe("App: los datos de los visitantes se validan en su propio paso", () => 
     await usuario.click(screen.getByRole("button", { name: "Continuar" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Visitante 1: el DNI debe tener 7 u 8 dígitos, la edad debe estar entre 0 y 100.",
+      "Visitante 1: el DNI debe tener 7 u 8 números sin puntos ni espacios (por ejemplo 30123456), la edad debe ser un número entero entre 0 y 100.",
     );
     expect(screen.getByRole("heading", { name: "¿Quiénes participan?" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Revisá y confirmá" })).toBeNull();

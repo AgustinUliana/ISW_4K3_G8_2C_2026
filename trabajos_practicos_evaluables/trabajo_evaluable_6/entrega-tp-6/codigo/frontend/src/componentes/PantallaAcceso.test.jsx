@@ -81,7 +81,7 @@ describe("PantallaAcceso", () => {
 
     const aviso = await screen.findByRole("alert");
     expect(aviso).toHaveTextContent("El email no es válido.");
-    expect(aviso).toHaveTextContent("La contraseña debe tener al menos 6 caracteres.");
+    expect(aviso).toHaveTextContent("La contraseña es demasiado corta: tiene que tener al menos 6 caracteres.");
   });
 
   it("mientras espera la respuesta deshabilita el boton para no enviar dos veces", async () => {
