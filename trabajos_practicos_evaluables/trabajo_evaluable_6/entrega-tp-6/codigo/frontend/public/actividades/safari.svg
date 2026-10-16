@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" role="img" aria-label="Safari">
+  <rect width="240" height="160" rx="18" fill="#F2E8CF"/>
+  <circle cx="190" cy="48" r="22" fill="#F2B63D"/>
+  <path d="M0 122 C60 104 110 120 160 110 C200 102 225 112 240 108 L240 160 L0 160 Z" fill="#A7C957"/>
+  <path d="M0 140 C70 128 120 142 175 134 C210 129 228 134 240 132 L240 160 L0 160 Z" fill="#6A994E"/>
+  <rect x="36" y="86" width="5" height="38" fill="#7A5A3A"/>
+  <path d="M10 88 C26 70 52 70 68 88 C52 82 26 82 10 88 Z" fill="#386641"/>
+  <g>
+    <rect x="104" y="100" width="7" height="30" rx="3" fill="#D9A441"/>
+    <rect x="116" y="100" width="7" height="30" rx="3" fill="#C4912F"/>
+    <rect x="148" y="100" width="7" height="30" rx="3" fill="#D9A441"/>
+    <rect x="160" y="100" width="7" height="30" rx="3" fill="#C4912F"/>
+    <ellipse cx="136" cy="98" rx="36" ry="20" fill="#E0AE4B"/>
+    <path d="M160 92 L176 30 L190 36 L172 96 Z" fill="#E0AE4B"/>
+    <ellipse cx="188" cy="30" rx="15" ry="9" transform="rotate(-18 188 30)" fill="#E0AE4B"/>
+    <path d="M181 22 L180 12 M190 22 L192 12" stroke="#7A5A3A" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="180" cy="12" r="3" fill="#7A5A3A"/><circle cx="192" cy="12" r="3" fill="#7A5A3A"/>
+    <circle cx="193" cy="29" r="2.2" fill="#386641"/>
+    <path d="M100 96 C92 100 90 108 94 114" stroke="#E0AE4B" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <g fill="#A8741F"><circle cx="124" cy="94" r="5"/><circle cx="140" cy="102" r="5"/><circle cx="150" cy="90" r="4.5"/><circle cx="166" cy="70" r="4"/><circle cx="173" cy="52" r="3.5"/></g>
+  </g>
+</svg>

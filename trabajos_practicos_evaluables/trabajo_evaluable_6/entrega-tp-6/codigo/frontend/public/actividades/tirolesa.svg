@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" role="img" aria-label="Tirolesa">
+  <rect width="240" height="160" rx="18" fill="#F2E8CF"/>
+  <circle cx="196" cy="34" r="16" fill="#F2B63D"/>
+  <path d="M0 118 C50 88 90 108 130 96 C170 84 205 100 240 90 L240 160 L0 160 Z" fill="#A7C957"/>
+  <path d="M0 136 C60 116 110 134 160 122 C195 114 220 124 240 120 L240 160 L0 160 Z" fill="#6A994E"/>
+  <rect x="26" y="40" width="12" height="96" rx="3" fill="#7A5A3A"/>
+  <ellipse cx="32" cy="38" rx="30" ry="26" fill="#386641"/>
+  <ellipse cx="18" cy="52" rx="18" ry="14" fill="#6A994E"/>
+  <rect x="202" y="62" width="12" height="76" rx="3" fill="#7A5A3A"/>
+  <ellipse cx="208" cy="60" rx="26" ry="22" fill="#386641"/>
+  <rect x="20" y="58" width="26" height="6" rx="2" fill="#B08A5A"/>
+  <path d="M40 60 L204 82" stroke="#386641" stroke-width="2.5" fill="none"/>
+  <g transform="translate(118 72)">
+    <rect x="-9" y="-2" width="18" height="6" rx="3" fill="#386641"/>
+    <path d="M0 4 L0 16" stroke="#386641" stroke-width="2.2"/>
+    <circle cx="0" cy="24" r="7" fill="#F2C9A0"/>
+    <path d="M-8 21 A8 8 0 0 1 8 21 Z" fill="#BC4749"/>
+    <path d="M-7 32 L7 32 L5 52 L-5 52 Z" fill="#6A994E"/>
+    <path d="M-5 52 L-8 66 M5 52 L8 66" stroke="#386641" stroke-width="4" stroke-linecap="round"/>
+    <path d="M-7 33 L-14 22 M7 33 L14 22" stroke="#F2C9A0" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg>
