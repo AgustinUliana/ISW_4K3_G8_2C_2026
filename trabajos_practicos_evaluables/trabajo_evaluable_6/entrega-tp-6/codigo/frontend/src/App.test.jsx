@@ -268,4 +268,14 @@ describe("App: los datos de los visitantes se validan en su propio paso", () => 
     expect(logo).toHaveAttribute("src", "/logo-emblema.png");
     expect(screen.queryByText("Reservá tu lugar en las actividades del parque")).toBeNull();
   });
+
+  it("cerrar sesion es un boton con icono, sin texto visible, y conserva su nombre accesible", () => {
+    montar({ almacenamiento: almacenamientoEnMemoria(SESION_GUARDADA) });
+
+    const boton = within(screen.getByRole("banner")).getByRole("button", { name: "Cerrar sesión" });
+
+    expect(boton.textContent).toBe("");
+    expect(boton.querySelector("svg")).not.toBeNull();
+    expect(boton).toHaveAttribute("title", "Cerrar sesión");
+  });
 });
