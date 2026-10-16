@@ -594,3 +594,121 @@ form .boton-principal {
     animation: none !important;
   }
 }
+
+/* ---------- Acceso (inicio de sesion y crear cuenta) ----------
+   Formato propio: a la izquierda el logo grande sobre una superficie clara y a la derecha el
+   formulario directo sobre el fondo verde, sin paneles de vidrio. En celular se apilan. */
+.acceso {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  min-height: 100vh;
+}
+
+.acceso-escenario {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 40px 32px;
+  border-radius: 0 56px 56px 0;
+  background:
+    radial-gradient(circle at 12% 88%, rgba(167, 201, 87, 0.45) 0, transparent 38%),
+    radial-gradient(circle at 92% 10%, rgba(106, 153, 78, 0.28) 0, transparent 34%),
+    #f8f9f3;
+  box-shadow: 12px 0 40px rgba(20, 50, 28, 0.35);
+}
+
+.acceso-logo {
+  width: min(86%, 480px);
+  height: auto;
+}
+
+.acceso-lema {
+  margin: 0;
+  max-width: 24ch;
+  text-align: center;
+  font-size: clamp(1.1rem, 2.4vw, 1.5rem);
+  font-weight: 900;
+  line-height: 1.25;
+  color: var(--verde-oscuro);
+}
+
+.acceso-formulario {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px clamp(20px, 5vw, 64px);
+  color: var(--crema);
+}
+
+.acceso-formulario .pantalla {
+  width: min(100%, 420px);
+}
+
+.acceso-formulario h2,
+.acceso-formulario label,
+.acceso-formulario .ayuda {
+  color: var(--crema);
+}
+
+.acceso-formulario .pestanas {
+  background: rgba(242, 232, 207, 0.18);
+}
+
+.acceso-formulario .pestanas [role="tab"] {
+  color: var(--crema);
+}
+
+.acceso-formulario .pestanas [role="tab"][aria-selected="true"] {
+  color: var(--verde-oscuro);
+  background: var(--crema);
+}
+
+.acceso-formulario .boton-principal {
+  width: 100%;
+  color: var(--verde-oscuro);
+  background: var(--lima);
+  border-color: var(--lima);
+}
+
+.acceso-formulario .boton-principal:hover:not(:disabled) {
+  background: var(--crema);
+  border-color: var(--crema);
+}
+
+.acceso-formulario input:focus-visible,
+.acceso-formulario button:focus-visible {
+  outline: 3px solid var(--crema);
+  outline-offset: 2px;
+}
+
+.acceso-formulario .aviso {
+  color: var(--verde-oscuro);
+  background: var(--crema);
+}
+
+.acceso-formulario .aviso-error {
+  color: #7d2426;
+}
+
+.acceso-formulario .error-campo {
+  color: #ffd9d6;
+}
+
+@media (max-width: 760px) {
+  .acceso {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .acceso-escenario {
+    padding: 28px 20px 32px;
+    border-radius: 0 0 40px 40px;
+    box-shadow: 0 12px 30px rgba(20, 50, 28, 0.35);
+  }
+
+  .acceso-logo {
+    width: min(64%, 260px);
+  }
+}

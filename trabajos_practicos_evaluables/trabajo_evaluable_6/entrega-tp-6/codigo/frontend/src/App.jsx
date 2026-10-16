@@ -139,6 +139,18 @@ export default function App({
     pantalla = <PantallaListo codigo={codigo} email={sesion.email} alOtra={empezarDeNuevo} />;
   }
 
+  if (!sesion) {
+    return (
+      <div className="acceso">
+        <section className="acceso-escenario" aria-label="EcoHarmony Park">
+          <img className="acceso-logo" src="/logo.png" alt="Logo de EcoHarmony Park" width="760" height="574" />
+          <p className="acceso-lema">Reservá tu lugar en las actividades del parque</p>
+        </section>
+        <main className="acceso-formulario">{pantalla}</main>
+      </div>
+    );
+  }
+
   return (
     <div className="aplicacion">
       <header className="encabezado">
