@@ -55,7 +55,7 @@ diseño tomadas*. Este es ese documento. Cada decisión se presenta con el mismo
 |---|---|
 | Lenguaje y estilo | Python 3.13 (backend; compatible desde 3.11) y JavaScript/React 19 (front). **PEP 8**, verificado automáticamente con `ruff` (largo de línea 100). |
 | Enfoque | TDD de Kent Beck: lista de pruebas, y luego un ciclo **Red → Green → Refactor** por cada comportamiento, visible en `git log`. |
-| Pruebas automatizadas | **380 del backend** (345 sin base de datos + 35 contra PostgreSQL real y `qrcode` real) y **137 del front**. Todas verdes. |
+| Pruebas automatizadas | **380 del backend** (345 sin base de datos + 35 contra PostgreSQL real y `qrcode` real) y **141 del front**. Todas verdes. |
 | Persistencia | PostgreSQL 16 en Docker, SQL plano (sin ORM), visible desde DBeaver. |
 | Piezas reales y gratuitas | QR con la librería `qrcode`; email real por SMTP con Gmail; PostgreSQL local. |
 | Interfaz | React + Vite, paleta y tipografía (Lato) del PO, estilo *Liquid Glass*, responsive. |
@@ -112,7 +112,7 @@ contrato**, que se ejecutan dos veces, contra el fake y contra PostgreSQL (§8.2
 
 | Cat. | Qué usa | Cuántas | Cuándo corre |
 |---|---|---|---|
-| **U** – unitarias | dominio y dobles; sin red, disco ni reloj real | 345 (backend) + 137 (front) | siempre (`pytest`, `vitest`) |
+| **U** – unitarias | dominio y dobles; sin red, disco ni reloj real | 345 (backend) + 141 (front) | siempre (`pytest`, `vitest`) |
 | **C** – contrato / integración local | PostgreSQL local, `qrcode` | 35 | con la base levantada (marcadores `db` y `local`); sin base se saltean con un aviso |
 | **X** – externas | email real a una casilla | 1 (se pide con `pytest -m externa`) | manual, antes de la entrega (marcador `externa`) |
 
@@ -339,6 +339,7 @@ aceptación sin firma, reglas del PO y textos distintos entre sí), `CAT-*`, `CO
 | **Mensajes en español por motivo** (`mensajes.js`) | La API devuelve motivos, no textos (D1). Los mensajes explican el formato esperado con un ejemplo (por ejemplo «el DNI debe tener 7 u 8 números sin puntos ni espacios (por ejemplo 30123456)») y la edad mínima se toma de la actividad. |
 | **Error debajo de cada campo** | Además del resumen, cada campo con problema se marca (`aria-invalid`) y muestra su mensaje debajo, enlazado con `aria-describedby`; al corregirlo desaparece. Los datos faltantes se detectan con los mismos motivos que usa la API (`dni_requerido`, `edad_requerida`…), de modo que el texto es uno solo. |
 | **Ilustración por actividad** | Cuatro SVG originales del grupo (paleta del PO), livianos y sin derechos de terceros; el nombre de la actividad decide el archivo y una actividad nueva sin ilustración se muestra igual. |
+| **Iconos en línea (SVG)** | El ojo para ver la contraseña y el botón de cerrar sesión usan SVG propios dentro del código, sin librería de íconos. Cada botón conserva su nombre accesible (`aria-label`) y su descripción emergente, y el ojo indica su estado con `aria-pressed`. |
 | **Acceso con formato propio** | Logo grande y lema sobre una superficie clara, y el formulario directo sobre el fondo verde, sin los paneles de vidrio ni el encabezado; en celular se apilan. El logo tiene letras oscuras, por eso va siempre sobre fondo claro. |
 
 ### D14. Estilo de código y herramientas
@@ -437,7 +438,7 @@ del grupo?* y, en ese caso, *¿qué aporta y cuánto cuesta?*
 | **PostgreSQL 16 + `psycopg` 3 (SQL plano)** | Guardar inscripciones, cupos y usuarios | Decisión del grupo | La consigna no pide base de datos, pero el **cupo es un estado compartido** y la reserva atómica (D5) solo se puede probar contra una base real; visible en DBeaver. Costo: requiere Docker (las pruebas unitarias corren sin él). |
 | **Docker Compose** | Levantar PostgreSQL con un comando | Decisión del grupo | Cualquier integrante reproduce la base igual; reemplaza instalar PostgreSQL a mano. |
 | **FastAPI + uvicorn** | API HTTP entre el front y las reglas | Decisión del grupo | Valida y documenta (`/docs`) y se prueba sin servidor con `TestClient`. Costo: una capa más; se justifica porque el front está separado. |
-| **React 19 + Vite 8** | Pantallas de la inscripción | **PO**: paleta y tipografía del front; la US es de interfaz (elegir, completar, aceptar) | Permite probar el recorrido completo del visitante; aporta 137 pruebas. Costo: más código fuera del núcleo evaluado (TDD del dominio). |
+| **React 19 + Vite 8** | Pantallas de la inscripción | **PO**: paleta y tipografía del front; la US es de interfaz (elegir, completar, aceptar) | Permite probar el recorrido completo del visitante; aporta 141 pruebas. Costo: más código fuera del núcleo evaluado (TDD del dominio). |
 | **Vitest + React Testing Library** | Pruebas del front | Decisión del grupo (reemplaza a Jest) | Misma API que Jest, integrado a Vite; prueba lo que ve el usuario, no la implementación. |
 | **`liquid-glass-react`** | Efecto *Liquid Glass* de los paneles | **Exigencia de estilo del front** | Encerrada en un solo componente (`Vidrio.jsx`): si falla, se cambia un archivo. |
 | **`@fontsource/lato`** | Tipografía Lato | **PO**: la fuente debe ser Lato | Se sirve desde el propio proyecto: sin depender de un CDN externo ni mandar datos a terceros. |
@@ -472,7 +473,7 @@ biblioteca de componentes.
 
 ### 8.1 Pirámide
 
-- **Base (345 + 137):** unitarias del dominio, del servicio con dobles y de las pantallas con API falsa. Corren en
+- **Base (345 + 141):** unitarias del dominio, del servicio con dobles y de las pantallas con API falsa. Corren en
   segundos, sin infraestructura.
 - **Medio (35):** contratos contra PostgreSQL real y `qrcode` real, incluida la carrera por el último cupo.
 - **Cima:** aceptación (`ACE-01..08`, que además de las pruebas de usuario de la consigna cubren T&C ajenos y falta de sesión), cada una ejecutada con dobles **y** con PostgreSQL + QR real.
@@ -522,7 +523,7 @@ PYTHONPATH=src .venv/Scripts/python.exe -m ecoharmony.preparar_base
 .venv/Scripts/python.exe -m pytest         # 380 pruebas (las de base se saltean si no hay PostgreSQL)
 .venv/Scripts/python.exe -m ruff check .   # PEP 8
 cd ../frontend
-npm install && npm test                    # 137 pruebas
+npm install && npm test                    # 141 pruebas
 ```
 
 ## 11. Bibliografía
