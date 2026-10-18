@@ -8,6 +8,7 @@ export function PantallaListo({ codigo, email, alOtra }) {
         Te enviamos un email a <strong>{email}</strong> con el resumen y un código QR por cada visitante. Presentá el
         QR al llegar a la actividad.
       </p>
+      <p className="ayuda">Si no lo ves en unos minutos, revisá la carpeta de spam o correo no deseado.</p>
       <button type="button" className="boton-principal" onClick={alOtra}>
         Hacer otra inscripción
       </button>
