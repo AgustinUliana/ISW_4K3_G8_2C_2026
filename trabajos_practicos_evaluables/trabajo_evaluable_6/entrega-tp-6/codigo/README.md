@@ -1,7 +1,7 @@
 # EcoHarmony Park – Inscribirme a actividad (TP6, TDD)
 
 Backend en **Python** hecho con TDD (Red-Green-Refactor). Plan de pruebas y decisiones en
-[`../plan-pruebas-tdd-tp-6.md`](../plan-pruebas-tdd-tp-6.md) y justificación del diseño en [`../documento-de-diseno-tp-6.md`](../documento-de-diseno-tp-6.md). Estilo de código: **PEP 8** (verificado con `ruff`).
+[`../plan-pruebas-tdd-tp-6.md`](../plan-pruebas-tdd-tp-6.md) y justificación del diseño en [`../documento-de-diseno-tp-6.pdf`](../documento-de-diseno-tp-6.pdf). Estilo de código: **PEP 8** (verificado con `ruff`).
 
 ## Requisitos
 
