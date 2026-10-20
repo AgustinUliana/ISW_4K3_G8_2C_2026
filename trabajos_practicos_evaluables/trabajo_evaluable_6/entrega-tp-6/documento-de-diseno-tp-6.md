@@ -120,16 +120,10 @@ contrato**, que se ejecutan dos veces, contra el fake y contra PostgreSQL (§8.2
 
 ### 3.1 Capas
 
-```
-React (front)  ──HTTP/JSON──▶  api.py (FastAPI)  ──▶  InscripcionService  ──▶  dominio
- pantallas + API por parámetro   traduce HTTP ⇄ dominio     orquesta               Actividad, Horario, Parque,
-                                                                                    Visitante, Inscripcion
-                                                            │
-                                  puertos (contratos) ◀─────┴────▶ adaptadores
-                                  Reloj · GeneradorQR · ServicioEmail · Repositorio
-                                  RepositorioMemoria / RepositorioPostgres · GeneradorQRLocal
-                                  ServicioEmailSmtp / ServicioEmailEnCarpeta
-```
+![Arquitectura por capas: front, API, aplicación y dominio; puertos (contratos) y adaptadores](imagenes/arquitectura-capas.png)
+
+*Figura 1. Las capas (izquierda), los contratos (centro) y los adaptadores con los servicios externos (derecha). Las flechas
+muestran quién depende de quién: todo apunta hacia el dominio.*
 
 | Capa | Módulos (`backend/src/ecoharmony/`) | Responsabilidad |
 |---|---|---|
