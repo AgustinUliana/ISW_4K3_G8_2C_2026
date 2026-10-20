@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1320 700" width="1320" height="700" font-family="Lato, 'Segoe UI', Arial, sans-serif">
+  <title>Arquitectura por capas de EcoHarmony Park</title>
+  <defs>
+    <marker id="flecha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#386641"/>
+    </marker>
+    <marker id="flecha-roja" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#BC4749"/>
+    </marker>
+  </defs>
+  <rect width="1320" height="700" fill="#FBF8EF"/>
+
+  <!-- titulos de columna -->
+  <text x="250" y="34" text-anchor="middle" font-size="18" font-weight="900" fill="#386641">CAPAS (de arriba hacia adentro)</text>
+  <text x="700" y="34" text-anchor="middle" font-size="18" font-weight="900" fill="#386641">PUERTOS</text>
+  <text x="1140" y="34" text-anchor="middle" font-size="18" font-weight="900" fill="#386641">ADAPTADORES Y SERVICIOS</text>
+
+  <!-- columna 1: capas -->
+  <g>
+    <rect x="30" y="50" width="440" height="100" rx="16" fill="#A7C957" stroke="#386641" stroke-width="3"/>
+    <text x="250" y="86" text-anchor="middle" font-size="20" font-weight="900" fill="#1f3f26">Front (React)</text>
+    <text x="250" y="112" text-anchor="middle" font-size="15" fill="#1f3f26">Pantallas · la API llega por parámetro</text>
+    <text x="250" y="132" text-anchor="middle" font-size="15" fill="#1f3f26">Vitest + Testing Library</text>
+
+    <line x1="250" y1="150" x2="250" y2="200" stroke="#386641" stroke-width="3" marker-end="url(#flecha)"/>
+    <text x="268" y="181" font-size="14" font-weight="700" fill="#386641">HTTP / JSON</text>
+
+    <rect x="30" y="200" width="440" height="100" rx="16" fill="#A7C957" stroke="#386641" stroke-width="3"/>
+    <text x="250" y="236" text-anchor="middle" font-size="20" font-weight="900" fill="#1f3f26">API (FastAPI)</text>
+    <text x="250" y="262" text-anchor="middle" font-size="15" fill="#1f3f26">api.py · main.py</text>
+    <text x="250" y="282" text-anchor="middle" font-size="15" fill="#1f3f26">Traduce HTTP ⇄ dominio y arma las dependencias</text>
+
+    <line x1="250" y1="300" x2="250" y2="350" stroke="#386641" stroke-width="3" marker-end="url(#flecha)"/>
+
+    <rect x="30" y="350" width="440" height="130" rx="16" fill="#6A994E" stroke="#386641" stroke-width="3"/>
+    <text x="250" y="388" text-anchor="middle" font-size="20" font-weight="900" fill="#ffffff">Aplicación</text>
+    <text x="250" y="414" text-anchor="middle" font-size="15" fill="#ffffff">InscripcionService (validar, inscribir, reintentos)</text>
+    <text x="250" y="436" text-anchor="middle" font-size="15" fill="#ffffff">disponibilidad · mensaje_email · mensaje_html · qr</text>
+    <text x="250" y="458" text-anchor="middle" font-size="15" fill="#ffffff">Orquesta el caso de uso</text>
+
+    <line x1="250" y1="480" x2="250" y2="530" stroke="#386641" stroke-width="3" marker-end="url(#flecha)"/>
+    <text x="268" y="511" font-size="14" font-weight="700" fill="#386641">usa</text>
+
+    <rect x="30" y="530" width="440" height="140" rx="16" fill="#386641" stroke="#1f3f26" stroke-width="3"/>
+    <text x="250" y="568" text-anchor="middle" font-size="20" font-weight="900" fill="#F2E8CF">Dominio (sin entrada ni salida)</text>
+    <text x="250" y="594" text-anchor="middle" font-size="15" fill="#F2E8CF">Actividad · Horario · Parque · Visitante</text>
+    <text x="250" y="616" text-anchor="middle" font-size="15" fill="#F2E8CF">Inscripcion · Usuario · TerminosYCondiciones</text>
+    <text x="250" y="638" text-anchor="middle" font-size="15" fill="#F2E8CF">MotivoRechazo (por qué se rechaza)</text>
+  </g>
+
+  <!-- aplicacion -> puertos -->
+  <line x1="470" y1="415" x2="560" y2="415" stroke="#386641" stroke-width="3" marker-end="url(#flecha)"/>
+  <text x="515" y="400" text-anchor="middle" font-size="14" font-weight="700" fill="#386641">depende de</text>
+
+  <!-- columna 2: puertos -->
+  <rect x="560" y="300" width="280" height="230" rx="16" fill="#F2E8CF" stroke="#386641" stroke-width="3" stroke-dasharray="10 6"/>
+  <text x="700" y="336" text-anchor="middle" font-size="20" font-weight="900" fill="#386641">Contratos (Protocol)</text>
+  <text x="700" y="362" text-anchor="middle" font-size="15" fill="#1f3f26">puertos.py</text>
+  <g font-size="16" font-weight="700" fill="#1f3f26" text-anchor="middle">
+    <rect x="580" y="378" width="240" height="30" rx="8" fill="#ffffff" stroke="#A7C957" stroke-width="2"/><text x="700" y="399">Reloj</text>
+    <rect x="580" y="416" width="240" height="30" rx="8" fill="#ffffff" stroke="#A7C957" stroke-width="2"/><text x="700" y="437">GeneradorQR</text>
+    <rect x="580" y="454" width="240" height="30" rx="8" fill="#ffffff" stroke="#A7C957" stroke-width="2"/><text x="700" y="475">ServicioEmail</text>
+    <rect x="580" y="492" width="240" height="30" rx="8" fill="#ffffff" stroke="#A7C957" stroke-width="2"/><text x="700" y="513">Repositorio</text>
+  </g>
+
+  <!-- puertos <- adaptadores -->
+  <line x1="980" y1="415" x2="840" y2="415" stroke="#386641" stroke-width="3" marker-end="url(#flecha)"/>
+  <text x="910" y="400" text-anchor="middle" font-size="14" font-weight="700" fill="#386641">implementan</text>
+
+  <!-- columna 3: adaptadores -->
+  <rect x="980" y="240" width="320" height="350" rx="16" fill="#ffffff" stroke="#6A994E" stroke-width="3"/>
+  <text x="1140" y="276" text-anchor="middle" font-size="20" font-weight="900" fill="#386641">Adaptadores</text>
+  <g font-size="15" fill="#1f3f26">
+    <text x="1002" y="312" font-weight="900">Repositorio</text>
+    <text x="1002" y="334">RepositorioPostgres (real)</text>
+    <text x="1002" y="354">RepositorioMemoria (para pruebas)</text>
+    <text x="1002" y="392" font-weight="900">Email</text>
+    <text x="1002" y="414">ServicioEmailSmtp (Gmail)</text>
+    <text x="1002" y="434">ServicioEmailEnCarpeta (desarrollo)</text>
+    <text x="1002" y="472" font-weight="900">QR</text>
+    <text x="1002" y="494">GeneradorQRLocal (librería qrcode)</text>
+    <text x="1002" y="532" font-weight="900">Reloj</text>
+    <text x="1002" y="554">RelojSistema</text>
+  </g>
+
+  <!-- externos -->
+  <line x1="1072" y1="590" x2="1072" y2="636" stroke="#BC4749" stroke-width="3" marker-end="url(#flecha-roja)"/>
+  <line x1="1230" y1="590" x2="1230" y2="636" stroke="#BC4749" stroke-width="3" marker-end="url(#flecha-roja)"/>
+  <rect x="990" y="636" width="165" height="44" rx="12" fill="#BC4749"/>
+  <text x="1072" y="664" text-anchor="middle" font-size="17" font-weight="900" fill="#F2E8CF">PostgreSQL 16</text>
+  <rect x="1170" y="636" width="120" height="44" rx="12" fill="#BC4749"/>
+  <text x="1230" y="664" text-anchor="middle" font-size="17" font-weight="900" fill="#F2E8CF">Gmail</text>
+
+  <!-- nota -->
+  <text x="700" y="580" text-anchor="middle" font-size="15" font-weight="700" fill="#386641">Las dependencias apuntan hacia adentro:</text>
+  <text x="700" y="602" text-anchor="middle" font-size="15" fill="#386641">el dominio no conoce a ningún adaptador.</text>
+  <text x="700" y="650" text-anchor="middle" font-size="14" fill="#6A994E">En las pruebas se reemplazan los adaptadores</text>
+  <text x="700" y="670" text-anchor="middle" font-size="14" fill="#6A994E">por dobles sin tocar el dominio.</text>
+</svg>
