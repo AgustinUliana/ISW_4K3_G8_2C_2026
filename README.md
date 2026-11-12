@@ -97,23 +97,23 @@ Las carpetas se nombran utilizando `snake_case` y los archivos utilizando `kebab
 
 ## Criterio de línea base
 
-En nuestro proyecto, definimos una línea base luego de la devolución y corrección de cada Trabajo Práctico evaluable, momento en el cual se alcanza una versión final validada. Esta decisión permite que el repositorio mantenga versiones consolidadas, correctas y alineadas con los criterios establecidos por la cátedra. De esta manera, cada línea base funciona como un punto de referencia estable para el seguimiento y control de los cambios realizados durante el desarrollo del proyecto.
+En nuestro proyecto, definimos una línea base luego de la devolución y corrección de cada Trabajo Práctico evaluable y de cada Trabajo Práctico de Investigación Grupal (TPIG), momento en el cual se alcanza una versión final validada. Esta decisión permite que el repositorio mantenga versiones consolidadas, correctas y alineadas con los criterios establecidos por la cátedra. De esta manera, cada línea base funciona como un punto de referencia estable para el seguimiento y control de los cambios realizados durante el desarrollo del proyecto.
 
-Cada línea base estará compuesta por los ítems de configuración asociados al Trabajo Práctico correspondiente: la consigna y la entrega final de ese Trabajo Práctico.
+Cada línea base estará compuesta por los ítems de configuración asociados al trabajo correspondiente: en el caso de un Trabajo Práctico evaluable, la consigna y la entrega final de ese trabajo; en el caso de un TPIG, la consigna y la presentación final de ese trabajo.
 
-Para su identificación, adoptamos la convención de nombrado `LB-TP<<numero>>-vFinal`. Por ejemplo: `LB-TP1-vFinal`, `LB-TP2-vFinal`. Esta convención permite identificar de forma clara el Trabajo Práctico al que pertenece cada línea base y facilita la trazabilidad de las diferentes versiones.
+Para su identificación, adoptamos la convención de nombrado `LB-TP<<numero>>-vFinal` para los Trabajos Prácticos evaluables y `LB-TPIG<<numero>>-vFinal` para los TPIG. Por ejemplo: `LB-TP1-vFinal`, `LB-TP2-vFinal`, `LB-TPIG1-vFinal`. Esta convención permite identificar de forma clara el trabajo al que pertenece cada línea base y facilita la trazabilidad de las diferentes versiones.
 
 Un ítem de configuración será considerado parte de la línea base cuando:
 
 - Haya sido revisado y aprobado por al menos un integrante del grupo.
 - Esté completo y en su versión definitiva, sin marcas de borrador o pendientes.
 - Respete el formato, la regla de nombrado y la ubicación definidos en el listado de ítems de configuración.
-- Corresponda al contenido validado del Trabajo Práctico luego de las correcciones realizadas.
+- Corresponda al contenido validado del trabajo luego de las correcciones realizadas.
 - Se encuentre incorporado al repositorio en el momento de establecer la línea base.
 
 Una vez establecida una línea base, los cambios posteriores sobre sus ítems deberán realizarse de manera controlada, manteniendo el registro de las modificaciones para garantizar la trazabilidad y evitar la pérdida de la versión validada.
 
-**¿Qué sucede con el resto de los ítems?** El criterio de línea base aplica específicamente a los Trabajos Prácticos Evaluables, ya que son los únicos ítems que atraviesan una instancia formal de corrección y validación por parte de la cátedra, lo cual constituye el punto de referencia necesario para fijar una versión estable y definitiva. El resto de los ítems de configuración (ejercicios, tomas de notas, resúmenes, bibliografía, templates, guías, diapositivas, clases grabadas, TPIG, cronograma, programa y presentación general de la materia) constituye material de referencia de actualización continua a lo largo del cursado, que no atraviesa una instancia de corrección formal por parte de la cátedra. Por ese motivo no se definen líneas base individuales para ellos: su trazabilidad y control de versiones quedan garantizados por el propio historial de commits del repositorio, que permite identificar y recuperar cualquier estado anterior en caso de ser necesario.
+**¿Qué sucede con el resto de los ítems?** El criterio de línea base aplica específicamente a los Trabajos Prácticos Evaluables y a los TPIG, ya que son los únicos ítems que atraviesan una instancia formal de corrección y validación por parte de la cátedra, lo cual constituye el punto de referencia necesario para fijar una versión estable y definitiva. El resto de los ítems de configuración (ejercicios, tomas de notas, resúmenes, bibliografía, templates, guías, diapositivas, clases grabadas, cronograma, programa y presentación general de la materia) constituye material de referencia de actualización continua a lo largo del cursado, que no atraviesa una instancia de corrección formal por parte de la cátedra. Por ese motivo no se definen líneas base individuales para ellos: su trazabilidad y control de versiones quedan garantizados por el propio historial de commits del repositorio, que permite identificar y recuperar cualquier estado anterior en caso de ser necesario.
 
 ## Link a este repositorio
 
