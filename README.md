@@ -1,6 +1,6 @@
 # ISW_4K3_G8_2C_2026
 
-Repositorio del Grupo 8 – Ingeniería de Software (ISW) – 4K3 – 2026.
+Repositorio del Grupo 8 – Ingeniería y Calidad de Software (ISW) – 4K3 – 2026.
 Aquí se documentan todos los materiales de clase, trabajos prácticos, consignas y entregas del equipo.
 
 ## Integrantes
@@ -63,18 +63,20 @@ Las carpetas se nombran utilizando `snake_case` y los archivos utilizando `kebab
 | Resumen | `resumen-<<numero_unidad>>-<<autor>>.<<extension_apuntes>>` | `material_de_alumnos/resumenes` |
 | Bibliografía | `<<nombre-archivo>>.pdf` | `material_de_catedra/bibliografia/<<tema>>` |
 | Templates | `template-<<tema>>-<<autor>>.pdf` | `material_de_catedra/templates` |
-| Guía de Cátedra | `guia-<<tema>>.pdf` | `material_de_catedra/guias` |
 | Diapositiva de Clase | `<<numero>>-<<nombre>>.pdf` | `material_de_catedra/u_<<numero_unidad>>_<<nombre_unidad>>/filminas` |
-| Clase Grabada | `clase-grabada-<<numero>>-<<nombre>>.md` | `material_de_catedra/u_<<numero_unidad>>_<<nombre_unidad>>/grabaciones` |
 | Consigna de TPIG | `consigna-tpig-<<numero>>.pdf` | `trabajos_investigacion/trabajo_investigacion_<<numero>>` |
 | Presentación TPIG | `presentacion-tpig-<<numero>>.pdf` | `trabajos_investigacion/trabajo_investigacion_<<numero>>` |
 | Consigna de TP Evaluable | `consigna-tp-<<numero>>.pdf` | `trabajos_practicos_evaluables/trabajo_evaluable_<<numero>>` |
 | Entrega de TP Evaluable | `entrega-tp-<<numero>>.<<extension_tp>>` | `trabajos_practicos_evaluables/trabajo_evaluable_<<numero>>` |
-| Presentación General de la Materia | `presentacion-general-isw.pdf` | `planificacion_catedra` |
 | Cronograma | `cronograma-isw.xlsx` | `planificacion_catedra` |
 | Programa | `programa-isw.pdf` | `planificacion_catedra` |
+| Guía de Cátedra | `guia-<<tema>>.pdf` | `material_de_catedra/guias` |
+| Clase Grabada | `clase-grabada-<<numero>>-<<nombre>>.md` | `material_de_catedra/u_<<numero_unidad>>_<<nombre_unidad>>/grabaciones` |
+| Presentación General de la Materia | `presentacion-general-isw.pdf` | `planificacion_catedra` |
 
-> **Nota sobre Clase Grabada:** dado que los archivos de video de las clases exceden el tamaño manejable para un repositorio Git público, este ítem no almacena el video en sí, sino un archivo `.md` con el enlace de acceso a la grabación (plataforma donde la cátedra la publica) y una breve referencia a su contenido.
+> **Nota sobre Clase Grabada:** dado que los archivos de video de las clases exceden el tamaño manejable para un repositorio Git público, este ítem no almacena el video en sí, sino un archivo `.md` con el enlace de acceso a la grabación y una breve referencia a su contenido.
+>
+> **Nota sobre Entrega de TP Evaluable:** cuando la entrega del Trabajo Práctico consiste en código fuente (por ejemplo, un desarrollo de software), este ítem se almacena como una carpeta `entrega-tp-<<numero>>/` con la estructura completa del proyecto (código, pruebas automatizadas y documentación asociada), en lugar de un único archivo `entrega-tp-<<numero>>.<<extension_tp>>`.
 
 ## Glosario
 
